@@ -1,11 +1,27 @@
 import pathlib
 from bs4 import BeautifulSoup
-import bridge
+from bridge import PlayerHand,Hand
 import re
 
 
 base_path = '/Users/frice/PycharmProjects/bridge/results/'
 dealer_pattern = re.compile('(.*) Deals')
+
+
+def parse_suit(suit_row):
+    suit_text = suit_row.find('td', class_='bchand').text
+    if suit_text == '—':
+        return []
+    else:
+        return suit_text.split()
+
+def parse_player_hand(player_hand_table):
+    suit_rows = player_hand_table.find_all('tr')
+    spades = parse_suit(suit_rows[0])
+    hearts = parse_suit(suit_rows[1])
+    diamonds = parse_suit(suit_rows[2])
+    clubs = parse_suit(suit_rows[3])
+    return PlayerHand(clubs, diamonds, hearts, spades)
 
 
 def parse_hand_table(hand_table):
@@ -27,12 +43,12 @@ def parse_hand_table(hand_table):
         ew_vulnerable = True
         ns_vulnerable = True
 
-    #print(row_1)
-    print("dealer:{}".format(dealer))
-    print("ns_vuln:{}".format(ns_vulnerable))
-    print("ew_vuln:{}".format(ew_vulnerable))
-    #print(row_2)
-    #print(row_3)
+    north_hand = parse_player_hand(row_1.find('table', class_='bchand'))
+    ew_hands = row_2.find_all('table', class_='bchand')
+    west_hand = parse_player_hand(ew_hands[0])
+    east_hand = parse_player_hand(ew_hands[1])
+    south_hand = parse_player_hand(row_3.find('table', class_='bchand'))
+    return Hand(dealer, ns_vulnerable,ew_vulnerable, north_hand, east_hand, south_hand, west_hand)
 
 def parse_recap(recap_file_path):
     if str(recap_file_path) == '/Users/frice/PycharmProjects/bridge/results/2018-02-19/recap_e_20180219.html':
@@ -40,9 +56,10 @@ def parse_recap(recap_file_path):
         recap_soup = BeautifulSoup(recap_page, 'html.parser')
         hand_tables = recap_soup.find_all('table', class_='bchd')
         for index, hand_table in enumerate(hand_tables):
-            print('hand {}'.format(index))
-
-            parse_hand_table(hand_table)
+            if(index == 14): #testing
+                print('hand {}'.format(index))
+                hand = parse_hand_table(hand_table)
+                print(hand)
 
 
 for results_day_path in pathlib.Path(base_path).iterdir():
