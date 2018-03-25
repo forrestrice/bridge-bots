@@ -3,9 +3,12 @@ from bs4 import BeautifulSoup
 from bridge import PlayerHand,Hand
 import re
 
+from hand_dao import HandDao
 
 base_path = '/Users/frice/PycharmProjects/bridge/results/'
 dealer_pattern = re.compile('(.*) Deals')
+hand_dao = HandDao()
+processed_files = hand_dao.get_processed_files()
 
 
 def parse_suit(suit_row):
@@ -43,32 +46,48 @@ def parse_hand_table(hand_table):
         ew_vulnerable = True
         ns_vulnerable = True
 
-    north_hand = parse_player_hand(row_1.find('table', class_='bchand'))
-    ew_hands = row_2.find_all('table', class_='bchand')
+    north_hand = parse_player_hand(row_1.find('table', class_=['bchand','bchandhl']))
+    ew_hands = row_2.find_all('table', class_=['bchand','bchandhl'])
     west_hand = parse_player_hand(ew_hands[0])
     east_hand = parse_player_hand(ew_hands[1])
-    south_hand = parse_player_hand(row_3.find('table', class_='bchand'))
+    south_hand = parse_player_hand(row_3.find('table', class_=['bchand','bchandhl']))
     return Hand(dealer, ns_vulnerable,ew_vulnerable, north_hand, east_hand, south_hand, west_hand)
 
+
 def parse_recap(recap_file_path):
-    if str(recap_file_path) == '/Users/frice/PycharmProjects/bridge/results/2018-02-19/recap_e_20180219.html':
-        recap_page = open(recap_file_path, 'r').read()
-        recap_soup = BeautifulSoup(recap_page, 'html.parser')
-        hand_tables = recap_soup.find_all('table', class_='bchd')
-        for index, hand_table in enumerate(hand_tables):
-            if(index == 14): #testing
-                print('hand {}'.format(index))
-                hand = parse_hand_table(hand_table)
-                print(hand)
+    # if str(recap_file_path) == '/Users/frice/PycharmProjects/bridge/results/2017-02-13/recap_b_20170213.html':
+    recap_page = open(recap_file_path, 'r').read()
+    recap_soup = BeautifulSoup(recap_page, 'html.parser')
+    hand_tables = recap_soup.find_all('table', class_='bchd')
+    for index, hand_table in enumerate(hand_tables):
+        # if (index == 8):  # testing
+        # print('hand {}'.format(index))
+        try:
+            hand = parse_hand_table(hand_table)
+            hand_dao.write_hand(hand)
+        except Exception as error:
+            print("Error processing hand {0} of file {1}".format(index, recap_file_path))
+
+
+# print(hand)
+
 
 
 for results_day_path in pathlib.Path(base_path).iterdir():
     print(results_day_path)
     for recap_file in results_day_path.iterdir():
-        print('\t'+ str(recap_file))
-        parse_recap(recap_file)
+        recap_file_string = str(recap_file)
+        if recap_file_string not in processed_files:
+            try:
+                print('\t'+ str(recap_file))
+                parse_recap(recap_file)
+                hand_dao.record_porcessed_file(recap_file_string)
+            except Exception as error:
+                print("Encountered exception while processing {0}: {1}".format(recap_file_string, error))
+        else:
+            print("Already processed {0}".format(recap_file_string))
 
-
+hand_dao.close()
 
 
 

@@ -1,4 +1,6 @@
+-- postgres -D /usr/local/var/postgres/
 -- psql -U frice -d bridge -a -f sql/create_db.sql
+-- psql -U frice -d bridge
 CREATE TABLE hands (
     id SERIAL PRIMARY KEY,
     dealer TEXT NOT NULL,
@@ -40,4 +42,8 @@ CREATE TABLE hand_scores (
     declarer TEXT NOT NULL,
     result int,
     score int NOT NULL
+);
+
+CREATE TABLE recap_files(
+    file_name TEXT not null
 );
