@@ -5,7 +5,7 @@ import re
 
 from hand_dao import HandDao
 
-base_path = '/Users/frice/PycharmProjects/bridge/results/'
+base_path = '/home/forrest/bridge/results/'
 dealer_pattern = re.compile('(.*) Deals')
 hand_dao = HandDao()
 processed_files = hand_dao.get_processed_files()

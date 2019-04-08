@@ -15,7 +15,7 @@ earliestResults = datetime.date(2017, 1, 1)
 resultsUrlBase = 'http://www.quicktricks.org/index.php?id=305&date='
 javascriptLinkPattern = re.compile("javascript:onclick=popresults\(\'(.*)\',.*")
 recapUrlBase = 'http://www.quicktricks.org/'
-basePath = '/Users/frice/PycharmProjects/bridge/results/'
+basePath = '/home/forrest/bridge/results/'
 
 def fetchPage(url):
     try:

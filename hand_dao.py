@@ -1,6 +1,5 @@
 import psycopg2
 
-
 #
 #try:
 #    conn = psycopg2.connect("dbname='bridge' user='frice' host='localhost'")
@@ -15,7 +14,7 @@ import psycopg2
 
 class HandDao:
     def __init__(self):
-        self.connection = psycopg2.connect("dbname='bridge' user='frice' host='localhost'")
+        self.connection = psycopg2.connect("dbname=bridge user=bridgebot host=localhost password=bidslam")
 
     def close(self):
         self.connection.close()
