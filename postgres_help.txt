@@ -3,3 +3,12 @@ GRANT USAGE ON SCHEMA public TO bridgebot;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO bridgebot;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO bridgebot;
 
+MAC
+-- postgres -D /usr/local/var/postgres/
+-- psql -U frice -d bridge -a -f sql/create_db.sql
+-- psql -U frice -d bridge
+
+UBUNTU
+--sudo service postgresql start
+--psql -U forrest -d bridge
+-- psql -U forrest -d bridge -a -f sql/create_db.sql
