@@ -33,9 +33,20 @@ class AcblClient:
         all_data.extend(first_resp_json["data"])
         next_page = first_resp_json["next_page_url"]
         while next_page != None:
-            self.logger.debug("next_page: %s", next_page)
-            time.sleep(0.3)
-            resp_json = self._authorized_request_json(next_page)
-            all_data.extend(resp_json["data"])
-            next_page = resp_json["next_page_url"]
+            success = False
+            for i in range(0,3):
+                try:
+                    self.logger.debug("next_page: %s", next_page)
+                    time.sleep(0.5)
+                    resp_json = self._authorized_request_json(next_page)
+                    all_data.extend(resp_json["data"])
+                    next_page = resp_json["next_page_url"]
+                    success = True
+                    break
+                except Exception as e:
+                    self.logger.error(e)
+                    continue
+            if not success:
+                raise Exception("failed after 3 retries")
+
         return all_data

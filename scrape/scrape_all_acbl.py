@@ -71,7 +71,7 @@ results_dir_path.mkdir(parents=True, exist_ok=True)
 results_path = results_dir_path / "all_tournaments.json"
 if not results_path.exists():
 
-    all_tournaments = client.join_all_pages_json("tournament_query", {"page_size": 50, "start_date": "2000-01-01"})
+    all_tournaments = client.join_all_pages_json("tournament_query", {"page_size": 50, "start_date": "2018-01-01"})
     with open(results_path, "w") as tournament_file:
         json.dump(all_tournaments, tournament_file)
 else:

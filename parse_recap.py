@@ -1,6 +1,6 @@
 import pathlib
 from bs4 import BeautifulSoup
-from bridge import PlayerHand,Hand
+from deal.deal import PlayerHand,Deal
 import re
 
 from hand_dao import HandDao
@@ -51,7 +51,7 @@ def parse_hand_table(hand_table):
     west_hand = parse_player_hand(ew_hands[0])
     east_hand = parse_player_hand(ew_hands[1])
     south_hand = parse_player_hand(row_3.find('table', class_=['bchand','bchandhl']))
-    return Hand(dealer, ns_vulnerable,ew_vulnerable, north_hand, east_hand, south_hand, west_hand)
+    return Deal(dealer, ns_vulnerable, ew_vulnerable, north_hand, east_hand, south_hand, west_hand)
 
 
 def parse_recap(recap_file_path):
