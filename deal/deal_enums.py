@@ -1,20 +1,36 @@
 from enum import Enum
+from functools import total_ordering
 
 
+@total_ordering
 class Direction(Enum):
     NORTH = 0
     SOUTH = 1
     EAST = 2
     WEST = 3
 
+    def __lt__(self, other):
+        return self.value < other.value
 
+    def __repr__(self):
+        return self.name
+
+
+@total_ordering
 class Suit(Enum):
     CLUBS = 0
     DIAMONDS = 1
     HEARTS = 2
     SPADES = 3
 
+    def __lt__(self, other):
+        return self.value < other.value
 
+    def __repr__(self):
+        return self.name
+
+
+@total_ordering
 class Rank(Enum):
     TWO = 2
     THREE = 3
@@ -40,3 +56,6 @@ class Rank(Enum):
 
     def __lt__(self, other):
         return self.value < other.value
+
+    def __repr__(self):
+        return self.name
