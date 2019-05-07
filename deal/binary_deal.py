@@ -34,8 +34,12 @@ def deserialize(binary_deal_bytes: bytes) -> Deal:
     hands = defaultdict(lambda: defaultdict(list))
     for card in reverse_sorted_cards:
         card_direction = Direction(binary_deal & 3)
-        hands[card_direction][card.suit].insert(0, card.rank)
+        hands[card_direction][card.suit].append(card.rank)
         binary_deal = binary_deal >> 2
+
+    for direction in Direction:
+        for suit in Suit:
+            hands[direction][suit].reverse()
 
     north_hand = PlayerHand(hands[Direction.NORTH])
     south_hand = PlayerHand(hands[Direction.SOUTH])
