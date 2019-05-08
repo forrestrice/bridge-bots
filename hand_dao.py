@@ -1,5 +1,5 @@
 import psycopg2
-
+import json
 #
 #try:
 #    conn = psycopg2.connect("dbname='bridge' user='frice' host='localhost'")
@@ -11,6 +11,8 @@ import psycopg2
 #    print(row)
 #except Exception as error:
 #    print (error)
+from deal.deal import Deal
+
 
 class HandDao:
     def __init__(self):
@@ -63,6 +65,10 @@ class HandDao:
                 self.connection.commit()
             except Exception as e:
                 print(e)
+
+    def write_double_dummy(self, deal: Deal, analysis: json):
+        pass
+
 
 
 hand_dao = HandDao()

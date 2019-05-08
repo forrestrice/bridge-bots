@@ -1,11 +1,5 @@
--- postgres -D /usr/local/var/postgres/
--- psql -U frice -d bridge -a -f sql/create_db.sql
--- psql -U frice -d bridge
+-- See postgres_help.txt for more information
 
--- UBUNTU
---sudo service postgresql start
---psql -U forrest -d bridge
--- psql -U forrest -d bridge -a -f sql/create_db.sql
 CREATE TABLE hands (
     id SERIAL PRIMARY KEY,
     dealer TEXT NOT NULL,
