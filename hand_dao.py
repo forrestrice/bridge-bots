@@ -1,16 +1,6 @@
 import psycopg2
 import json
 #
-#try:
-#    conn = psycopg2.connect("dbname='bridge' user='frice' host='localhost'")
-#    cur = conn.cursor()
-#    cur.execute("INSERT INTO hands (dealer, ew_vulnerable, ns_vulnerable, nspades) VALUES (%s, %s, %s, %s)", ("NORTH", True, True, ['K','J','10','7']))
-#    conn.commit()
-#    cur.execute("SELECT * FROM hands")
-#    row = cur.fetchone()
-#    print(row)
-#except Exception as error:
-#    print (error)
 from deal.deal import Deal
 
 
@@ -41,12 +31,7 @@ class HandDao:
             east = hand.east_hand
             south = hand.south_hand
             west = hand.west_hand
-            #print(east)
-            #print(east.spades)
-            #print(type(east.spades))
             try:
-                #cursor.execute("INSERT INTO hands (dealer, ew_vulnerable, ns_vulnerable, espades) VALUES (%s, %s, %s, %s)", (hand.dealer, hand.ew_vulnerable, hand.ns_vulnerable, east.spades))
-
                 cursor.execute("INSERT INTO hands (dealer, ew_vulnerable, ns_vulnerable, "
                             "nspades, nhearts, ndiamonds, nclubs, "
                             "espades, ehearts, ediamonds, eclubs, "
