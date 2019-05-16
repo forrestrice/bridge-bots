@@ -33,8 +33,8 @@ class PlayerHand:
             for rank in self.suits[suit]:
                 self.cards.append(Card(suit, rank))
 
-    @classmethod
-    def from_string_lists(cls, clubs: List[str], diamonds: List[str], hearts: List[str], spades: List[str]):
+    @staticmethod
+    def from_string_lists(clubs: List[str], diamonds: List[str], hearts: List[str], spades: List[str]):
         suits = {
             Suit.CLUBS: sorted([Rank.from_str(card_str) for card_str in clubs], reverse=True),
             Suit.DIAMONDS: sorted([Rank.from_str(card_str) for card_str in diamonds], reverse=True),

@@ -15,5 +15,6 @@ class TestDeal(unittest.TestCase):
         self.assertEqual([Card(Suit.CLUBS, Rank.TWO), Card(Suit.CLUBS, Rank.KING), Card(Suit.CLUBS, Rank.ACE)],
                          ph.cards[0:3])
 
+
 if __name__ == '__main__':
     unittest.main()

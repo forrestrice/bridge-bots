@@ -1,12 +1,7 @@
-import json
 import logging
-import pathlib
 import time
-from pprint import pprint
+
 from requests import get
-
-
-
 
 
 class AcblClient:
@@ -23,7 +18,6 @@ class AcblClient:
             self.logger.error("Exception fetching path=%s, params=%s: %s", path, params, ex)
             raise ex
 
-
     def _authorized_request_json(self, full_path):
         return get(full_path, headers=self.auth_headers).json()
 
@@ -32,9 +26,9 @@ class AcblClient:
         first_resp_json = self.api_request_json(path, params)
         all_data.extend(first_resp_json["data"])
         next_page = first_resp_json["next_page_url"]
-        while next_page != None:
+        while next_page is not None:
             success = False
-            for i in range(0,3):
+            for i in range(0, 3):
                 try:
                     self.logger.debug("next_page: %s", next_page)
                     time.sleep(0.5)

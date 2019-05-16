@@ -29,6 +29,19 @@ class Suit(Enum):
     def __repr__(self):
         return self.name
 
+@total_ordering
+class BiddingSuit(Enum):
+    CLUBS = 0
+    DIAMONDS = 1
+    HEARTS = 2
+    SPADES = 3
+    NO_TRUMP = 4
+
+    def __lt__(self, other):
+        return self.value < other.value
+
+    def __repr__(self):
+        return self.name
 
 @total_ordering
 class Rank(Enum):
