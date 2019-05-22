@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Dict, Tuple
 
+from deal.deal import Deal
 from deal.deal_enums import Direction, BiddingSuit
 
 
@@ -69,3 +70,15 @@ class DoubleDummyScore:
             scores[first_direction][suit] = first_score
             scores[second_direction][suit] = second_score
         return scores
+
+
+class DoubleDummyDeal:
+    def __init__(self, deal: Deal, dd_score: DoubleDummyScore):
+        self.deal = deal
+        self.dd_score = dd_score
+
+    @staticmethod
+    def from_acbl_dict(acbl_dict: Dict[str, str]) -> DoubleDummyDeal:
+        dd_score = DoubleDummyScore.from_acbl_strings(acbl_dict["double_dummy_north_south"],
+                                                      acbl_dict["double_dummy_east_west"])
+        return DoubleDummyDeal(Deal.from_acbl_dict(acbl_dict), dd_score)

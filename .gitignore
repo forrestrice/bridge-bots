@@ -3,3 +3,4 @@ __pycache__/
 venv/
 results/
 acbl_token.txt
+train/data

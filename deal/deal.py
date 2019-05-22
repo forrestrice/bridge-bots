@@ -121,3 +121,20 @@ class Deal:
             Direction.WEST: PlayerHand(hands[Direction.WEST]),
         }
         return Deal(dealer, ns_vulnerable, ew_vulnerable, deal_hands)
+
+    ns_vuln_strings = {'Both', 'N-S'}
+    ew_vuln_strings = {'Both', 'E-W'}
+
+    @staticmethod
+    def from_acbl_dict(acbl_dict: Dict[str, str]) -> Deal:
+        player_cards = {}
+        for direction in Direction:
+            suit_keys = [direction.name.lower() + "_" + suit.name.lower() for suit in Suit]
+            suit_string_lists = [[] if acbl_dict[suit_key] == "-----" else acbl_dict[suit_key].split() for suit_key in suit_keys]
+            player_cards[direction] = PlayerHand.from_string_lists(*suit_string_lists)
+
+        dealer_direction = Direction[acbl_dict["dealer"].upper()]
+        vuln_string = acbl_dict["vulnerability"]
+        ns_vuln = vuln_string in Deal.ns_vuln_strings
+        ew_vuln = vuln_string in Deal.ew_vuln_strings
+        return Deal(dealer_direction, ns_vuln, ew_vuln, player_cards)
