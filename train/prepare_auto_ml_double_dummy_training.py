@@ -1,9 +1,7 @@
-import csv
 import logging
-import os
 import pickle
 import random
-from typing import List, Dict
+from typing import Dict
 
 from deal.deal import Card
 from deal.deal_enums import Suit, Rank, Direction, BiddingSuit
@@ -16,20 +14,14 @@ for direction in Direction:
     for card in sorted_cards:
         card_headers.append(direction.name[0] + str(card.rank.value) + card.suit.name[0])
 
-csv_headers = card_headers + ["direction", "CT", "DT", "HT", "ST", "NTT"]
+csv_headers = ["split"] + card_headers + ["direction", "suit", "tricks"]
 
-data_dir = "./data/double_dummy/"
-splits = ["training.csv", "validation.csv", "test.csv"]
-training_writers = []
-split_weights = [0.7, 0.1, 0.2]
+file_path = "./data/double_dummy/auto_ml.csv"
+training_writer = StreamingCsvWriter(file_path)
+training_writer.write_row(csv_headers)
 
-file_paths = [data_dir + file_name for file_name in splits]
-
-for file_path in file_paths:
-    training_writer = StreamingCsvWriter(file_path)
-    training_writers.append(training_writer)
-    training_writer.write_row(csv_headers)
-
+splits = ["TRAIN", "VALIDATE", "TEST"]
+split_weights = [0.8, 0.1, 0.1]
 
 def generate_deals():
     with open("../results/double_dummy/all_deals.pickle", "rb") as dd_pickle_file:
@@ -42,9 +34,7 @@ def generate_deals():
 
 deal_count = 0
 for ddd in generate_deals():
-
-    training_writer = random.choices(training_writers, split_weights)[0]
-    deal_data = []
+    deal_data = [random.choices(splits, split_weights)[0]]
     for direction in Direction:
         direction_data = []
         player_cards = sorted(ddd.deal.hands[direction].cards)
@@ -60,18 +50,19 @@ for ddd in generate_deals():
 
     # Write 4 rows, one for the double dummy score of each direction
     for direction in Direction:
-        row_data = deal_data.copy()
-        row_data.append(direction.value)
+        direction_data = deal_data.copy()
+        direction_data.append(direction.value)
         scores: Dict[BiddingSuit, int] = ddd.dd_score.scores[direction]
         for bidding_suit in BiddingSuit:
+            row_data = direction_data.copy()
+            row_data.append(bidding_suit.value)
             row_data.append(scores[bidding_suit])
-
-        assert 214 == len(row_data)
-        training_writer.write_row(row_data)
+            assert 212 == len(row_data)
+            training_writer.write_row(row_data)
 
     deal_count += 1
     if deal_count % 1000 == 0:
         logging.info("processed %s deals", deal_count)
 
-for training_writer in training_writers:
-    training_writer.close()
+
+training_writer.close()
