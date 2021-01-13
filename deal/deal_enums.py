@@ -61,7 +61,7 @@ class Rank(Enum):
 
     # double underscore to end the enum declaration
     __from_str_map__ = {'2': TWO, '3': THREE, '4': FOUR, '5': FIVE, '6': SIX, '7': SEVEN, '8': EIGHT, '9': NINE,
-                        '10': TEN, 'J': JACK, 'Q': QUEEN, 'K': KING, 'A': ACE}
+                        '10': TEN, 'T': TEN, 'J': JACK, 'Q': QUEEN, 'K': KING, 'A': ACE}
 
     @classmethod
     def from_str(cls, str):

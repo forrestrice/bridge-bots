@@ -12,10 +12,10 @@ today = datetime.date.today()
 resultsDay = today - datetime.timedelta(today.weekday()) #fetch the last monday
 earliestResults = datetime.date(2017, 1, 1)
 
-resultsUrlBase = 'http://www.quicktricks.org/index.php?id=305&date='
+resultsUrlBase = 'https://www.quicktricks.org/calendar-node-field-game-date-iso/day/'
 javascriptLinkPattern = re.compile("javascript:onclick=popresults\(\'(.*)\',.*")
 recapUrlBase = 'http://www.quicktricks.org/'
-basePath = '/home/forrest/bridge/results/'
+basePath = '/Users/frice/bridge/results/'
 
 def fetchPage(url):
     try:
@@ -38,25 +38,30 @@ def fetchResults(day):
         print("Already fetched results for " + day.isoformat())
         return
     resultsPath.mkdir(parents=True, exist_ok=False)
-    resultsUrl = resultsUrlBase + day.strftime("%m/%d/%y")
+    resultsUrl = resultsUrlBase + day.isoformat()
     print(resultsUrl)
     resultsPage = fetchPage(resultsUrl)
-    resultsSoup = BeautifulSoup(resultsPage, 'html.parser')
-    resultsDiv = resultsSoup.find('div', class_="tx-bridgeresults-pi1")
-    recapLinks = resultsDiv.find_all('a', href=re.compile("recap"))
-    for recapLink in recapLinks:
-        javascriptLink = recapLink['href']
-        match = javascriptLinkPattern.match(javascriptLink)
-        if(match):
-            recapLink = recapUrlBase + match.group(1)
-            print(recapLink)
-            recapPage = fetchPage(recapLink)
-            filename = recapLink.split("/")[-1]
-            filePath = resultsPath / filename
-            print(filePath)
+    #TODO better null handling
+    if resultsPage is not None:
+        resultsSoup = BeautifulSoup(resultsPage, 'html.parser')
+        resultsDiv = resultsSoup.find('div', class_="calendar dayview")
+    else:
+        resultsDiv = None
+    if resultsDiv:
+        recap_links = resultsDiv.find_all('a', href=re.compile("recap"))
+    else:
+        recap_links = []
+        print(f"skipping {day} recapDiv is none")
+    print(recap_links)
+    for recap_link in recap_links:
+        recap_url = recap_link['href']
+        recap_page = fetchPage(recap_url)
+        if recap_page:
+            filePath = resultsPath / "recap.html"
             with open(filePath, 'wb') as recapFile:
-                recapFile.write(recapPage)
-
+                recapFile.write(recap_page)
+        else:
+            print(f"skipping {day} page is none")
 
 while(resultsDay > earliestResults):
     print("Considering "+ resultsDay.isoformat())
