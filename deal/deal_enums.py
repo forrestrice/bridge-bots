@@ -5,9 +5,16 @@ from functools import total_ordering
 @total_ordering
 class Direction(Enum):
     NORTH = 0
-    SOUTH = 1
-    EAST = 2
+    EAST = 1
+    SOUTH = 2
     WEST = 3
+
+    _ignore_ = ['_char_map']
+    _char_map = {}
+
+    @classmethod
+    def from_char(self, direction_char):
+        return Direction._char_map[direction_char]
 
     def __lt__(self, other):
         return self.value < other.value
@@ -15,6 +22,11 @@ class Direction(Enum):
     def __repr__(self):
         return self.name
 
+    def next(self):
+        return Direction((self.value + 1) % 4)
+
+
+Direction._char_map = {"N": Direction.NORTH, "E": Direction.EAST, "S": Direction.SOUTH, "W": Direction.WEST}
 
 @total_ordering
 class Suit(Enum):
@@ -29,6 +41,7 @@ class Suit(Enum):
     def __repr__(self):
         return self.name
 
+
 @total_ordering
 class BiddingSuit(Enum):
     CLUBS = 0
@@ -42,6 +55,7 @@ class BiddingSuit(Enum):
 
     def __repr__(self):
         return self.name
+
 
 @total_ordering
 class Rank(Enum):
