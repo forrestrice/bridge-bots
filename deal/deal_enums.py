@@ -28,6 +28,7 @@ class Direction(Enum):
 
 Direction._char_map = {"N": Direction.NORTH, "E": Direction.EAST, "S": Direction.SOUTH, "W": Direction.WEST}
 
+
 @total_ordering
 class Suit(Enum):
     CLUBS = 0
@@ -86,3 +87,7 @@ class Rank(Enum):
 
     def __repr__(self):
         return self.name
+
+
+bids = [str(level) + suit_char for level in range(1, 8) for suit_char in ['C', 'D', 'H', 'S', 'NT']]
+bids.extend(['P', 'X', 'XX'])

@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 from collections import defaultdict
 from functools import total_ordering
-from typing import List, Dict, Tuple
-from deal.deal_enums import Suit, Rank, Direction
+from typing import Dict, List, Tuple
+
+from deal.deal_enums import Direction, Rank, Suit
 
 
 @total_ordering
@@ -138,3 +140,19 @@ class Deal:
         ns_vuln = vuln_string in Deal.ns_vuln_strings
         ew_vuln = vuln_string in Deal.ew_vuln_strings
         return Deal(dealer_direction, ns_vuln, ew_vuln, player_cards)
+
+    @staticmethod
+    def from_pbn_deal(dealer_str: str, vulnerability_str: str, deal_str: str):
+        ns_vulnerable = False
+        ew_vulnerable = False
+        if vulnerability_str == 'NS':
+            ns_vulnerable = True
+        elif vulnerability_str == 'EW':
+            ew_vulnerable = True
+        elif vulnerability_str == 'All':
+            ns_vulnerable = True
+            ew_vulnerable = True
+        dealer = Direction.from_char(dealer_str)
+        
+
+        return None
