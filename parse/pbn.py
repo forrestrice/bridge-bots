@@ -1,9 +1,10 @@
+from functools import partial
 from pathlib import Path
 from pprint import pprint
 from typing import Dict, List
 
-from deal.deal import Deal
-from deal.deal_enums import Direction
+from deal.deal import Card, Deal
+from deal.deal_enums import BiddingSuit, Direction, Suit
 from deal.table_record import TableRecord
 
 
@@ -28,18 +29,37 @@ def build_record_dict(record_strings: List[str]) -> Dict:
     i = 0
     while i < len(record_strings):
         record_string = record_strings[i]
+        if record_string == '':
+            i += 1
+            continue
+        if '[' in record_string and ']' not in record_string:
+            while ']' not in record_string:
+                i += 1
+                record_string = record_string + record_strings[i]
         record_string = record_string.replace('[', '').replace(']', '')
         key, value = record_string.split(maxsplit=1)
         record_dict[key] = value.replace('"', '')
-        if key in ['Auction', 'Play']:
+        if key == 'Auction':
+            auction_record = []
+            i += 1
+            while i < len(record_strings):
+                auction_str = record_strings[i]
+                if '[' in auction_str:
+                    break
+                auction_record.extend(auction_str.split())
+                i += 1
+            auction_record = auction_record[:-1]  # Replace 'AP' with 3 passes
+            auction_record.extend(['Pass'] * 3)
+            record_dict['bidding_record'] = auction_record
+
+        elif key == 'Play':
             actions_record = []
             i += 1
-            # Read action lines until we reach a new key
             while i < len(record_strings):
                 actions_str = record_strings[i]
                 if '[' in actions_str:
                     break
-                actions_record.extend(actions_str.split())
+                actions_record.append(actions_str.split())
                 i += 1
             action_key = 'bidding_record' if key == 'Auction' else 'play_record'
             record_dict[action_key] = actions_record
@@ -48,36 +68,64 @@ def build_record_dict(record_strings: List[str]) -> Dict:
     return record_dict
 
 
-def parse_deal(record_dict: Dict) -> Deal:
-    vuln_str = record_dict['Vulnerable']
-    ns_vuln = False
-    ew_vuln = False
-    if vuln_str == 'NS':
-        ns_vuln = True
-    elif vuln_str == 'EW':
-        ew_vuln = True
-    elif vuln_str == 'All':
-        ns_vuln = True
-        ew_vuln = True
+def evaluate_card(trump_suit: Suit, suit_led: Suit, card: Card) -> int:
+    score = card.rank.value[0]
+    if card.suit == trump_suit:
+        score += 100
+    elif card.suit != suit_led:
+        score -= 100
+    return score
 
-    dealer_str = record_dict['Dealer']
-    dealer = Direction.from_char(dealer_str)
 
-    deal_str = record_dict['Deal']
-    pass
+def sort_play_record(trick_records: List[List[str]], contract: str, declarer: Direction) -> List[Card]:
+    trump_suit = BiddingSuit.from_str(contract[1:2]).to_suit()
+    play_record = []
+    start_index = 0
+    for trick_record in trick_records:
+        trick_cards = []
+        for i in range(0, 4):
+            card_index = (start_index + i) % 4
+            card_str = trick_record[card_index]
+            if card_str != '-':
+                card = Card.from_str(card_str)
+                play_record.append(card)
+                trick_cards.append(card)
+        if len(trick_cards) == 4:
+            suit_led = trick_cards[0].suit
+            evaluator = partial(evaluate_card, trump_suit, suit_led)
+            winning_index, winning_card = max(enumerate(trick_cards), key=lambda c: evaluator(c[1]))
+            start_index = (start_index + winning_index) % 4
+    return play_record
 
 
 def parse_table_record(record_dict: Dict) -> TableRecord:
-    pass
+    declarer = Direction.from_char(record_dict['Declarer'])
+    bidding_record = record_dict.get('bidding_record') or []
+    return TableRecord(bidding_record=bidding_record,
+                       play_record=sort_play_record(record_dict['play_record'], record_dict['Contract'], declarer),
+                       declarer=declarer,
+                       contract=record_dict['Contract'],
+                       tricks=int(record_dict['Result']),
+                       scoring=record_dict.get('Scoring'),
+                       north=record_dict.get('North'),
+                       south=record_dict.get('South'),
+                       east=record_dict.get('East'),
+                       west=record_dict.get('West'),
+                       date=record_dict.get('Date'),
+                       event=record_dict.get('Event'))
 
 
 def parse_pbn(file_path: Path):
     records_strings = split_pbn(file_path)
-    record_dict = build_record_dict(records_strings[0])
-    deal, table_record = parse_deal(record_dict), parse_table_record(record_dict)
-    return deal, table_record
-    # return [parse_record_string(record_string) for record_string in record_strings]
+    results = []
+    for record_strings in records_strings:
+        record_dict = build_record_dict(record_strings)
+        #print(record_dict)
+        deal = Deal.from_pbn_deal(record_dict['Dealer'], record_dict['Vulnerable'], record_dict['Deal'])
+        table_record = parse_table_record(record_dict)
+        results.append((deal, table_record))
+    return results
 
 
-d, tr = parse_pbn(Path('/Users/frice/bridge/results/usbc/usbc_2012.pbn'))
-pprint(d)
+
+

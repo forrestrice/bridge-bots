@@ -20,10 +20,14 @@ class Card:
         return (self.suit, self.rank) < (other.suit, other.rank)
 
     def __str__(self):
-        return "{0} of {1}".format(self.rank.name, self.suit.name)
+        return self.suit.name[0] + self.rank.value[1]
 
     def __repr__(self):
         return f"Card({self.suit!r},{self.rank!r})"
+
+    @classmethod
+    def from_str(cls, card_str):
+        return Card(Suit.from_char(card_str[0]), Rank.from_str(card_str[1]))
 
 
 class PlayerHand:
@@ -55,6 +59,9 @@ class PlayerHand:
     def __eq__(self, other):
         return self.suits == other.suits
 
+    def __hash__(self):
+        return hash(set(self.cards))
+
 
 reverse_sorted_cards = sorted([Card(suit, rank) for suit in Suit for rank in Rank], reverse=True)
 
@@ -82,6 +89,9 @@ class Deal:
                 self.ns_vulnerable == other.ns_vulnerable and
                 self.ew_vulnerable == other.ew_vulnerable and
                 self.hands == other.hands)
+
+    def __hash__(self):
+        return
 
     def serialize(self) -> bytes:
         card_tuples: List[Tuple[Card, Direction]] = []
@@ -124,8 +134,8 @@ class Deal:
         }
         return Deal(dealer, ns_vulnerable, ew_vulnerable, deal_hands)
 
-    ns_vuln_strings = {'Both', 'N-S'}
-    ew_vuln_strings = {'Both', 'E-W'}
+    ns_vuln_strings = {'Both', 'N-S', 'All', 'NS'}
+    ew_vuln_strings = {'Both', 'E-W', 'All', 'EW'}
 
     @staticmethod
     def from_acbl_dict(acbl_dict: Dict[str, str]) -> Deal:
@@ -142,17 +152,19 @@ class Deal:
         return Deal(dealer_direction, ns_vuln, ew_vuln, player_cards)
 
     @staticmethod
-    def from_pbn_deal(dealer_str: str, vulnerability_str: str, deal_str: str):
-        ns_vulnerable = False
-        ew_vulnerable = False
-        if vulnerability_str == 'NS':
-            ns_vulnerable = True
-        elif vulnerability_str == 'EW':
-            ew_vulnerable = True
-        elif vulnerability_str == 'All':
-            ns_vulnerable = True
-            ew_vulnerable = True
-        dealer = Direction.from_char(dealer_str)
-        
+    def from_pbn_deal(dealer_str: str, vulnerability_str: str, deal_str: str) -> Deal:
+        ns_vulnerable = vulnerability_str in Deal.ns_vuln_strings
+        ew_vulnerable = vulnerability_str in Deal.ew_vuln_strings
 
-        return None
+        dealer = Direction.from_char(dealer_str)
+
+        hands_direction = Direction.from_char(dealer_str[0])
+        deal_str = deal_str[2:]
+        player_hands = {}
+        for player_str in deal_str.split():
+            suits = player_str.split('.')
+            suits.reverse()
+            player_hands[hands_direction] = PlayerHand.from_string_lists(*suits)
+            hands_direction = hands_direction.next()
+
+        return Deal(dealer, ns_vulnerable, ew_vulnerable, player_hands)

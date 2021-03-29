@@ -31,3 +31,6 @@ class TableRecord:
         self.west = west
         self.date = date
         self.event = event
+
+    def __str__(self):
+        return str(vars(self))
