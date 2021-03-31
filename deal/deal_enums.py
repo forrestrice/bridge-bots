@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import Enum
 from functools import total_ordering
 
@@ -13,7 +15,7 @@ class Direction(Enum):
     _char_map = {}
 
     @classmethod
-    def from_char(self, direction_char):
+    def from_char(self, direction_char) -> Direction:
         return Direction._char_map[direction_char]
 
     def __lt__(self, other):
@@ -39,8 +41,8 @@ class Suit(Enum):
     __from_str_map__ = {"S": SPADES, "H": HEARTS, "D": DIAMONDS, "C": CLUBS}
 
     @classmethod
-    def from_char(cls, char):
-        return Suit(cls.__from_str_map__[char])
+    def from_str(cls, suit_str: str) -> Suit:
+        return Suit(cls.__from_str_map__[suit_str.upper()])
 
     def __lt__(self, other):
         return self.value < other.value
@@ -69,8 +71,8 @@ class BiddingSuit(Enum):
         return self.value[1]
 
     @classmethod
-    def from_str(cls, str):
-        return BiddingSuit(cls.__from_str_map__[str])
+    def from_str(cls, bidding_suit_str: str) -> BiddingSuit:
+        return BiddingSuit(cls.__from_str_map__[bidding_suit_str.upper()])
 
 
 @total_ordering
@@ -94,8 +96,8 @@ class Rank(Enum):
                         '10': TEN, 'T': TEN, 'J': JACK, 'Q': QUEEN, 'K': KING, 'A': ACE}
 
     @classmethod
-    def from_str(cls, str):
-        return Rank(cls.__from_str_map__[str])
+    def from_str(cls, rank_str: str) -> Rank:
+        return Rank(cls.__from_str_map__[rank_str.upper()])
 
     def __lt__(self, other):
         return self.value < other.value

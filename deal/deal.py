@@ -27,7 +27,7 @@ class Card:
 
     @classmethod
     def from_str(cls, card_str):
-        return Card(Suit.from_char(card_str[0]), Rank.from_str(card_str[1]))
+        return Card(Suit.from_str(card_str[0]), Rank.from_str(card_str[1]))
 
 
 class PlayerHand:
