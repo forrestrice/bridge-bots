@@ -29,7 +29,6 @@ def build_record_dict(record_strings: List[str]) -> Dict:
     i = 0
     while i < len(record_strings):
         record_string = record_strings[i]
-        # if record_string == '' or record_string.startswith('%'):
         if not record_string.startswith('['):
             i += 1
             continue
@@ -49,20 +48,21 @@ def build_record_dict(record_strings: List[str]) -> Dict:
                     break
                 auction_record.extend(auction_str.split())
                 i += 1
-            auction_record = auction_record[:-1]  # Replace 'AP' with 3 passes
-            auction_record.extend(['Pass'] * 3)
+            if auction_record and auction_record[-1] in ['AP', 'ap']:
+                auction_record = auction_record[:-1]  # Replace 'AP' with 3 passes
+                auction_record.extend(['Pass'] * 3)
             record_dict['bidding_record'] = auction_record
 
         elif key == 'Play':
-            actions_record = []
+            play_record = []
             i += 1
             while i < len(record_strings):
-                actions_str = record_strings[i]
-                if '[' in actions_str:
+                play_str = record_strings[i]
+                if '[' in play_str:
                     break
-                actions_record.append(actions_str.split())
+                play_record.append(play_str.split())
                 i += 1
-            record_dict['play_record'] = actions_record
+            record_dict['play_record'] = play_record
         else:
             i += 1
     return record_dict
@@ -135,7 +135,6 @@ def parse_pbn(file_path: Path):
     results = []
     for record_strings in records_strings:
         record_dict = build_record_dict(record_strings)
-        # print(record_dict)
         deal = Deal.from_pbn_deal(record_dict['Dealer'], record_dict['Vulnerable'], record_dict['Deal'])
         table_record = parse_table_record(record_dict)
         results.append((deal, table_record))

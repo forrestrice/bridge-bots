@@ -109,5 +109,5 @@ class Rank(Enum):
         return self.value[1]
 
 
-bids = [str(level) + suit_char for level in range(1, 8) for suit_char in ['C', 'D', 'H', 'S', 'NT']]
-bids.extend(['P', 'X', 'XX'])
+all_bids = [str(level) + suit_char for level in range(1, 8) for suit_char in ['C', 'D', 'H', 'S', 'NT']]
+all_bids.extend(['PASS', 'X', 'XX'])

@@ -16,6 +16,9 @@ class Card:
     def __eq__(self, other):
         return self.rank == other.rank and self.suit == other.suit
 
+    def __hash__(self):
+        return hash((self.suit, self.rank))
+
     def __lt__(self, other):
         return (self.suit, self.rank) < (other.suit, other.rank)
 
@@ -91,7 +94,8 @@ class Deal:
                 self.hands == other.hands)
 
     def __hash__(self):
-        return
+        card_sets = [(direction, frozenset(self.hands[direction].cards)) for direction in self.hands]
+        return hash((self.dealer, self.ns_vulnerable, self.ew_vulnerable, frozenset(card_sets)))
 
     def serialize(self) -> bytes:
         card_tuples: List[Tuple[Card, Direction]] = []
