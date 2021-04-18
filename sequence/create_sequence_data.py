@@ -5,28 +5,13 @@ from typing import Dict, List
 
 import numpy as np
 
-from deal.deal import Deal
-from deal.table_record import TableRecord
+from bridge.deal import Deal
+from bridge.table_record import TableRecord
 from sequence.bidding_training_data import BiddingTrainingData
 from train.bridge_training_utils import bidding_vocab, canonicalize_bid, sorted_cards
 
-SEQUENCE_LENGTH = 40
 
-
-def build_bidding_indices(table_record: TableRecord) -> np.ndarray:
-    bidding_indices = np.zeros((1, SEQUENCE_LENGTH))
-    i = 0
-    for bid in table_record.bidding_record:
-        if bid[0] in ["=", "!", "$"]:
-            continue
-        bidding_indices[0, i] = bidding_vocab[canonicalize_bid(bid)]
-        i += 1
-    bidding_indices[0, i] = bidding_vocab["EOS"]
-    bidding_indices[0, i + 1 :] = bidding_vocab["PAD"]
-    return bidding_indices
-
-
-def build_bidding_indices_list(table_record: TableRecord) -> List[int]:
+def build_bidding_indices(table_record: TableRecord) -> List[int]:
     bidding_indices = []
     for bid in table_record.bidding_record:
         if bid[0] in ["=", "!", "$"]:
@@ -54,7 +39,6 @@ with open(pickle_file_path, "rb") as pickle_file:
 
 print(f"processing {len(deal_records)} records")
 
-# splits = [("TRAIN", [], []), ("VALIDATION", [], []), ("TEST", [], [])]
 splits = [("TRAIN", []), ("VALIDATION", []), ("TEST", [])]
 split_weights = [0.8, 0.1, 0.1]
 
@@ -67,22 +51,15 @@ for deal, table_records in deal_records.items():
         logging.warning(f"Skipping invalid holding: {deal.hands}")
         continue
 
-    # tiled_holding_array = np.tile(holding_array, (1, SEQUENCE_LENGTH, 1))
     for table_record in table_records:
         if len(table_record.bidding_record) == 0:
             continue
         try:
-            bidding_indices = build_bidding_indices_list(table_record)
+            bidding_indices = build_bidding_indices(table_record)
         except KeyError as e:
             logging.warning(f"Skipping invalid bidding sequence: {table_record.bidding_record}, {e}")
             continue
-        # one_hot_bidding = tf.keras.utils.to_categorical(bidding_indices, num_classes=len(bidding_vocab))
         training_data_list.append(BiddingTrainingData(bidding_indices, holding_array))
-        # model_input = np.concatenate((one_hot_bidding, tiled_holding_array), axis=2)
-        # X.append(model_input)
-        # y.append(one_hot_bidding)
-        # holding_arrays.append(holding_array)
-        # bidding_sequences.append(one_hot_bidding)
 
 save_prefix = "/Users/frice/bridge/bid_learn/"
 for name, training_data_list in splits:
@@ -90,28 +67,3 @@ for name, training_data_list in splits:
     print(f"samples: {len(training_data_list)}")
     with open(save_prefix + name + ".pickle", "wb") as pickle_file:
         pickle.dump(training_data_list, pickle_file)
-
-"""
-save_prefix = "/Users/frice/bridge/bid_learn/"
-for name, holding_arrays, bidding_sequences in splits:
-    print(name)
-    print(f"samples: holdings {len(holding_arrays)} bid sequences: {len(bidding_sequences)}")
-    holding_combined = np.squeeze(np.asarray(holding_arrays))
-    bidding_sequences_combined = np.squeeze(np.asarray(bidding_sequences))
-    print(
-        f"holding_combined.shape={holding_combined.shape}, "
-        f"bidding_sequences_combined.shape={bidding_sequences_combined.shape}"
-    )
-    np.save(save_prefix + name + "_HOLDING", holding_combined)
-    np.save(save_prefix + name + "_BID_SEQUENCE", bidding_sequences_combined)
-"""
-"""
-for name, X, y in splits:
-    print(name)
-    print(f'samples: {len(X)}')
-    X_array = np.squeeze(np.asarray(X))
-    y_array = np.squeeze(np.asarray(y))
-    print(f'X_array.shape={X_array.shape}, y_array.shape={y_array.shape}')
-    np.save(save_prefix + name + '_X', X_array)
-    np.save(save_prefix + name + '_y', y_array)
-"""

@@ -4,7 +4,7 @@ import os
 import pickle
 from pprint import pprint
 
-from deal.double_dummy import DoubleDummyDeal
+from bridge.double_dummy import DoubleDummyDeal
 
 logging.basicConfig(level=logging.INFO)
 

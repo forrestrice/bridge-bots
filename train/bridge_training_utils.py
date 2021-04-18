@@ -1,5 +1,5 @@
-from deal.deal import Card
-from deal.deal_enums import Rank, Suit, all_bids
+from bridge.deal import Card
+from bridge.deal_enums import Rank, Suit, all_bids
 
 sorted_cards = sorted([Card(suit, rank) for suit in Suit for rank in Rank])
 

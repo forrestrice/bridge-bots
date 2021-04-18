@@ -2,8 +2,8 @@ import logging
 import pickle
 import random
 
-from deal.deal import Card
-from deal.deal_enums import BiddingSuit, Direction, Rank, Suit
+from bridge.deal import Card
+from bridge.deal_enums import BiddingSuit, Direction, Rank, Suit
 from train.generate_rotation_permutations import RotationPermutation
 from train.streaming_csv_writer import StreamingCsvWriter
 

@@ -3,9 +3,9 @@ from functools import partial
 from pathlib import Path
 from typing import Dict, List
 
-from deal.deal import Card, Deal
-from deal.deal_enums import BiddingSuit, Direction, Suit
-from deal.table_record import TableRecord
+from bridge.deal import Card, Deal
+from bridge.deal_enums import BiddingSuit, Direction, Suit
+from bridge.table_record import TableRecord
 
 
 def split_pbn(file_path: Path):

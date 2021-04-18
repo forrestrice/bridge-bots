@@ -3,8 +3,8 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Dict, Tuple
 
-from deal.deal import Deal
-from deal.deal_enums import BiddingSuit, Direction
+from bridge.deal import Deal
+from bridge.deal_enums import BiddingSuit, Direction
 
 
 class DoubleDummyScore:

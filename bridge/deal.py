@@ -4,7 +4,7 @@ from collections import defaultdict
 from functools import total_ordering
 from typing import Dict, List, Tuple
 
-from deal.deal_enums import Direction, Rank, Suit
+from bridge.deal_enums import Direction, Rank, Suit
 
 
 @total_ordering

@@ -1,6 +1,6 @@
 import pathlib
 from bs4 import BeautifulSoup
-from deal.deal import PlayerHand, Deal
+from bridge.deal import PlayerHand, Deal
 import re
 
 from sql.hand_dao import HandDao
