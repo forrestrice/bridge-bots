@@ -3,9 +3,10 @@ from deal.deal_enums import all_bids, Rank, Suit
 
 sorted_cards = sorted([Card(suit, rank) for suit in Suit for rank in Rank])
 
-bidding_vocab = {bid: index for index, bid in enumerate(all_bids)}
+bidding_vocab = {bid: index + 1 for index, bid in enumerate(all_bids)}
 bidding_vocab['EOS'] = len(bidding_vocab)
-bidding_vocab['PAD'] = len(bidding_vocab)
+bidding_vocab['PAD'] = 0
+print(bidding_vocab)
 
 
 def canonicalize_bid(bid: str) -> str:
