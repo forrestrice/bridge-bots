@@ -3,7 +3,7 @@ import pickle
 import random
 
 from deal.deal import Card
-from deal.deal_enums import Suit, Rank, Direction, BiddingSuit
+from deal.deal_enums import BiddingSuit, Direction, Rank, Suit
 from train.generate_rotation_permutations import RotationPermutation
 from train.streaming_csv_writer import StreamingCsvWriter
 
@@ -49,8 +49,9 @@ for ddd in generate_deals():
                 row_writer = notrump_training_writer
             else:
                 playing_suit = Suit(score_suit.value)
-                trump_first_permutations = [perm for perm in RotationPermutation.all_suit_permutations if
-                                            perm.suits[0] == playing_suit]
+                trump_first_permutations = [
+                    perm for perm in RotationPermutation.all_suit_permutations if perm.suits[0] == playing_suit
+                ]
                 row_writer = suit_training_writer
 
             for trump_first_permutation in trump_first_permutations:

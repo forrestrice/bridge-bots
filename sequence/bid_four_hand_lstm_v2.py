@@ -60,5 +60,5 @@ bid_lstm_model.compile(
     metrics="accuracy",
 )
 
-bid_lstm_model.fit(data_generator, epochs=5)
+bid_lstm_model.fit(data_generator, epochs=10)
 bid_lstm_model.save(bid_learn_prefix + "lstm_model_v3")

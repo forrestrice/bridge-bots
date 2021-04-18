@@ -1,6 +1,7 @@
 import json
 import pathlib
 from pprint import pprint
+
 from requests import get
 
 token = open("../acbl_token.txt", "r").read()
@@ -53,21 +54,24 @@ def fetch_nabc_event_lists():
 
 
 def fetch_event(event_json):
-    event_resp = api_request("tournament/event",
-                             {"event_code": event_json["event_code"],
-                              "sanction": event_json["sanction"],
-                              "with_sessions": 1})
-                              #"full_monty": 1})
+    event_resp = api_request(
+        "tournament/event",
+        {"event_code": event_json["event_code"], "sanction": event_json["sanction"], "with_sessions": 1},
+    )
+    # "full_monty": 1})
     pprint(event_resp.json())
     first_session = event_resp.json()["sessions"][0]
-    session_json = api_request("tournament/session",
-                {"event_code": event_json["event_code"],
-                 "sanction": event_json["sanction"],
-                 "session_number": first_session["session_number"],
-                 "with_handrecord":1})
+    session_json = api_request(
+        "tournament/session",
+        {
+            "event_code": event_json["event_code"],
+            "sanction": event_json["sanction"],
+            "session_number": first_session["session_number"],
+            "with_handrecord": 1,
+        },
+    )
     print("\n")
     pprint(session_json.json())
-
 
 
 fetch_event({"event_code": "21PO", "sanction": 1903017})

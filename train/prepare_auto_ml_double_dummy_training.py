@@ -4,7 +4,7 @@ import random
 from typing import Dict
 
 from deal.deal import Card
-from deal.deal_enums import Suit, Rank, Direction, BiddingSuit
+from deal.deal_enums import BiddingSuit, Direction, Rank, Suit
 from train.streaming_csv_writer import StreamingCsvWriter
 
 logging.basicConfig(level=logging.INFO)
@@ -22,6 +22,7 @@ training_writer.write_row(csv_headers)
 
 splits = ["TRAIN", "VALIDATE", "TEST"]
 split_weights = [0.8, 0.1, 0.1]
+
 
 def generate_deals():
     with open("../results/double_dummy/all_deals.pickle", "rb") as dd_pickle_file:

@@ -1,12 +1,11 @@
-import csv
 import logging
-import os
+import logging
 import pickle
 import random
-from typing import List, Dict
+from typing import Dict
 
 from deal.deal import Card
-from deal.deal_enums import Suit, Rank, Direction, BiddingSuit
+from deal.deal_enums import BiddingSuit, Direction, Rank, Suit
 from train.streaming_csv_writer import StreamingCsvWriter
 
 logging.basicConfig(level=logging.INFO)

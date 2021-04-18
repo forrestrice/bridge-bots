@@ -1,8 +1,7 @@
 import pickle
 from typing import List
-import tensorflow as tf
-from tensorflow import keras
 
+from tensorflow import keras
 
 from sequence.bidding_training_data import BiddingSequenceDataGenerator, BiddingTrainingData
 
@@ -17,4 +16,3 @@ with open(bid_learn_prefix + "VALIDATION.pickle", "rb") as pickle_file:
 data_generator = BiddingSequenceDataGenerator(20, bidding_validation_data)
 
 lstm_model.evaluate(data_generator)
-

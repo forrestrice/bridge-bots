@@ -1,8 +1,8 @@
 import math
 from typing import List
 
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 from tensorflow.python.keras.utils.data_utils import Sequence
 
 from train.bridge_training_utils import bidding_vocab

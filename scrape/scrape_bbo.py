@@ -1,44 +1,48 @@
 import time
 from pprint import pprint
 
-from seleniumrequests import Chrome
 from selenium.webdriver.chrome.options import Options
+from seleniumrequests import Chrome
 
 chrome_options = Options()
 chrome_options.add_experimental_option("detach", True)
 
 target_suffix = "/myhands/hands.php?tourney=54173-1611629131-&username=granola357"
-bbo_password = open('../bbo_password.txt', 'r').read()
+bbo_password = open("../bbo_password.txt", "r").read()
 print(bbo_password)
 
 login_data = {
-    't': target_suffix,
-    'count': '1',
-    'username': 'Forrest_',
-    'password': bbo_password,
-    'submit': 'Login',
-    'keep': 'on'
+    "t": target_suffix,
+    "count": "1",
+    "username": "Forrest_",
+    "password": bbo_password,
+    "submit": "Login",
+    "keep": "on",
 }
 
-#driver_options = Options()
-#driver_options.add_argument()
+# driver_options = Options()
+# driver_options.add_argument()
 driver = Chrome()
-response = driver.request('POST',
-                          'https://www.bridgebase.com/myhands/myhands_login.php?t=%2Fmyhands%2Fhands.php%3Ftourney%3D54173-1611629131-%26username%3Dgranola357',
-                          data=login_data)
+response = driver.request(
+    "POST",
+    "https://www.bridgebase.com/myhands/myhands_login.php?t=%2Fmyhands%2Fhands.php%3Ftourney%3D54173-1611629131-%26username%3Dgranola357",
+    data=login_data,
+)
 print(response.status_code)
 pprint(response.content)
 print(response.cookies)
 print(driver.get_cookies())
 
-#tournament_response = driver.request('GET', 'http://www.google.com')
+# tournament_response = driver.request('GET', 'http://www.google.com')
 
-tournament_response = driver.request('GET', 'https://www.bridgebase.com/myhands/hands.php?tourney=54173-1611629131-&username=granola357&from_login=1')
+tournament_response = driver.request(
+    "GET", "https://www.bridgebase.com/myhands/hands.php?tourney=54173-1611629131-&username=granola357&from_login=1"
+)
 pprint(tournament_response.content)
 
 time.sleep(20)
 
-'''
+"""
 with requests.session() as session:
     login_response = session.post('https://www.bridgebase.com/myhands/myhands_login.php?t=%2Fmyhands%2Fhands.php%3Ftourney%3D54173-1611629131-%26username%3Dgranola357', data=login_data)
     print(login_response.status_code)
@@ -60,4 +64,4 @@ cookies = {"myhands_token": "forrest_|f99043d980d4afcfdea5cd72cf5a6641dbc6662c",
 
 response = requests.get(target_url, cookies=cookies)
 pprint(response.content)
-'''
+"""

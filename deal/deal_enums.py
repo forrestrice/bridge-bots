@@ -11,7 +11,7 @@ class Direction(Enum):
     SOUTH = 2
     WEST = 3
 
-    _ignore_ = ['_char_map']
+    _ignore_ = ["_char_map"]
     _char_map = {}
 
     @classmethod
@@ -59,7 +59,7 @@ class BiddingSuit(Enum):
     SPADES = 3, Suit.SPADES
     NO_TRUMP = 4, None
 
-    __from_str_map__ = {"S": SPADES, "H": HEARTS, "D": DIAMONDS, "C": CLUBS, 'N': NO_TRUMP, 'NT': NO_TRUMP}
+    __from_str_map__ = {"S": SPADES, "H": HEARTS, "D": DIAMONDS, "C": CLUBS, "N": NO_TRUMP, "NT": NO_TRUMP}
 
     def __lt__(self, other):
         return self.value < other.value
@@ -77,23 +77,37 @@ class BiddingSuit(Enum):
 
 @total_ordering
 class Rank(Enum):
-    TWO = 2, '2'
-    THREE = 3, '3'
-    FOUR = 4, '4'
-    FIVE = 5, '5'
-    SIX = 6, '6'
-    SEVEN = 7, '7'
-    EIGHT = 8, '8'
-    NINE = 9, '9'
-    TEN = 10, 'T'
-    JACK = 11, 'J'
-    QUEEN = 12, 'Q'
-    KING = 13, 'K'
-    ACE = 14, 'A'
+    TWO = 2, "2"
+    THREE = 3, "3"
+    FOUR = 4, "4"
+    FIVE = 5, "5"
+    SIX = 6, "6"
+    SEVEN = 7, "7"
+    EIGHT = 8, "8"
+    NINE = 9, "9"
+    TEN = 10, "T"
+    JACK = 11, "J"
+    QUEEN = 12, "Q"
+    KING = 13, "K"
+    ACE = 14, "A"
 
     # double underscore to end the enum declaration
-    __from_str_map__ = {'2': TWO, '3': THREE, '4': FOUR, '5': FIVE, '6': SIX, '7': SEVEN, '8': EIGHT, '9': NINE,
-                        '10': TEN, 'T': TEN, 'J': JACK, 'Q': QUEEN, 'K': KING, 'A': ACE}
+    __from_str_map__ = {
+        "2": TWO,
+        "3": THREE,
+        "4": FOUR,
+        "5": FIVE,
+        "6": SIX,
+        "7": SEVEN,
+        "8": EIGHT,
+        "9": NINE,
+        "10": TEN,
+        "T": TEN,
+        "J": JACK,
+        "Q": QUEEN,
+        "K": KING,
+        "A": ACE,
+    }
 
     @classmethod
     def from_str(cls, rank_str: str) -> Rank:
@@ -109,5 +123,5 @@ class Rank(Enum):
         return self.value[1]
 
 
-all_bids = [str(level) + suit_char for level in range(1, 8) for suit_char in ['C', 'D', 'H', 'S', 'NT']]
-all_bids.extend(['PASS', 'X', 'XX'])
+all_bids = [str(level) + suit_char for level in range(1, 8) for suit_char in ["C", "D", "H", "S", "NT"]]
+all_bids.extend(["PASS", "X", "XX"])

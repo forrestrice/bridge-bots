@@ -5,20 +5,21 @@ from deal.deal_enums import Direction
 
 
 class TableRecord:
-    def __init__(self,
-                 bidding_record: List[str],
-                 play_record: List[Card],
-                 declarer: Direction,
-                 contract: str,
-                 tricks: int,
-                 scoring: str = None,
-                 north: str = None,
-                 south: str = None,
-                 east: str = None,
-                 west: str = None,
-                 date: str = None,
-                 event: str = None
-                 ):
+    def __init__(
+        self,
+        bidding_record: List[str],
+        play_record: List[Card],
+        declarer: Direction,
+        contract: str,
+        tricks: int,
+        scoring: str = None,
+        north: str = None,
+        south: str = None,
+        east: str = None,
+        west: str = None,
+        date: str = None,
+        event: str = None,
+    ):
         self.bidding_record = bidding_record
         self.play_record = play_record
         self.declarer = declarer

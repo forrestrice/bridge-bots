@@ -21,19 +21,23 @@ def process_event(event_json, tournament_dir_path, tournament_sanction):
     event_dir_path.mkdir(parents=False, exist_ok=True)
     for session_index in range(0, session_count):
         session_num = session_index + 1
-        session_path = event_dir_path / f'session{session_num}'
+        session_path = event_dir_path / f"session{session_num}"
         if session_path.exists():
             logging.info("\t\tskipping session %s", session_num)
         else:
-            session_json = client.api_request_json("tournament/session",
-                                    {"sanction": tournament_sanction,
-                                     "event_code": event_code,
-                                     "session_number": session_num,
-                                     "with_handrecord": 1})
+            session_json = client.api_request_json(
+                "tournament/session",
+                {
+                    "sanction": tournament_sanction,
+                    "event_code": event_code,
+                    "session_number": session_num,
+                    "with_handrecord": 1,
+                },
+            )
 
-            with open(event_dir_path / f'session{session_num}', "w") as session_file:
+            with open(event_dir_path / f"session{session_num}", "w") as session_file:
                 json.dump(session_json, session_file)
-            #sleep here so that we only slow down if we are hitting the api
+            # sleep here so that we only slow down if we are hitting the api
             time.sleep(0.3)
 
 
@@ -65,7 +69,6 @@ def download_tournament_events(all_events_path, sanction):
         json.dump(all_events_json, all_events_file)
 
 
-
 results_dir_path = pathlib.Path("../results/acbl/")
 results_dir_path.mkdir(parents=True, exist_ok=True)
 results_path = results_dir_path / "all_tournaments.json"
@@ -88,8 +91,7 @@ for tournament in all_tournaments:
         process_tournament(tournament)
     except Exception as ex:
         exception_count += 1
-        logging.error("error processing tournament %s: %s",tournament["name"], ex)
+        logging.error("error processing tournament %s: %s", tournament["name"], ex)
 
 logging.info("encountered %s exceptions", exception_count)
 exit(exception_count)
-

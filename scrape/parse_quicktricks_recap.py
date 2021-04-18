@@ -13,22 +13,22 @@ from deal.deal_enums import BiddingSuit, Direction, Rank, Suit
 
 def parse_suit_cell(suit_cell):
     text = suit_cell.get_text()
-    if text and '—' not in text:
+    if text and "—" not in text:
         return text.split()
     else:
         return []
 
 
 def parse_diagram_cell(hand_cell):
-    suit_cells = hand_cell.find_all('td', class_='bchand')
+    suit_cells = hand_cell.find_all("td", class_="bchand")
     suit_string_lists = [parse_suit_cell(suit_cell) for suit_cell in suit_cells]
     suit_string_lists.reverse()
     return PlayerHand.from_string_lists(*suit_string_lists)
 
 
 def parse_label_cell(label_cell):
-    dealer_str = label_cell.find('span', class_='bclabeldealer').get_text()
-    vul_str = label_cell.find('span', class_='bclabelvul').get_text()
+    dealer_str = label_cell.find("span", class_="bclabeldealer").get_text()
+    vul_str = label_cell.find("span", class_="bclabelvul").get_text()
     dealer = [direction for direction in list(Direction) if direction.name.lower() in dealer_str.lower()][0]
 
     if "Both" in vul_str:
@@ -47,11 +47,11 @@ def parse_label_cell(label_cell):
 
 
 def parse_diagram_table(diagram_table):
-    label_cell = diagram_table.find('td', class_='bchdlabels')
-    north_cell = diagram_table.find('td', class_='bchd')
-    east_cell = diagram_table.find('td', class_='bchd2c')
-    west_cell = diagram_table.find('td', class_='bchd2a')
-    south_cell = diagram_table.find('td', class_='bchd3b')
+    label_cell = diagram_table.find("td", class_="bchdlabels")
+    north_cell = diagram_table.find("td", class_="bchd")
+    east_cell = diagram_table.find("td", class_="bchd2c")
+    west_cell = diagram_table.find("td", class_="bchd2a")
+    south_cell = diagram_table.find("td", class_="bchd3b")
     hand_cards = {
         Direction.NORTH: parse_diagram_cell(north_cell),
         Direction.SOUTH: parse_diagram_cell(south_cell),
@@ -62,42 +62,42 @@ def parse_diagram_table(diagram_table):
     return Deal(dealer, ns_vul, ew_vul, hand_cards)
 
 
-nonint_scores = {'Ave', 'Ave-', 'Ave+', 'Pass', ''}
+nonint_scores = {"Ave", "Ave-", "Ave+", "Pass", ""}
 
 
 def parse_section_row(section_row):
     try:
         try:
-            contract = section_row.find('td', class_='bcstcontract').get_text()
-            declarer = section_row.find('td', class_='bcstdeclarer').get_text()
-            made_str = section_row.find('td', class_='bcstmade').get_text().replace(u'\u2212', '-')
+            contract = section_row.find("td", class_="bcstcontract").get_text()
+            declarer = section_row.find("td", class_="bcstdeclarer").get_text()
+            made_str = section_row.find("td", class_="bcstmade").get_text().replace("\u2212", "-")
         except AttributeError:
-            contract = 'unknown'
-            declarer = 'unknown'
-            made_str = 'unknown'
-        score_ns_str = section_row.find('td', class_='bcstscorens').get_text().replace(u'\u2212', '-')
-        score_ew_str = section_row.find('td', class_='bcstscoreew').get_text().replace(u'\u2212', '-')
+            contract = "unknown"
+            declarer = "unknown"
+            made_str = "unknown"
+        score_ns_str = section_row.find("td", class_="bcstscorens").get_text().replace("\u2212", "-")
+        score_ew_str = section_row.find("td", class_="bcstscoreew").get_text().replace("\u2212", "-")
         try:
-            mp_ns = float(section_row.find('td', class_='bcstmpns').get_text())
-            mp_ew = float(section_row.find('td', class_='bcstmpew').get_text())
+            mp_ns = float(section_row.find("td", class_="bcstmpns").get_text())
+            mp_ew = float(section_row.find("td", class_="bcstmpew").get_text())
         except (AttributeError, ValueError):
             mp_ns = None
             mp_ew = None
         try:
-            imp_ns = float(section_row.find('td', class_='bcstimpns').get_text().replace(u'\u2212', '-'))
-            imp_ew = float(section_row.find('td', class_='bcstimpew').get_text().replace(u'\u2212', '-'))
+            imp_ns = float(section_row.find("td", class_="bcstimpns").get_text().replace("\u2212", "-"))
+            imp_ew = float(section_row.find("td", class_="bcstimpew").get_text().replace("\u2212", "-"))
         except (AttributeError, ValueError):
             imp_ns = None
             imp_ew = None
 
-        players_ns = section_row.find('td', class_='bcstpairns').get_text()
-        players_ew = section_row.find('td', class_='bcstpairew').get_text()
-        if '-' not in players_ew and '-' not in players_ns:
+        players_ns = section_row.find("td", class_="bcstpairns").get_text()
+        players_ew = section_row.find("td", class_="bcstpairew").get_text()
+        if "-" not in players_ew and "-" not in players_ns:
             return None
 
-        if contract == 'NP':
+        if contract == "NP":
             return None
-        if not nonint_scores.isdisjoint({score_ns_str, score_ew_str}) or 'F' in score_ew_str or 'F' in score_ns_str:
+        if not nonint_scores.isdisjoint({score_ns_str, score_ew_str}) or "F" in score_ew_str or "F" in score_ns_str:
             score_ns = score_ns_str
             score_ew = score_ew_str
         else:
@@ -109,7 +109,7 @@ def parse_section_row(section_row):
                 score_ew = int(score_ew_str)
 
         if made_str:
-            made = made_str if made_str == 'unknown' else int(made_str)
+            made = made_str if made_str == "unknown" else int(made_str)
         else:
             made = None
         return {
@@ -136,8 +136,8 @@ section_regex = re.compile("bcstsection")
 
 
 def parse_section_body(section_body):
-    section_rows = section_body.find_all('tr')
-    section_name_tr = section_body.find('tr', {'class': section_regex})
+    section_rows = section_body.find_all("tr")
+    section_name_tr = section_body.find("tr", {"class": section_regex})
     if section_name_tr:
         section_name = section_name_tr.getText()
         section_rows = section_rows[1:]
@@ -147,20 +147,20 @@ def parse_section_body(section_body):
 
 
 def parse_score_table(score_table):
-    section_bodies = score_table.find_all('tbody', class_='bcst')
+    section_bodies = score_table.find_all("tbody", class_="bcst")
     return {name: rows for name, rows in [parse_section_body(section_body) for section_body in section_bodies]}
 
 
 def parse_recap_file(recap_file_path):
-    with open(recap_file_path, 'r') as recap_file:
+    with open(recap_file_path, "r") as recap_file:
         try:
             recap_contents = recap_file.read()
-            recap_soup = BeautifulSoup(recap_contents, 'html.parser')
+            recap_soup = BeautifulSoup(recap_contents, "html.parser")
 
-            diagram_tables = recap_soup.find_all('table', class_='bchd')
+            diagram_tables = recap_soup.find_all("table", class_="bchd")
             deals = [parse_diagram_table(diagram_table) for diagram_table in diagram_tables]
 
-            score_tables = recap_soup.find_all('table', class_='bcst')
+            score_tables = recap_soup.find_all("table", class_="bcst")
             scores = [parse_score_table(score_table) for score_table in score_tables]
             return list(zip(deals, scores))
         except AttributeError as e:
@@ -170,10 +170,10 @@ def parse_recap_file(recap_file_path):
 
 
 direction_mappings = {
-    'players_e': Direction.EAST,
-    'players_w': Direction.WEST,
-    'players_n': Direction.NORTH,
-    'players_s': Direction.SOUTH,
+    "players_e": Direction.EAST,
+    "players_w": Direction.WEST,
+    "players_n": Direction.NORTH,
+    "players_s": Direction.SOUTH,
 }
 
 
@@ -184,16 +184,16 @@ def target_player_to_direction(row, target_player):
     return None
 
 
-roles = [('declarer', 'offense'), ('defense_lead', 'defense'), ('dummy', 'offense'), ('defense_third', 'defense')]
+roles = [("declarer", "offense"), ("defense_lead", "defense"), ("dummy", "offense"), ("defense_third", "defense")]
 
 
 def target_direction_role(target_direction, row, deal):
-    if row['contract'] == 'Pass':
+    if row["contract"] == "Pass":
         role_direction = deal.dealer
-    elif row['contract'] == '' or row['contract'] == 'unknown':
-        return 'unknown', 'unknown'
+    elif row["contract"] == "" or row["contract"] == "unknown":
+        return "unknown", "unknown"
     else:
-        role_direction = Direction.from_char(row['declarer'])
+        role_direction = Direction.from_char(row["declarer"])
     for role in roles:
         if role_direction == target_direction:
             return role
@@ -209,20 +209,20 @@ direction_score_mapping = {
 }
 
 percentage_scoring_days = [
-    '2020-07-06',
-    '2020-08-24',
-    '2020-07-13',
-    '2020-08-31',
-    '2020-08-03',
-    '2020-07-20',
-    '2020-08-17',
-    '2020-08-10',
-    '2020-10-12',
-    '2020-08-31',
-    '2020-07-13',
-    '2020-08-24',
-    '2020-07-06',
-    '2020-07-27',
+    "2020-07-06",
+    "2020-08-24",
+    "2020-07-13",
+    "2020-08-31",
+    "2020-08-03",
+    "2020-07-20",
+    "2020-08-17",
+    "2020-08-10",
+    "2020-10-12",
+    "2020-08-31",
+    "2020-07-13",
+    "2020-08-24",
+    "2020-07-06",
+    "2020-07-27",
 ]
 
 
@@ -241,37 +241,38 @@ def score_section(target_direction, num_rows, row, play_date):
             print("error scoring:", e, mp, num_rows - 1)
 
 
-combined_sections = {'2019-11-18': [['B'], ['E', 'F']],
-                     '2019-05-20': [['D'], ['B', 'C', 'E']],  # TODO some boards are just c and e
-                     '2019-11-04': [['B'], ['E', 'F']],
-                     '2020-09-21': [['A', 'B'], ['C', 'D']],
-                     '2019-02-04': [['B'], ['E', 'F']],
-                     '2018-04-23': [['B', 'E', 'F']]
-                     }
+combined_sections = {
+    "2019-11-18": [["B"], ["E", "F"]],
+    "2019-05-20": [["D"], ["B", "C", "E"]],  # TODO some boards are just c and e
+    "2019-11-04": [["B"], ["E", "F"]],
+    "2020-09-21": [["A", "B"], ["C", "D"]],
+    "2019-02-04": [["B"], ["E", "F"]],
+    "2018-04-23": [["B", "E", "F"]],
+}
 
-skip_days = ['2019-05-20']
+skip_days = ["2019-05-20"]
 
 symbol_mapping = {
-    '♠': BiddingSuit.SPADES,
-    '♥': BiddingSuit.HEARTS,
-    '♦': BiddingSuit.DIAMONDS,
-    '♣': BiddingSuit.CLUBS,
-    'NT': BiddingSuit.NO_TRUMP
+    "♠": BiddingSuit.SPADES,
+    "♥": BiddingSuit.HEARTS,
+    "♦": BiddingSuit.DIAMONDS,
+    "♣": BiddingSuit.CLUBS,
+    "NT": BiddingSuit.NO_TRUMP,
 }
 
 
 def parse_contract(contract_str):
-    if 'unknown' == contract_str or '' == contract_str:
-        return 'unknown', 'unknown', 'unknown', 'unknown'
-    if 'Pass' == contract_str:
-        return 0, 'pass', False, False
-    print(contract_str, contract_str.encode('UTF-8'))
-    double_count = contract_str.count('×')
-    contract_str = contract_str.strip('×')
-    contract_str = contract_str.replace(u'\u202f', u'\u2009')
-    contract_str = contract_str.replace(u'\u0809', u'\u2009')
-    print(len(contract_str), contract_str.split(u'\u2009'), len(contract_str.split(u'\u2009')))
-    level, suit_symbol = contract_str.split(u'\u2009')
+    if "unknown" == contract_str or "" == contract_str:
+        return "unknown", "unknown", "unknown", "unknown"
+    if "Pass" == contract_str:
+        return 0, "pass", False, False
+    print(contract_str, contract_str.encode("UTF-8"))
+    double_count = contract_str.count("×")
+    contract_str = contract_str.strip("×")
+    contract_str = contract_str.replace("\u202f", "\u2009")
+    contract_str = contract_str.replace("\u0809", "\u2009")
+    print(len(contract_str), contract_str.split("\u2009"), len(contract_str.split("\u2009")))
+    level, suit_symbol = contract_str.split("\u2009")
     return level, symbol_mapping[suit_symbol], double_count == 1, double_count == 2
 
 
@@ -279,10 +280,10 @@ def get_shape(deal, target_direction):
     hand = deal.hands[target_direction]
     shape = [len(hand.suits[suit]) for suit in Suit]
     shape.reverse()
-    shape_str = ''.join([str(s) for s in shape])
+    shape_str = "".join([str(s) for s in shape])
     shape.sort()
     shape.reverse()
-    sorted_shape_str = ''.join([str(s) for s in shape])
+    sorted_shape_str = "".join([str(s) for s in shape])
     return shape_str, sorted_shape_str
 
 
@@ -346,51 +347,65 @@ def process_recap_file(records, recap_path, target_player):
                 target_direction = target_player_to_direction(row, target_player)
                 if target_direction:
                     role, team_role = target_direction_role(target_direction, row, deal)
-                    score, scoring_form = score_section(target_direction, max_section_lengths[section_index], row,
-                                                        play_date)
-                    if scoring_form == 'matchpoints' and score > 1 and play_date not in percentage_scoring_days:
+                    score, scoring_form = score_section(
+                        target_direction, max_section_lengths[section_index], row, play_date
+                    )
+                    if scoring_form == "matchpoints" and score > 1 and play_date not in percentage_scoring_days:
                         print("wrong score for row:", row, score, row["mp_ns"], row["mp_ew"])
-                    contract_level, contract_suit, doubled, redoubled = parse_contract(row['contract'])
+                    contract_level, contract_suit, doubled, redoubled = parse_contract(row["contract"])
                     suits_shape, sorted_shape = get_shape(deal, target_direction)
                     hcp, team_hcp = get_record_hcp(deal, target_direction)
                     record = {
-                        'role': role,
-                        'team_role': team_role,
-                        'score': score,
-                        'contract_level': contract_level,
-                        'contract_suit': contract_suit,
-                        'doubled': doubled,
-                        'redoubled': redoubled,
-                        'play_date': play_date,
-                        'scoring_form': scoring_form,
-                        'suits_shape': suits_shape,
-                        'sorted_shape': sorted_shape,
-                        'hcp': hcp,
-                        'team_hcp': team_hcp
+                        "role": role,
+                        "team_role": team_role,
+                        "score": score,
+                        "contract_level": contract_level,
+                        "contract_suit": contract_suit,
+                        "doubled": doubled,
+                        "redoubled": redoubled,
+                        "play_date": play_date,
+                        "scoring_form": scoring_form,
+                        "suits_shape": suits_shape,
+                        "sorted_shape": sorted_shape,
+                        "hcp": hcp,
+                        "team_hcp": team_hcp,
                     }
                     records.append(record)
                     break
 
 
 error_files = [
-    '/Users/frice/bridge/results/2020-05-25/recap.html',
+    "/Users/frice/bridge/results/2020-05-25/recap.html",
 ]
 
 records = []
-for recap_path in Path('/Users/frice/bridge/results').rglob('*recap.html'):
+for recap_path in Path("/Users/frice/bridge/results").rglob("*recap.html"):
     # for recap_path_str in error_files:
     #   recap_path = Path(recap_path_str)
-    process_recap_file(records, recap_path, 'Rice')
+    process_recap_file(records, recap_path, "Rice")
 
-print(f'processed {len(records)} records')
+print(f"processed {len(records)} records")
 
-results_path = '/Users/frice/bridge/results/all_qt_results.csv'
-with open(results_path, 'w', newline='') as csvfile:
-    fieldnames = ['role', 'team_role', 'score', 'contract_level', 'contract_suit', 'doubled', 'redoubled', 'play_date',
-                  'scoring_form', 'suits_shape', 'sorted_shape', 'hcp', 'team_hcp']
+results_path = "/Users/frice/bridge/results/all_qt_results.csv"
+with open(results_path, "w", newline="") as csvfile:
+    fieldnames = [
+        "role",
+        "team_role",
+        "score",
+        "contract_level",
+        "contract_suit",
+        "doubled",
+        "redoubled",
+        "play_date",
+        "scoring_form",
+        "suits_shape",
+        "sorted_shape",
+        "hcp",
+        "team_hcp",
+    ]
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
     for record in records:
         writer.writerow(record)
 
-print(f'DONE. Wrote csv to {results_path}')
+print(f"DONE. Wrote csv to {results_path}")

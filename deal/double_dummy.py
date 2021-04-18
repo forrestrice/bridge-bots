@@ -4,15 +4,17 @@ from collections import defaultdict
 from typing import Dict, Tuple
 
 from deal.deal import Deal
-from deal.deal_enums import Direction, BiddingSuit
+from deal.deal_enums import BiddingSuit, Direction
 
 
 class DoubleDummyScore:
-    suit_identifiers = {'C': BiddingSuit.CLUBS,
-                        'D': BiddingSuit.DIAMONDS,
-                        'H': BiddingSuit.HEARTS,
-                        'S': BiddingSuit.SPADES,
-                        'NT': BiddingSuit.NO_TRUMP}
+    suit_identifiers = {
+        "C": BiddingSuit.CLUBS,
+        "D": BiddingSuit.DIAMONDS,
+        "H": BiddingSuit.HEARTS,
+        "S": BiddingSuit.SPADES,
+        "NT": BiddingSuit.NO_TRUMP,
+    }
 
     def __init__(self, scores: Dict[Direction, Dict[BiddingSuit, int]]):
         self.scores = scores
@@ -22,18 +24,8 @@ class DoubleDummyScore:
     def from_acbl_strings(dd_north_south: str, dd_east_west: str) -> DoubleDummyScore:
         scores = {}
         scores.update(DoubleDummyScore._scores_from_acbl_string(dd_north_south, Direction.NORTH, Direction.SOUTH))
-        scores.update(
-            DoubleDummyScore._scores_from_acbl_string(
-                dd_north_south,
-                Direction.NORTH,
-                Direction.SOUTH)
-        )
-        scores.update(
-            DoubleDummyScore._scores_from_acbl_string(
-                dd_east_west,
-                Direction.EAST,
-                Direction.WEST)
-        )
+        scores.update(DoubleDummyScore._scores_from_acbl_string(dd_north_south, Direction.NORTH, Direction.SOUTH))
+        scores.update(DoubleDummyScore._scores_from_acbl_string(dd_east_west, Direction.EAST, Direction.WEST))
         return DoubleDummyScore(scores)
 
     @staticmethod
@@ -51,11 +43,12 @@ class DoubleDummyScore:
             if suit_identifier in suit_score:
                 # if the suit comes after the number, the trick score is +6
                 with_book = suit_score.index(suit_identifier) > 0
-                return suit_score.replace(suit_identifier, ''), suit, with_book
+                return suit_score.replace(suit_identifier, ""), suit, with_book
 
     @staticmethod
-    def _scores_from_acbl_string(acbl_str: str, first_direction: Direction, second_direction: Direction) -> \
-            Dict[Direction, Dict[BiddingSuit, int]]:
+    def _scores_from_acbl_string(
+        acbl_str: str, first_direction: Direction, second_direction: Direction
+    ) -> Dict[Direction, Dict[BiddingSuit, int]]:
         """Parse a string like '2C 2/-H 1S 3/2NT D6 H8/6' into two score dictionary entries"""
         scores = defaultdict(dict)
         suit_score_strings = acbl_str.split()
@@ -79,6 +72,7 @@ class DoubleDummyDeal:
 
     @staticmethod
     def from_acbl_dict(acbl_dict: Dict[str, str]) -> DoubleDummyDeal:
-        dd_score = DoubleDummyScore.from_acbl_strings(acbl_dict["double_dummy_north_south"],
-                                                      acbl_dict["double_dummy_east_west"])
+        dd_score = DoubleDummyScore.from_acbl_strings(
+            acbl_dict["double_dummy_north_south"], acbl_dict["double_dummy_east_west"]
+        )
         return DoubleDummyDeal(Deal.from_acbl_dict(acbl_dict), dd_score)

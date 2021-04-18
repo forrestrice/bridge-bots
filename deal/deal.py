@@ -54,10 +54,8 @@ class PlayerHand:
 
     def __str__(self):
         return "Clubs:{}\nDiamonds:{}\nHearts:{}\nSpades:{}".format(
-            self.suits[Suit.CLUBS],
-            self.suits[Suit.DIAMONDS],
-            self.suits[Suit.HEARTS],
-            self.suits[Suit.SPADES])
+            self.suits[Suit.CLUBS], self.suits[Suit.DIAMONDS], self.suits[Suit.HEARTS], self.suits[Suit.SPADES]
+        )
 
     def __eq__(self, other):
         return self.suits == other.suits
@@ -70,7 +68,6 @@ reverse_sorted_cards = sorted([Card(suit, rank) for suit in Suit for rank in Ran
 
 
 class Deal:
-
     def __init__(self, dealer: Direction, ns_vulnerable: bool, ew_vulnerable: bool, hands: Dict[Direction, PlayerHand]):
         self.dealer = dealer
         self.ns_vulnerable = ns_vulnerable
@@ -84,14 +81,17 @@ class Deal:
             self.hands[Direction.NORTH],
             self.hands[Direction.EAST],
             self.hands[Direction.SOUTH],
-            self.hands[Direction.WEST])
+            self.hands[Direction.WEST],
+        )
         return header + hands_str
 
     def __eq__(self, other):
-        return (self.dealer == other.dealer and
-                self.ns_vulnerable == other.ns_vulnerable and
-                self.ew_vulnerable == other.ew_vulnerable and
-                self.hands == other.hands)
+        return (
+            self.dealer == other.dealer
+            and self.ns_vulnerable == other.ns_vulnerable
+            and self.ew_vulnerable == other.ew_vulnerable
+            and self.hands == other.hands
+        )
 
     def __hash__(self):
         card_sets = [(direction, frozenset(self.hands[direction].cards)) for direction in self.hands]
@@ -114,11 +114,11 @@ class Deal:
         binary_deal = (binary_deal << 2) | self.dealer.value
         binary_deal = (binary_deal << 1) | self.ns_vulnerable
         binary_deal = (binary_deal << 1) | self.ew_vulnerable
-        return binary_deal.to_bytes(14, byteorder='big')
+        return binary_deal.to_bytes(14, byteorder="big")
 
     @staticmethod
     def deserialize(binary_deal_bytes: bytes) -> Deal:
-        binary_deal = int.from_bytes(binary_deal_bytes, byteorder='big')
+        binary_deal = int.from_bytes(binary_deal_bytes, byteorder="big")
         ew_vulnerable = bool(binary_deal & 1)
         ns_vulnerable = bool(binary_deal & 2)
         binary_deal = binary_deal >> 2
@@ -138,15 +138,17 @@ class Deal:
         }
         return Deal(dealer, ns_vulnerable, ew_vulnerable, deal_hands)
 
-    ns_vuln_strings = {'Both', 'N-S', 'All', 'NS'}
-    ew_vuln_strings = {'Both', 'E-W', 'All', 'EW'}
+    ns_vuln_strings = {"Both", "N-S", "All", "NS"}
+    ew_vuln_strings = {"Both", "E-W", "All", "EW"}
 
     @staticmethod
     def from_acbl_dict(acbl_dict: Dict[str, str]) -> Deal:
         player_cards = {}
         for direction in Direction:
             suit_keys = [direction.name.lower() + "_" + suit.name.lower() for suit in Suit]
-            suit_string_lists = [[] if acbl_dict[suit_key] == "-----" else acbl_dict[suit_key].split() for suit_key in suit_keys]
+            suit_string_lists = [
+                [] if acbl_dict[suit_key] == "-----" else acbl_dict[suit_key].split() for suit_key in suit_keys
+            ]
             player_cards[direction] = PlayerHand.from_string_lists(*suit_string_lists)
 
         dealer_direction = Direction[acbl_dict["dealer"].upper()]
@@ -166,7 +168,7 @@ class Deal:
         deal_str = deal_str[2:]
         player_hands = {}
         for player_str in deal_str.split():
-            suits = player_str.split('.')
+            suits = player_str.split(".")
             suits.reverse()
             player_hands[hands_direction] = PlayerHand.from_string_lists(*suits)
             hands_direction = hands_direction.next()

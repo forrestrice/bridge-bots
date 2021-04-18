@@ -1,6 +1,6 @@
 import unittest
 
-from deal.deal_enums import Direction, BiddingSuit
+from deal.deal_enums import BiddingSuit, Direction
 from deal.double_dummy import DoubleDummyScore
 
 
@@ -32,5 +32,5 @@ class TestDoubleDummyScore(unittest.TestCase):
         self.assertEqual(8, dd_score.scores[Direction.WEST][BiddingSuit.NO_TRUMP])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -1,6 +1,5 @@
 import json
 import os
-import pprint
 
 sessions_with_records = 0
 total_records = 0

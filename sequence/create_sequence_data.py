@@ -4,7 +4,6 @@ import random
 from typing import Dict, List
 
 import numpy as np
-import tensorflow as tf
 
 from deal.deal import Deal
 from deal.table_record import TableRecord
@@ -55,8 +54,8 @@ with open(pickle_file_path, "rb") as pickle_file:
 
 print(f"processing {len(deal_records)} records")
 
-#splits = [("TRAIN", [], []), ("VALIDATION", [], []), ("TEST", [], [])]
-splits = [('TRAIN', []), ('VALIDATION', []), ('TEST', [])]
+# splits = [("TRAIN", [], []), ("VALIDATION", [], []), ("TEST", [], [])]
+splits = [("TRAIN", []), ("VALIDATION", []), ("TEST", [])]
 split_weights = [0.8, 0.1, 0.1]
 
 # ensure deals are always in the same split
@@ -77,22 +76,22 @@ for deal, table_records in deal_records.items():
         except KeyError as e:
             logging.warning(f"Skipping invalid bidding sequence: {table_record.bidding_record}, {e}")
             continue
-        #one_hot_bidding = tf.keras.utils.to_categorical(bidding_indices, num_classes=len(bidding_vocab))
+        # one_hot_bidding = tf.keras.utils.to_categorical(bidding_indices, num_classes=len(bidding_vocab))
         training_data_list.append(BiddingTrainingData(bidding_indices, holding_array))
         # model_input = np.concatenate((one_hot_bidding, tiled_holding_array), axis=2)
         # X.append(model_input)
         # y.append(one_hot_bidding)
-        #holding_arrays.append(holding_array)
-        #bidding_sequences.append(one_hot_bidding)
+        # holding_arrays.append(holding_array)
+        # bidding_sequences.append(one_hot_bidding)
 
 save_prefix = "/Users/frice/bridge/bid_learn/"
 for name, training_data_list in splits:
     print(name)
     print(f"samples: {len(training_data_list)}")
-    with open(save_prefix + name + '.pickle', "wb") as pickle_file:
+    with open(save_prefix + name + ".pickle", "wb") as pickle_file:
         pickle.dump(training_data_list, pickle_file)
 
-'''
+"""
 save_prefix = "/Users/frice/bridge/bid_learn/"
 for name, holding_arrays, bidding_sequences in splits:
     print(name)
@@ -105,7 +104,7 @@ for name, holding_arrays, bidding_sequences in splits:
     )
     np.save(save_prefix + name + "_HOLDING", holding_combined)
     np.save(save_prefix + name + "_BID_SEQUENCE", bidding_sequences_combined)
-'''
+"""
 """
 for name, X, y in splits:
     print(name)
