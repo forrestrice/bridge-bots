@@ -1,76 +1,64 @@
-import numpy as np
-import tensorflow as tf
-from tensorflow.keras.layers import LSTM
-from tensorflow.python.keras import Input, Model
-from tensorflow.python.keras.layers import Dense, Lambda, Reshape
-from tensorflow.python.keras.optimizer_v2.adam import Adam
+import pickle
+from typing import List
 
+import tensorflow as tf
+from tensorflow.keras import layers
+from tensorflow.python.keras import Input, Model
+from tensorflow.python.keras.layers import Dense
+
+from sequence.bidding_training_data import BiddingSequenceDataGenerator, BiddingTrainingData
 from train.bridge_training_utils import bidding_vocab
 
-LSTM_MEMORY_SIZE = 128
+
+def build_lstm_model(sequence_length: int, vocab_size: int):
+    input_layer = Input(shape=(sequence_length, vocab_size))
+    x = tf.keras.layers.LSTM(128)(input_layer)
+    output_layer = tf.keras.layers.Dense(len(bidding_vocab))(x)
+    return Model(inputs=input_layer, outputs=output_layer)
 
 
-def bidding_model(Tx):
-    vocab_size = len(bidding_vocab)
-    LSTM_cell = LSTM(LSTM_MEMORY_SIZE, return_state=True)
-    reshapor = Reshape((1, vocab_size))
-    densor = Dense(vocab_size, activation="softmax")
-    X = Input(shape=(Tx, vocab_size))
+def build_lstm_model_with_holding(sequence_length: int, vocab_size: int):
+    bidding_input_layer = Input(shape=(sequence_length, vocab_size))
+    lstm_output = tf.keras.layers.LSTM(128)(bidding_input_layer)
 
-    a0 = Input(shape=(LSTM_MEMORY_SIZE,), name="a0")
-    c0 = Input(shape=(LSTM_MEMORY_SIZE,), name="c0")
-    holdings_constants = Input(shape=(208,), name="holdings_constants")
-    a = a0
-    c = c0
+    holding_input_layer = Input(shape=(52 * 4))
+    h = Dense(104, "selu")(holding_input_layer)
+    h = Dense(52, "selu")(h)
+    holding_output = Dense(26, "selu")(h)
 
-    outputs = []
-    for t in range(Tx):
-        x = Lambda(lambda z: z[:, t, :])(X)
-        x = reshapor(x)
-        a, _, c = LSTM_cell(inputs=x, initial_state=[a, c], constants=holdings_constants)
-        out = densor(a)
-        outputs.append(out)
-    model = Model(inputs=[X, a0, c0, holdings_constants], outputs=outputs)
-    return model
-    # LSTM_cell = LSTM(LSTM_MEMORY_SIZE, return_state = True)
+    x = layers.concatenate([lstm_output, holding_output])
+    output_layer = tf.keras.layers.Dense(len(bidding_vocab))(x)
+    return Model(inputs=[bidding_input_layer, holding_input_layer], outputs=output_layer)
 
 
-data_prefix = "/Users/frice/bridge/bid_learn/"
-holdings, bid_sequences = np.load(data_prefix + "TRAIN_HOLDING.npy"), np.load(data_prefix + "TRAIN_BID_SEQUENCE.npy")
-print(bid_sequences.shape)
-bid_sequences_input = np.copy(bid_sequences)
-empty_start_sequence = np.zeros((bid_sequences.shape[0], 1, len(bidding_vocab)))
-# empty_start_sequence = np.broadcast_to(np.zeros(40), (bid_sequences.shape[0], 1, 40))
-print(empty_start_sequence.shape)
-bid_sequences_input = np.concatenate((empty_start_sequence, bid_sequences_input), axis=1)
-print(bid_sequences.shape, bid_sequences_input.shape)
+def build_lstm_model_v3(sequence_length: int, vocab_size: int):
+    bidding_input_layer = Input(shape=(sequence_length, vocab_size))
+    lstm_outputs, state_h, state_c = tf.keras.layers.LSTM(units=128, return_state=True)(bidding_input_layer)
 
-"""
-pad_end_sequence = np.broadcast(
-    tf.keras.utils.to_categorical(bidding_vocab['PAD'], num_classes=len(bidding_vocab)),
-    (bid_sequences.shape[0], 1, 40))
-    """
-pad_end_sequence = np.reshape(
-    tf.keras.utils.to_categorical(bidding_vocab["PAD"], num_classes=len(bidding_vocab)), (1, len(bidding_vocab))
+    holding_input_layer = Input(shape=(52 * 4))
+
+    x = layers.concatenate([lstm_outputs, state_c, holding_input_layer])
+    x = Dense(256, "selu")(x)
+    x = Dense(128, "selu")(x)
+    x = Dense(64, "selu")(x)
+    output_layer = tf.keras.layers.Dense(len(bidding_vocab))(x)
+    return Model(inputs=[bidding_input_layer, holding_input_layer], outputs=output_layer)
+
+
+bid_learn_prefix = "/Users/frice/bridge/bid_learn/"
+with open(bid_learn_prefix + "TRAIN.pickle", "rb") as pickle_file:
+    bidding_training_data: List[BiddingTrainingData] = pickle.load(pickle_file)
+
+print(len(bidding_training_data))
+data_generator = BiddingSequenceDataGenerator(20, bidding_training_data)
+
+bid_lstm_model = build_lstm_model_v3(sequence_length=45, vocab_size=len(bidding_vocab))
+
+bid_lstm_model.compile(
+    optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3),
+    loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
+    metrics="accuracy",
 )
-stacked_pad_end_sequence = np.broadcast_to(pad_end_sequence, (bid_sequences.shape[0], 1, len(bidding_vocab)))
-print(stacked_pad_end_sequence.shape)
-bid_sequences_targets = np.concatenate((bid_sequences, stacked_pad_end_sequence), axis=1)
-# TODO understand this a bit better
-bid_sequences_targets = np.transpose(bid_sequences_targets, (1, 0, 2))
-print(f"bid_sequences_targets.shape={bid_sequences_targets.shape}")
 
-num_samples, Tx, vocab_size = bid_sequences_input.shape
-
-model = bidding_model(Tx)
-opt = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, decay=0.01)
-model.compile(optimizer=opt, loss="categorical_crossentropy", metrics=["accuracy"])
-
-a0 = np.zeros((num_samples, LSTM_MEMORY_SIZE))
-c0 = np.zeros((num_samples, LSTM_MEMORY_SIZE))
-# holdings_constants = tf.keras.backend.constant(holdings)
-
-model.fit([bid_sequences_input, a0, c0], list(bid_sequences_targets), epochs=3)
-
-
-# bidding_model(Tx)'''
+bid_lstm_model.fit(data_generator, epochs=10)
+bid_lstm_model.save(bid_learn_prefix + "lstm_model_v3")

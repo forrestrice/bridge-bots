@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from deal.deal import PlayerHand, Deal
 import re
 
-from hand_dao import HandDao
+from sql.hand_dao import HandDao
 
 base_path = "/home/forrest/bridge/results/"
 dealer_pattern = re.compile("(.*) Deals")
