@@ -7,8 +7,8 @@ from pathlib import Path
 
 from bs4 import BeautifulSoup
 
-from bridge.deal import Deal, PlayerHand
-from bridge.deal_enums import BiddingSuit, Direction, Rank, Suit
+from bridge import Deal, PlayerHand
+from bridge import BiddingSuit, Direction, Rank, Suit
 
 
 def parse_suit_cell(suit_cell):
@@ -193,7 +193,7 @@ def target_direction_role(target_direction, row, deal):
     elif row["contract"] == "" or row["contract"] == "unknown":
         return "unknown", "unknown"
     else:
-        role_direction = Direction.from_char(row["declarer"])
+        role_direction = Direction.from_str(row["declarer"])
     for role in roles:
         if role_direction == target_direction:
             return role

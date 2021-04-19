@@ -1,12 +1,14 @@
-from bridge.deal import Card
-from bridge.deal_enums import Rank, Suit, all_bids
+from bridgebots.deal import Card
+from bridgebots.deal_enums import Rank, Suit
 
-sorted_cards = sorted([Card(suit, rank) for suit in Suit for rank in Rank])
+SORTED_CARDS = sorted([Card(suit, rank) for suit in Suit for rank in Rank])
 
-bidding_vocab = {bid: index + 1 for index, bid in enumerate(all_bids)}
-bidding_vocab["EOS"] = len(bidding_vocab)
-bidding_vocab["PAD"] = 0
-print(bidding_vocab)
+ALL_BIDS = [str(level) + suit_char for level in range(1, 8) for suit_char in ["C", "D", "H", "S", "NT"]]
+ALL_BIDS.extend(["PASS", "X", "XX"])
+
+BIDDING_VOCAB = {bid: index + 1 for index, bid in enumerate(ALL_BIDS)}
+BIDDING_VOCAB["EOS"] = len(BIDDING_VOCAB)
+BIDDING_VOCAB["PAD"] = 0
 
 
 def canonicalize_bid(bid: str) -> str:

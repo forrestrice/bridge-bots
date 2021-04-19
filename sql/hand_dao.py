@@ -2,7 +2,7 @@ import psycopg2
 import json
 
 #
-from bridge.deal import Deal
+from bridge import Deal
 
 
 class HandDao:

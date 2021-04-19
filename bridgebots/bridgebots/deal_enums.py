@@ -3,6 +3,10 @@ from __future__ import annotations
 from enum import Enum
 from functools import total_ordering
 
+"""
+Common bridge concepts such as Cardinal Direction, Suit, and Card Rank represented as Enums
+"""
+
 
 @total_ordering
 class Direction(Enum):
@@ -11,12 +15,11 @@ class Direction(Enum):
     SOUTH = 2
     WEST = 3
 
-    _ignore_ = ["_char_map"]
-    _char_map = {}
+    __from_str_map__ = {"N": NORTH, "E": EAST, "S": SOUTH, "W": WEST}
 
     @classmethod
-    def from_char(self, direction_char) -> Direction:
-        return Direction._char_map[direction_char]
+    def from_str(cls, direction_str) -> Direction:
+        return cls.__from_str_map__[direction_str.upper()]
 
     def __lt__(self, other):
         return self.value < other.value
@@ -26,9 +29,6 @@ class Direction(Enum):
 
     def next(self):
         return Direction((self.value + 1) % 4)
-
-
-Direction._char_map = {"N": Direction.NORTH, "E": Direction.EAST, "S": Direction.SOUTH, "W": Direction.WEST}
 
 
 @total_ordering
@@ -91,7 +91,6 @@ class Rank(Enum):
     KING = 13, "K"
     ACE = 14, "A"
 
-    # double underscore to end the enum declaration
     __from_str_map__ = {
         "2": TWO,
         "3": THREE,
@@ -121,7 +120,3 @@ class Rank(Enum):
 
     def to_char(self):
         return self.value[1]
-
-
-all_bids = [str(level) + suit_char for level in range(1, 8) for suit_char in ["C", "D", "H", "S", "NT"]]
-all_bids.extend(["PASS", "X", "XX"])

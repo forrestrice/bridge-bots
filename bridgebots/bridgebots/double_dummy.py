@@ -3,11 +3,16 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Dict, Tuple
 
-from bridge.deal import Deal
-from bridge.deal_enums import BiddingSuit, Direction
+from bridgebots.deal import Deal
+from bridgebots.deal_enums import BiddingSuit, Direction
+from bridgebots.deal_utils import from_acbl_dict
 
 
 class DoubleDummyScore:
+    """
+    Represents the double-dummy number of tricks available for declaring each suit from each direction
+    """
+
     suit_identifiers = {
         "C": BiddingSuit.CLUBS,
         "D": BiddingSuit.DIAMONDS,
@@ -66,6 +71,9 @@ class DoubleDummyScore:
 
 
 class DoubleDummyDeal:
+    """
+    Wrapper class which holds a deal and its double dummy scores
+    """
     def __init__(self, deal: Deal, dd_score: DoubleDummyScore):
         self.deal = deal
         self.dd_score = dd_score
@@ -75,4 +83,4 @@ class DoubleDummyDeal:
         dd_score = DoubleDummyScore.from_acbl_strings(
             acbl_dict["double_dummy_north_south"], acbl_dict["double_dummy_east_west"]
         )
-        return DoubleDummyDeal(Deal.from_acbl_dict(acbl_dict), dd_score)
+        return DoubleDummyDeal(from_acbl_dict(acbl_dict), dd_score)

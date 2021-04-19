@@ -1,11 +1,10 @@
 import logging
-import logging
 import pickle
 import random
 from typing import Dict
 
-from bridge.deal import Card
-from bridge.deal_enums import BiddingSuit, Direction, Rank, Suit
+from bridge import Card
+from bridge import BiddingSuit, Direction, Rank, Suit
 from train.streaming_csv_writer import StreamingCsvWriter
 
 logging.basicConfig(level=logging.INFO)

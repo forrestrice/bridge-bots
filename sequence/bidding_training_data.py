@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras.utils.data_utils import Sequence
 
-from train.bridge_training_utils import bidding_vocab
+from train.bridge_training_utils import BIDDING_VOCAB
 
 
 class BiddingTrainingData:
@@ -28,7 +28,7 @@ class BiddingSequenceDataGenerator(Sequence):
         self.batch_size = batch_size
         self.bidding_training_data = bidding_training_data
         self.data_indices = np.arange(len(bidding_training_data))
-        self.bidding_vocab_size = len(bidding_vocab)
+        self.bidding_vocab_size = len(BIDDING_VOCAB)
         self.rnd = np.random.RandomState(0)
         if shuffle_on_start:
             self.rnd.shuffle(self.data_indices)

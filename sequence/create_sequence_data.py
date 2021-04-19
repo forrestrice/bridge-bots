@@ -5,10 +5,10 @@ from typing import Dict, List
 
 import numpy as np
 
-from bridge.deal import Deal
-from bridge.table_record import TableRecord
+from bridgebots.deal import Deal
+from bridgebots.table_record import TableRecord
 from sequence.bidding_training_data import BiddingTrainingData
-from train.bridge_training_utils import bidding_vocab, canonicalize_bid, sorted_cards
+from train.bridge_training_utils import BIDDING_VOCAB, canonicalize_bid, SORTED_CARDS
 
 
 def build_bidding_indices(table_record: TableRecord) -> List[int]:
@@ -16,8 +16,8 @@ def build_bidding_indices(table_record: TableRecord) -> List[int]:
     for bid in table_record.bidding_record:
         if bid[0] in ["=", "!", "$"]:
             continue
-        bidding_indices.append(bidding_vocab[canonicalize_bid(bid)])
-    bidding_indices.append(bidding_vocab["EOS"])
+        bidding_indices.append(BIDDING_VOCAB[canonicalize_bid(bid)])
+    # bidding_indices.append(bidding_vocab["EOS"])
     return bidding_indices
 
 
@@ -26,7 +26,7 @@ def build_holding_array(deal: Deal) -> np.ndarray:
     direction = deal.dealer
     for di in range(0, 4):
         direction_cards = deal.player_cards[direction]
-        for ci, card in enumerate(sorted_cards):
+        for ci, card in enumerate(SORTED_CARDS):
             if card in direction_cards:
                 holding_array[0, 52 * di + ci] = 1
         direction = direction.next()
@@ -61,7 +61,7 @@ for deal, table_records in deal_records.items():
             continue
         training_data_list.append(BiddingTrainingData(bidding_indices, holding_array))
 
-save_prefix = "/Users/frice/bridge/bid_learn/"
+save_prefix = "/Users/frice/bridge/bid_learn_noeos/"
 for name, training_data_list in splits:
     print(name)
     print(f"samples: {len(training_data_list)}")

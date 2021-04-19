@@ -2,9 +2,8 @@ import json
 import logging
 import os
 import pickle
-from pprint import pprint
 
-from bridge.double_dummy import DoubleDummyDeal
+from bridge import DoubleDummyDeal
 
 logging.basicConfig(level=logging.INFO)
 

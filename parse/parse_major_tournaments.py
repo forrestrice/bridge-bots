@@ -3,7 +3,7 @@ import pickle
 from collections import defaultdict
 from pathlib import Path
 
-from parse.pbn import parse_pbn
+from bridge import parse_pbn
 
 logging.basicConfig(level=logging.WARNING)
 

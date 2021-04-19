@@ -1,7 +1,7 @@
 import unittest
 
-from bridge.deal import Deal, PlayerHand
-from bridge.deal_enums import Direction
+from bridgebots.deal import Deal, PlayerHand
+from bridgebots.deal_enums import Direction
 
 hands = {
     Direction.NORTH: PlayerHand.from_string_lists(

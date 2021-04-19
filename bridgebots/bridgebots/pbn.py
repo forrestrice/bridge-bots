@@ -1,14 +1,20 @@
 import logging
 from functools import partial
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
-from bridge.deal import Card, Deal
-from bridge.deal_enums import BiddingSuit, Direction, Suit
-from bridge.table_record import TableRecord
+from bridgebots.deal import Card, Deal
+from bridgebots.deal_enums import BiddingSuit, Direction, Suit
+from bridgebots.deal_utils import from_pbn_deal
+from bridgebots.table_record import TableRecord
 
 
-def split_pbn(file_path: Path):
+def _split_pbn(file_path: Path) -> List[List[str]]:
+    """
+    Read in the entire pbn file. Split on lines consisting of '*\n' into a list of strings per board
+    :param file_path: path to pbn file
+    :return:
+    """
     with open(file_path, "r") as pbn_file:
         records = []
         current_record = ""
@@ -23,7 +29,14 @@ def split_pbn(file_path: Path):
                 current_record += line
 
 
-def build_record_dict(record_strings: List[str]) -> Dict:
+def _build_record_dict(record_strings: List[str]) -> Dict:
+    """
+    Parse the pbn line by line. When a block section like "Auction" or "Play" is encountered, collect all the content of
+     the block into a single entry
+    :param record_strings: List of string lines for a single board
+    :return: A dictionary mapping keys from the pbn to strings or other useful values (e.g. list of strings for the
+    bidding record)
+    """
     record_dict = {}
     # Janky while loop to handle non bracketed lines
     i = 0
@@ -68,7 +81,10 @@ def build_record_dict(record_strings: List[str]) -> Dict:
     return record_dict
 
 
-def evaluate_card(trump_suit: Suit, suit_led: Suit, card: Card) -> int:
+def _evaluate_card(trump_suit: Suit, suit_led: Suit, card: Card) -> int:
+    """
+    :return: Score a card on its ability to win a trick given the trump suit and the suit that was led to the trick
+    """
     score = card.rank.value[0]
     if card.suit == trump_suit:
         score += 100
@@ -77,7 +93,26 @@ def evaluate_card(trump_suit: Suit, suit_led: Suit, card: Card) -> int:
     return score
 
 
-def sort_play_record(trick_records: List[List[str]], contract: str) -> List[Card]:
+def _sort_play_record(trick_records: List[List[str]], contract: str) -> List[Card]:
+    """
+    Untangle the true play order of the cards for a board
+
+    PBNs record cardplay by direction. For Example
+    [Play "N"]
+    H6 HK HQ H5
+    CA C4 C6 CK
+    H2 H3 DJ H8
+
+    The H6 was led by N and followed by the HK by E, HQ by S, and H5 by W, which meant that E won the trick. On the
+    second trick, E led the C4 followed by the C6, CK, and CA. In order to create the true ordering of the first two
+    tricks, we need to evaluate who won the first trick and start appending from there, wrapping around when we reach
+    the 4th column.
+
+    :param trick_records: List of List of cards played to each trick. Order is consistent by direction, not necessarily
+    by time!
+    :param contract: Board contract. Trump suit is used to determine trick winners
+    :return: A list of Cards in played order
+    """
     if contract == "":
         logging.warning(f"empty contract, cannot determine play ordering: {trick_records}")
         return []
@@ -86,7 +121,7 @@ def sort_play_record(trick_records: List[List[str]], contract: str) -> List[Card
     try:
         trump_suit = BiddingSuit.from_str(contract[1:2]).to_suit()
         play_record = []
-        start_index = 0
+        start_index = 0  # represents which column is on lead
         for trick_record in trick_records:
             trick_cards = []
             for i in range(0, 4):
@@ -96,23 +131,29 @@ def sort_play_record(trick_records: List[List[str]], contract: str) -> List[Card
                     card = Card.from_str(card_str)
                     play_record.append(card)
                     trick_cards.append(card)
+            # 4 cards played to trick. Determine the winning index relative to the column on lead
             if len(trick_cards) == 4:
                 suit_led = trick_cards[0].suit
-                evaluator = partial(evaluate_card, trump_suit, suit_led)
+                evaluator = partial(_evaluate_card, trump_suit, suit_led)
                 winning_index, winning_card = max(enumerate(trick_cards), key=lambda c: evaluator(c[1]))
-                start_index = (start_index + winning_index) % 4
+                start_index = (start_index + winning_index) % 4  # wrap-around to first column if necessary
         return play_record
     except (IndexError, KeyError) as e:
         logging.warning(f"Malformed play record: {trick_records} exception:{e}")
         return []
 
 
-def parse_table_record(record_dict: Dict) -> TableRecord:
+def _parse_table_record(record_dict: Dict) -> TableRecord:
+    """
+    Convert the record dictionary to a TableRecord
+    :param record_dict: mapping of PBN keys to deal or board information
+    :return: TableRecord representing the people and actions at the table
+    """
     declarer_str = record_dict["Declarer"]
-    declarer = Direction.from_char(declarer_str) if declarer_str and declarer_str != "" else None
+    declarer = Direction.from_str(declarer_str) if declarer_str and declarer_str != "" else None
     bidding_record = record_dict.get("bidding_record") or []
     play_record_strings = record_dict.get("play_record") or []
-    play_record = sort_play_record(play_record_strings, record_dict["Contract"])
+    play_record = _sort_play_record(play_record_strings, record_dict["Contract"])
     result_str = record_dict.get("Result")
     result = int(result_str) if result_str and result_str != "" else None
 
@@ -132,12 +173,17 @@ def parse_table_record(record_dict: Dict) -> TableRecord:
     )
 
 
-def parse_pbn(file_path: Path):
-    records_strings = split_pbn(file_path)
+def parse_pbn(file_path: Path) -> List[Tuple[Deal, TableRecord]]:
+    """
+    Split pbn file into boards then decompose those boards into Deal and TableRecord objects
+    :param file_path: path to a pbn file
+    :return: A list of pairs of Deal and TableRecord
+    """
+    records_strings = _split_pbn(file_path)
     results = []
     for record_strings in records_strings:
-        record_dict = build_record_dict(record_strings)
-        deal = Deal.from_pbn_deal(record_dict["Dealer"], record_dict["Vulnerable"], record_dict["Deal"])
-        table_record = parse_table_record(record_dict)
+        record_dict = _build_record_dict(record_strings)
+        deal = from_pbn_deal(record_dict["Dealer"], record_dict["Vulnerable"], record_dict["Deal"])
+        table_record = _parse_table_record(record_dict)
         results.append((deal, table_record))
     return results

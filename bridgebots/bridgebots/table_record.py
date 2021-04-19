@@ -1,10 +1,14 @@
 from typing import List
 
-from bridge.deal import Card
-from bridge.deal_enums import Direction
+from bridgebots.deal import Card
+from bridgebots.deal_enums import Direction
 
 
 class TableRecord:
+    """
+    The record of a played deal. Often called a "board"
+    """
+
     def __init__(
         self,
         bidding_record: List[str],
@@ -33,5 +37,5 @@ class TableRecord:
         self.date = date
         self.event = event
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(vars(self))

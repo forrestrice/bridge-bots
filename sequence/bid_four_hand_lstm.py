@@ -7,13 +7,13 @@ from tensorflow.python.keras import Input, Model
 from tensorflow.python.keras.layers import Dense
 
 from sequence.bidding_training_data import BiddingSequenceDataGenerator, BiddingTrainingData
-from train.bridge_training_utils import bidding_vocab
+from train.bridge_training_utils import BIDDING_VOCAB
 
 
 def build_lstm_model(sequence_length: int, vocab_size: int):
     input_layer = Input(shape=(sequence_length, vocab_size))
     x = tf.keras.layers.LSTM(128)(input_layer)
-    output_layer = tf.keras.layers.Dense(len(bidding_vocab))(x)
+    output_layer = tf.keras.layers.Dense(len(BIDDING_VOCAB))(x)
     return Model(inputs=input_layer, outputs=output_layer)
 
 
@@ -27,7 +27,7 @@ def build_lstm_model_with_holding(sequence_length: int, vocab_size: int):
     holding_output = Dense(26, "selu")(h)
 
     x = layers.concatenate([lstm_output, holding_output])
-    output_layer = tf.keras.layers.Dense(len(bidding_vocab))(x)
+    output_layer = tf.keras.layers.Dense(len(BIDDING_VOCAB))(x)
     return Model(inputs=[bidding_input_layer, holding_input_layer], outputs=output_layer)
 
 
@@ -41,18 +41,18 @@ def build_lstm_model_v3(sequence_length: int, vocab_size: int):
     x = Dense(256, "selu")(x)
     x = Dense(128, "selu")(x)
     x = Dense(64, "selu")(x)
-    output_layer = tf.keras.layers.Dense(len(bidding_vocab))(x)
+    output_layer = tf.keras.layers.Dense(len(BIDDING_VOCAB))(x)
     return Model(inputs=[bidding_input_layer, holding_input_layer], outputs=output_layer)
 
 
-bid_learn_prefix = "/Users/frice/bridge/bid_learn/"
+bid_learn_prefix = "/Users/frice/bridge/bid_learn_noeos/"
 with open(bid_learn_prefix + "TRAIN.pickle", "rb") as pickle_file:
     bidding_training_data: List[BiddingTrainingData] = pickle.load(pickle_file)
 
 print(len(bidding_training_data))
 data_generator = BiddingSequenceDataGenerator(20, bidding_training_data)
 
-bid_lstm_model = build_lstm_model_v3(sequence_length=45, vocab_size=len(bidding_vocab))
+bid_lstm_model = build_lstm_model_v3(sequence_length=45, vocab_size=len(BIDDING_VOCAB))
 
 bid_lstm_model.compile(
     optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3),
@@ -60,5 +60,5 @@ bid_lstm_model.compile(
     metrics="accuracy",
 )
 
-bid_lstm_model.fit(data_generator, epochs=10)
-bid_lstm_model.save(bid_learn_prefix + "lstm_model_v3")
+bid_lstm_model.fit(data_generator, epochs=15)
+bid_lstm_model.save(bid_learn_prefix + "lstm_model_v3_noeos")

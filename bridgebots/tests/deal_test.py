@@ -1,8 +1,8 @@
 import json
 import unittest
 
-from bridge.deal import Card, Deal, PlayerHand
-from bridge.deal_enums import Direction, Rank, Suit
+from bridgebots.deal import Card, Deal, PlayerHand
+from bridgebots.deal_enums import Direction, Rank, Suit
 
 
 class TestDeal(unittest.TestCase):
