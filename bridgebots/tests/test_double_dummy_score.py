@@ -30,7 +30,3 @@ class TestDoubleDummyScore(unittest.TestCase):
         self.assertEqual(6, dd_score.scores[Direction.WEST][BiddingSuit.HEARTS])
         self.assertEqual(7, dd_score.scores[Direction.WEST][BiddingSuit.SPADES])
         self.assertEqual(8, dd_score.scores[Direction.WEST][BiddingSuit.NO_TRUMP])
-
-
-if __name__ == "__main__":
-    unittest.main()

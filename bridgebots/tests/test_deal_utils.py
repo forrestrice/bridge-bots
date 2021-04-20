@@ -1,21 +1,13 @@
 import json
 import unittest
 
-from bridgebots.deal import Card, Deal, PlayerHand
-from bridgebots.deal_enums import Direction, Rank, Suit
+from bridgebots import deal_utils
+from bridgebots.deal import Deal, PlayerHand
+from bridgebots.deal_enums import Direction, Suit
+from bridgebots.deal_utils import from_acbl_dict
 
 
-class TestDeal(unittest.TestCase):
-    def test_valid_player_hand_cards(self):
-        ph = PlayerHand.from_string_lists(["A", "K", "2"], ["A", "K", "Q"], ["10", "3"], ["J", "9", "8", "3", "2"])
-        self.assertEqual(13, len(ph.cards))
-
-    def test_constructor_sorts(self):
-        ph = PlayerHand.from_string_lists(["2", "A", "K"], ["A", "K", "Q"], ["10", "3"], ["J", "9", "8", "3", "2"])
-        self.assertEqual(
-            [Card(Suit.CLUBS, Rank.ACE), Card(Suit.CLUBS, Rank.KING), Card(Suit.CLUBS, Rank.TWO)], ph.cards[0:3]
-        )
-
+class TestAcblDeal(unittest.TestCase):
     def test_deal_from_acbl_handrecord(self):
         handrecord = (
             '{"box_number":"03151000","board_number":36,'
@@ -28,7 +20,7 @@ class TestDeal(unittest.TestCase):
         )
 
         handrecord_json = json.loads(handrecord)
-        deal = Deal.from_acbl_dict(handrecord_json)
+        deal = from_acbl_dict(handrecord_json)
         expected_north = PlayerHand.from_string_lists(
             ["K", "8", "2"], ["6", "2"], ["A", "Q", "10", "9", "3"], ["10", "6", "2"]
         )
@@ -49,9 +41,28 @@ class TestDeal(unittest.TestCase):
         )
 
         handrecord_json = json.loads(handrecord)
-        deal = Deal.from_acbl_dict(handrecord_json)
+        deal = from_acbl_dict(handrecord_json)
         self.assertEqual(0, len(deal.hands[Direction.EAST].suits[Suit.CLUBS]))
 
 
-if __name__ == "__main__":
-    unittest.main()
+class TestBinaryDeal(unittest.TestCase):
+    hands = {
+        Direction.NORTH: PlayerHand.from_string_lists(
+            ["9", "8", "6", "4"], ["K", "Q", "7", "6", "3"], ["A", "K"], ["7", "3"]
+        ),
+        Direction.SOUTH: PlayerHand.from_string_lists(
+            ["A", "K", "Q", "5"], ["A", "9", "4"], ["J", "5", "2"], ["K", "8", "4"]
+        ),
+        Direction.EAST: PlayerHand.from_string_lists(
+            ["2"], ["J", "10", "8", "5", "2"], ["Q", "8", "7", "4", "3"], ["A", "10"]
+        ),
+        Direction.WEST: PlayerHand.from_string_lists(
+            ["J", "10", "7", "3"], [], ["10", "9", "6"], ["Q", "J", "9", "6", "5", "2"]
+        ),
+    }
+    test_deal = Deal(Direction.EAST, True, False, hands)
+
+    def test_serialize_then_deserialize(self):
+        binary_deal = deal_utils.serialize(TestBinaryDeal.test_deal)
+        out_deal = deal_utils.deserialize(binary_deal)
+        self.assertEqual(TestBinaryDeal.test_deal, out_deal)
