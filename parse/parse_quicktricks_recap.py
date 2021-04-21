@@ -7,8 +7,8 @@ from pathlib import Path
 
 from bs4 import BeautifulSoup
 
-from bridge import Deal, PlayerHand
-from bridge import BiddingSuit, Direction, Rank, Suit
+from bridgebots.deal import Deal, PlayerHand
+from bridgebots.deal_enums import BiddingSuit, Direction, Rank, Suit
 
 
 def parse_suit_cell(suit_cell):

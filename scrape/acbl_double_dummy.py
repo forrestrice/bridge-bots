@@ -3,7 +3,7 @@ import logging
 import os
 import pickle
 
-from bridge import DoubleDummyDeal
+from bridgebots.double_dummy import DoubleDummyDeal
 
 logging.basicConfig(level=logging.INFO)
 

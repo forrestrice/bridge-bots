@@ -6,12 +6,12 @@ from typing import Dict, List
 import numpy as np
 
 from bridgebots.deal import Deal
-from bridgebots.table_record import TableRecord
+from bridgebots.board_record import BoardRecord
 from sequence.bidding_training_data import BiddingTrainingData
 from train.bridge_training_utils import BIDDING_VOCAB, canonicalize_bid, SORTED_CARDS
 
 
-def build_bidding_indices(table_record: TableRecord) -> List[int]:
+def build_bidding_indices(table_record: BoardRecord) -> List[int]:
     bidding_indices = []
     for bid in table_record.bidding_record:
         if bid[0] in ["=", "!", "$"]:
@@ -35,7 +35,7 @@ def build_holding_array(deal: Deal) -> np.ndarray:
 
 pickle_file_path = "/Users/frice/bridge/results/major_tournaments_pbn.pickle"
 with open(pickle_file_path, "rb") as pickle_file:
-    deal_records: Dict[Deal, List[TableRecord]] = pickle.load(pickle_file)
+    deal_records: Dict[Deal, List[BoardRecord]] = pickle.load(pickle_file)
 
 print(f"processing {len(deal_records)} records")
 

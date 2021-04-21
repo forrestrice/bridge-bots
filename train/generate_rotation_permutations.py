@@ -1,8 +1,8 @@
 import itertools
 from typing import List
 
-from bridge import Card
-from bridge import Direction, Rank, Suit
+from bridgebots.deal import Card
+from bridgebots.deal_enums import Direction, Rank, Suit
 
 
 class RotationPermutation:

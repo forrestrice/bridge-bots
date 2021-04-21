@@ -3,10 +3,9 @@ import pickle
 from collections import defaultdict
 from pathlib import Path
 
-from bridge import parse_pbn
+from bridgebots.pbn import parse_pbn
 
 logging.basicConfig(level=logging.WARNING)
-
 
 all_results = []
 for results_path in Path("/Users/frice/bridge/results/").rglob("*.pbn"):

@@ -3,16 +3,16 @@ from functools import partial
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+from bridgebots.board_record import BoardRecord
 from bridgebots.deal import Card, Deal
 from bridgebots.deal_enums import BiddingSuit, Direction, Suit
 from bridgebots.deal_utils import from_pbn_deal
-from bridgebots.table_record import TableRecord
 
 
 def _split_pbn(file_path: Path) -> List[List[str]]:
     """
-    Read in the entire pbn file. Split on lines consisting of '*\n' into a list of strings per board
-    :param file_path: path to pbn file
+    Read in the entire PBN file. Split on lines consisting of '*\n' into a list of strings per board
+    :param file_path: path to PBN file
     :return:
     """
     with open(file_path, "r") as pbn_file:
@@ -20,9 +20,9 @@ def _split_pbn(file_path: Path) -> List[List[str]]:
         current_record = ""
         while True:
             line = pbn_file.readline()
-            if line == "":
+            if line == "":  # EOF
                 return records
-            elif line == "*\n":
+            elif line == "\n":  # End of Board Record
                 records.append(current_record.splitlines())
                 current_record = ""
             else:
@@ -116,7 +116,7 @@ def _sort_play_record(trick_records: List[List[str]], contract: str) -> List[Car
     if contract == "":
         logging.warning(f"empty contract, cannot determine play ordering: {trick_records}")
         return []
-    if contract == "Pass":
+    if contract.upper() == "PASS":
         return []
     try:
         trump_suit = BiddingSuit.from_str(contract[1:2]).to_suit()
@@ -143,11 +143,11 @@ def _sort_play_record(trick_records: List[List[str]], contract: str) -> List[Car
         return []
 
 
-def _parse_table_record(record_dict: Dict) -> TableRecord:
+def _parse_board_record(record_dict: Dict) -> BoardRecord:
     """
-    Convert the record dictionary to a TableRecord
+    Convert the record dictionary to a BoardRecord
     :param record_dict: mapping of PBN keys to deal or board information
-    :return: TableRecord representing the people and actions at the table
+    :return: BoardRecord representing the people and actions at the table
     """
     declarer_str = record_dict["Declarer"]
     declarer = Direction.from_str(declarer_str) if declarer_str and declarer_str != "" else None
@@ -157,7 +157,7 @@ def _parse_table_record(record_dict: Dict) -> TableRecord:
     result_str = record_dict.get("Result")
     result = int(result_str) if result_str and result_str != "" else None
 
-    return TableRecord(
+    return BoardRecord(
         bidding_record=bidding_record,
         play_record=play_record,
         declarer=declarer,
@@ -173,17 +173,22 @@ def _parse_table_record(record_dict: Dict) -> TableRecord:
     )
 
 
-def parse_pbn(file_path: Path) -> List[Tuple[Deal, TableRecord]]:
+def _parse_single_pbn_record(record_strings: List[str]) -> Tuple[Deal, BoardRecord]:
     """
-    Split pbn file into boards then decompose those boards into Deal and TableRecord objects
-    :param file_path: path to a pbn file
-    :return: A list of pairs of Deal and TableRecord
+    :param record_strings: One string per line of a single PBN deal record
+    :return: Deal and BoardRecord corresponding to the PBN record
+    """
+    record_dict = _build_record_dict(record_strings)
+    deal = from_pbn_deal(record_dict["Dealer"], record_dict["Vulnerable"], record_dict["Deal"])
+    board_record = _parse_board_record(record_dict)
+    return deal, board_record
+
+
+def parse_pbn(file_path: Path) -> List[Tuple[Deal, BoardRecord]]:
+    """
+    Split PBN file into boards then decompose those boards into Deal and BoardRecord objects
+    :param file_path: path to a PBN file
+    :return: A list of pairs of Deal and BoardRecord
     """
     records_strings = _split_pbn(file_path)
-    results = []
-    for record_strings in records_strings:
-        record_dict = _build_record_dict(record_strings)
-        deal = from_pbn_deal(record_dict["Dealer"], record_dict["Vulnerable"], record_dict["Deal"])
-        table_record = _parse_table_record(record_dict)
-        results.append((deal, table_record))
-    return results
+    return [_parse_single_pbn_record(record_string) for record_string in records_strings]

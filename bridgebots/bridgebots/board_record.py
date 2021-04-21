@@ -4,9 +4,9 @@ from bridgebots.deal import Card
 from bridgebots.deal_enums import Direction
 
 
-class TableRecord:
+class BoardRecord:
     """
-    The record of a played deal. Often called a "board"
+    The record of a played deal.
     """
 
     def __init__(

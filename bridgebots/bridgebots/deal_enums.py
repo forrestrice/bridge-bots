@@ -19,7 +19,7 @@ class Direction(Enum):
 
     @classmethod
     def from_str(cls, direction_str) -> Direction:
-        return cls.__from_str_map__[direction_str.upper()]
+        return Direction(cls.__from_str_map__[direction_str.upper()])
 
     def __lt__(self, other):
         return self.value < other.value

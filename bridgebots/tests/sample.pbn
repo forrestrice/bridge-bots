@@ -1,0 +1,117 @@
+[Event "2009 European Open Champ - Women Teams - Final - B"]
+[Site ""]
+[Date ""]
+[Board "2"]
+[West "Zwol"]
+[North "Severgnini"]
+[East "Verbeek"]
+[South "Gentili"]
+[Dealer "E"]
+[Vulnerable "NS"]
+[Deal "W:A652.3.KJ764.A53 Q3.AKT976.A.KJ72 KJ97.84.Q832.T86 T84.QJ52.T95.Q94"]
+[Scoring "#"]
+[Declarer "N"]
+[Contract "4H"]
+[Result "10"]
+[Auction "E"]
+Pass Pass 1D X
+2D Pass 3D 3H
+Pass 4H AP
+[Play "E"]
+D3 D5 DJ DA
+H4 H2 H3 HA
+H8 HQ D4 H6
+C6 C4 C5 CJ
+C8 CQ CA C2
+SK S4 S2 SQ
+S7 S8 SA S3
+*
+[Description "#"]
+[Stage "1_3"]
+[HomeTeam "Cbc Milano"]
+[VisitTeam "Dutch Blue"]
+[Room "Open"]
+
+[Event "2009 European Open Champ - Women Teams - Final - B"]
+[Site ""]
+[Date ""]
+[Board "2"]
+[West "Preve M."]
+[North "Wijma A."]
+[East "Colombo G."]
+[South "V. D. Salm"]
+[Dealer "E"]
+[Vulnerable "NS"]
+[Deal "W:A652.3.KJ764.A53 Q3.AKT976.A.KJ72 KJ97.84.Q832.T86 T84.QJ52.T95.Q94"]
+[Scoring "#"]
+[Declarer "E"]
+[Contract "4SX"]
+[Result "10"]
+[Auction "E"]
+Pass Pass 1D X
+1S =1= Pass 2S 3H
+Pass 4H 4S X
+AP
+[Note "1: "]
+[Play "S"]
+HQ H3 H6 H8
+C4 CA C2 C6
+S4 SA S3 S7
+S8 S2 SQ SK
+ST S5 H7 SJ
+D5 DJ DA D2
+H2 S6 HA H4
+D9 D4 H9 DQ
+DT DK C7 D8
+H5 D6 HT D3
+C9 D7 CJ C8
+CQ C3 CK CT
+HJ C5 HK S9
+*
+[Description "#"]
+[Stage "1_3"]
+[HomeTeam "Cbc Milano"]
+[VisitTeam "Dutch Blue"]
+[Room "Closed"]
+
+[Event "2009 European Open Champ - Women Teams - Final - B"]
+[Site ""]
+[Date ""]
+[Board "3"]
+[West "Zwol"]
+[North "Severgnini"]
+[East "Verbeek"]
+[South "Gentili"]
+[Dealer "S"]
+[Vulnerable "EW"]
+[Deal "W:QJ7.KQT8.KJT6.74 T98.53.A982.QJ65 AK532.A74.4.AT83 64.J962.Q753.K92"]
+[Scoring "#"]
+[Declarer "E"]
+[Contract "4S"]
+[Result "10"]
+[Auction "S"]
+Pass 1D Pass 1S
+Pass 1NT Pass 2H
+Pass 2S Pass 3NT
+Pass 4S AP
+[Play "S"]
+S6 SQ S8 S2
+C9 C4 C5 C8
+S4 S7 S9 SA
+C2 C7 C6 CA
+CK SJ CJ C3
+H2 H8 H3 HA
+D7 D6 ST SK
+D3 DT D2 S3
+D5 DJ D8 S5
+H6 HK H5 H4
+H9 HQ D9 H7
+DQ DK DA D4
+HJ HT CQ CT
+*
+[Description "#"]
+[Stage "1_3"]
+[HomeTeam "Cbc Milano"]
+[VisitTeam "Dutch Blue"]
+[Room "Open"]
+
