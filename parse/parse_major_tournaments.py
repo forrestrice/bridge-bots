@@ -5,7 +5,7 @@ from pathlib import Path
 
 from bridgebots.pbn import parse_pbn
 
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.DEBUG)
 
 all_results = []
 for results_path in Path("/Users/frice/bridge/results/").rglob("*.pbn"):
@@ -15,6 +15,7 @@ for results_path in Path("/Users/frice/bridge/results/").rglob("*.pbn"):
 
 logging.info(f"{len(all_results)} total results")
 
+# Deduplicate deals, collecting all boards to a list
 deal_dict = defaultdict(list)
 for deal, table_record in all_results:
     deal_dict[deal].append(table_record)

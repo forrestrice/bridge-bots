@@ -48,6 +48,7 @@ def _build_record_dict(record_strings: List[str]) -> Dict:
         if "[" in record_string and "]" not in record_string:
             while "]" not in record_string:
                 i += 1
+
                 record_string = record_string + record_strings[i]
         record_string = record_string.replace("[", "").replace("]", "")
         key, value = record_string.split(maxsplit=1)
@@ -71,7 +72,7 @@ def _build_record_dict(record_strings: List[str]) -> Dict:
             i += 1
             while i < len(record_strings):
                 play_str = record_strings[i]
-                if "[" in play_str:
+                if "[" in play_str or play_str == "*":
                     break
                 play_record.append(play_str.split())
                 i += 1
@@ -186,9 +187,17 @@ def _parse_single_pbn_record(record_strings: List[str]) -> Tuple[Deal, BoardReco
 
 def parse_pbn(file_path: Path) -> List[Tuple[Deal, BoardRecord]]:
     """
-    Split PBN file into boards then decompose those boards into Deal and BoardRecord objects
+    Split PBN file into boards then decompose those boards into Deal and BoardRecord objects. Only supports PBN v1.0
+    See https://www.tistis.nl/pbn/pbn_v10.txt
+
     :param file_path: path to a PBN file
     :return: A list of pairs of Deal and BoardRecord
     """
     records_strings = _split_pbn(file_path)
-    return [_parse_single_pbn_record(record_string) for record_string in records_strings]
+    results = []
+    for record_strings in records_strings:
+        try:
+            results.append(_parse_single_pbn_record(record_strings))
+        except KeyError as e:
+            logging.warning(f'Malformed record {record_strings}: {e}')
+    return results

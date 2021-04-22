@@ -50,6 +50,16 @@ class TestPbnRecordDict(unittest.TestCase):
         }
         self.assertEqual(expected, record_dict)
 
+    def test_partial_play(self):
+        pbn_strings = ['[Play "N"]', "S6 S3 ST SQ", "C9 C2 C5 CQ", "CT C3 CA CK", "*", '[NextTag "Foo"]']
+        record_dict = _build_record_dict(pbn_strings)
+        expected = {
+            "Play": "N",
+            "play_record": [["S6", "S3", "ST", "SQ"], ["C9", "C2", "C5", "CQ"], ["CT", "C3", "CA", "CK"]],
+            "NextTag": "Foo",
+        }
+        self.assertEqual(expected, record_dict)
+
 
 class TestPbnPlayRecord(unittest.TestCase):
     def test_sort_suit_play_record(self):
