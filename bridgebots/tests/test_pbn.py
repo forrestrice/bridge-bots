@@ -9,6 +9,7 @@ class TestParsePbnFile(unittest.TestCase):
         sample_pbn_path = Path(__file__).parent / "sample.pbn"
         records = parse_pbn(sample_pbn_path)
         self.assertEqual(3, len(records))
+        # TODO assert about files
 
 
 class TestPbnRecordDict(unittest.TestCase):
@@ -32,13 +33,10 @@ class TestPbnRecordDict(unittest.TestCase):
         }
         self.assertEqual(expected, record_dict)
 
-    def test_auction_with_all_pass(self):
-        pbn_strings = ['[Auction "N"]', "1D X AP"]
+    def test_auction_with_alerts(self):
+        pbn_strings = ['[Auction "N"]', "1D =1= X ! AP"]
         record_dict = _build_record_dict(pbn_strings)
-        expected = {
-            "Auction": "N",
-            "bidding_record": ["1D", "X", "Pass", "Pass", "Pass"],
-        }
+        expected = {"Auction": "N", "bidding_record": ["1D", "=1=", "X", "!", "AP"]}
         self.assertEqual(expected, record_dict)
 
     def test_play(self):

@@ -1,9 +1,11 @@
 import logging
+import re
 from functools import partial
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-from bridgebots.board_record import BoardRecord
+from bridgebots.bids import canonicalize_bid
+from bridgebots.board_record import BidMetadata, BoardRecord
 from bridgebots.deal import Card, Deal
 from bridgebots.deal_enums import BiddingSuit, Direction, Suit
 from bridgebots.deal_utils import from_pbn_deal
@@ -48,11 +50,15 @@ def _build_record_dict(record_strings: List[str]) -> Dict:
         if "[" in record_string and "]" not in record_string:
             while "]" not in record_string:
                 i += 1
-
                 record_string = record_string + record_strings[i]
         record_string = record_string.replace("[", "").replace("]", "")
         key, value = record_string.split(maxsplit=1)
-        record_dict[key] = value.replace('"', "")
+        value = value.replace('"', "")
+        if key == "Note":
+            number, message = value.split(":", maxsplit=1)
+            key = key + "_" + number
+            value = message
+        record_dict[key] = value
         if key == "Auction":
             auction_record = []
             i += 1
@@ -62,9 +68,10 @@ def _build_record_dict(record_strings: List[str]) -> Dict:
                     break
                 auction_record.extend(auction_str.split())
                 i += 1
+            """
             if auction_record and auction_record[-1] in ["AP", "ap"]:
                 auction_record = auction_record[:-1]  # Replace 'AP' with 3 passes
-                auction_record.extend(["Pass"] * 3)
+                auction_record.extend(["Pass"] * 3)"""
             record_dict["bidding_record"] = auction_record
 
         elif key == "Play":
@@ -80,6 +87,49 @@ def _build_record_dict(record_strings: List[str]) -> Dict:
         else:
             i += 1
     return record_dict
+
+
+def _update_bidding_metadata(
+    bid_index: int, raw_bid: str, bidding_record: List[str], bidding_metadata: List[BidMetadata], record_dict: dict
+):
+    if len(bidding_record) == 0:
+        return
+    if bidding_metadata and bidding_metadata[-1].bid_index == bid_index:
+        bid_metadata = bidding_metadata[-1]
+    else:
+        bid_metadata = BidMetadata(bid_index=bid_index, bid=bidding_record[-1])
+        bidding_metadata.append(bid_metadata)
+    if raw_bid == "!":
+        bid_metadata.alerted = True
+    else:
+        # Attempt to determine which note should be used as an explanation
+        match = re.match("=([0-9]+)=", raw_bid)
+        if match:
+            note_key = "Note_" + match.group(1)
+            explanation = record_dict.get(note_key) if note_key in record_dict else raw_bid
+        else:
+            explanation = raw_bid
+        if bid_metadata.explanation:
+            bid_metadata.explanation += " | " + explanation
+        else:
+            bid_metadata.explanation = explanation
+
+
+def _parse_bidding_record(raw_bidding_record: List[str], record_dict: dict) -> Tuple[List[str], List[BidMetadata]]:
+    bid_index = 0
+    bidding_record = []
+    bidding_metadata = []
+    for raw_bid in raw_bidding_record:
+        canonical_bid = canonicalize_bid(raw_bid)
+        if canonical_bid:
+            bidding_record.append(canonical_bid)
+            bid_index += 1
+        elif raw_bid.upper() == "AP":
+            bidding_record.extend(["PASS"] * 3)
+            bid_index += 3
+        else:
+            _update_bidding_metadata(bid_index, raw_bid, bidding_record, bidding_metadata, record_dict)
+    return bidding_record, bidding_metadata
 
 
 def _evaluate_card(trump_suit: Suit, suit_led: Suit, card: Card) -> int:
@@ -152,7 +202,8 @@ def _parse_board_record(record_dict: Dict) -> BoardRecord:
     """
     declarer_str = record_dict["Declarer"]
     declarer = Direction.from_str(declarer_str) if declarer_str and declarer_str != "" else None
-    bidding_record = record_dict.get("bidding_record") or []
+    raw_bidding_record = record_dict.get("bidding_record") or []
+    bidding_record, bidding_metadata = _parse_bidding_record(raw_bidding_record, record_dict)
     play_record_strings = record_dict.get("play_record") or []
     play_record = _sort_play_record(play_record_strings, record_dict["Contract"])
     result_str = record_dict.get("Result")
@@ -160,6 +211,7 @@ def _parse_board_record(record_dict: Dict) -> BoardRecord:
 
     return BoardRecord(
         bidding_record=bidding_record,
+        raw_bidding_record=raw_bidding_record,
         play_record=play_record,
         declarer=declarer,
         contract=record_dict["Contract"],
@@ -171,6 +223,8 @@ def _parse_board_record(record_dict: Dict) -> BoardRecord:
         west=record_dict.get("West"),
         date=record_dict.get("Date"),
         event=record_dict.get("Event"),
+        bidding_metadata=bidding_metadata,
+        commentary=record_dict.get("Commentary"),
     )
 
 
@@ -199,5 +253,5 @@ def parse_pbn(file_path: Path) -> List[Tuple[Deal, BoardRecord]]:
         try:
             results.append(_parse_single_pbn_record(record_strings))
         except KeyError as e:
-            logging.warning(f'Malformed record {record_strings}: {e}')
+            logging.warning(f"Malformed record {record_strings}: {e}")
     return results
