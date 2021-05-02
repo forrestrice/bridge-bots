@@ -74,6 +74,7 @@ class DoubleDummyDeal:
     """
     Wrapper class which holds a deal and its double dummy scores
     """
+
     def __init__(self, deal: Deal, dd_score: DoubleDummyScore):
         self.deal = deal
         self.dd_score = dd_score

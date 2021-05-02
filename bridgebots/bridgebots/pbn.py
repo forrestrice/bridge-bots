@@ -44,10 +44,20 @@ def _build_record_dict(record_strings: List[str]) -> Dict:
     i = 0
     while i < len(record_strings):
         record_string = record_strings[i]
-        if not record_string.startswith("["):
+        if not (record_string.startswith("[") or record_string.startswith("{")):
             i += 1
             continue
-        if "[" in record_string and "]" not in record_string:
+        if record_string.startswith("{"):
+            commentary = ""
+            while i < len(record_strings):
+                record_string = record_strings[i]
+                if record_string.startswith("["):
+                    break
+                commentary += record_string + " "
+                i += 1
+            record_dict["Commentary"] = commentary.strip()
+            continue
+        if record_string.startswith("[") and "]" not in record_string:
             while "]" not in record_string:
                 i += 1
                 record_string = record_string + record_strings[i]
@@ -68,10 +78,6 @@ def _build_record_dict(record_strings: List[str]) -> Dict:
                     break
                 auction_record.extend(auction_str.split())
                 i += 1
-            """
-            if auction_record and auction_record[-1] in ["AP", "ap"]:
-                auction_record = auction_record[:-1]  # Replace 'AP' with 3 passes
-                auction_record.extend(["Pass"] * 3)"""
             record_dict["bidding_record"] = auction_record
 
         elif key == "Play":
@@ -92,12 +98,15 @@ def _build_record_dict(record_strings: List[str]) -> Dict:
 def _update_bidding_metadata(
     bid_index: int, raw_bid: str, bidding_record: List[str], bidding_metadata: List[BidMetadata], record_dict: dict
 ):
+    """
+    Create or update bidding metadata for the most recent bid
+    """
     if len(bidding_record) == 0:
         return
-    if bidding_metadata and bidding_metadata[-1].bid_index == bid_index:
+    if bidding_metadata and bidding_metadata[-1].bid_index == bid_index - 1:
         bid_metadata = bidding_metadata[-1]
     else:
-        bid_metadata = BidMetadata(bid_index=bid_index, bid=bidding_record[-1])
+        bid_metadata = BidMetadata(bid_index=bid_index - 1, bid=bidding_record[-1])
         bidding_metadata.append(bid_metadata)
     if raw_bid == "!":
         bid_metadata.alerted = True
@@ -116,6 +125,21 @@ def _update_bidding_metadata(
 
 
 def _parse_bidding_record(raw_bidding_record: List[str], record_dict: dict) -> Tuple[List[str], List[BidMetadata]]:
+    """
+    Check each auction string. If it is a valid bid, add it to the bidding record. If not, create/update BidMetadata for
+    the previous bid. Example auction:
+
+    1C 2NT =0= ! 3H =1= pass
+    3S pass 3NT pass
+    pass pass
+
+    For 2NT create a BidMetaData which looks up Note_0 from record_dict as an explanation and sets the alert flag to
+    true
+
+    :param raw_bidding_record: All strings from the auction section of the PBN
+    :param record_dict: Other fields from the PBN, including notes (bid explanations)
+    :return: cleaned bidding record and bidding metadata
+    """
     bid_index = 0
     bidding_record = []
     bidding_metadata = []

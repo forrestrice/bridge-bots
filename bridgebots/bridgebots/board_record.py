@@ -14,6 +14,14 @@ class BidMetadata:
     def __str__(self) -> str:
         return str(vars(self))
 
+    def __eq__(self, other) -> bool:
+        return (
+            self.bid_index == other.bid_index
+            and self.bid == other.bid
+            and self.alerted == other.alerted
+            and self.explanation == other.explanation
+        )
+
 
 class BoardRecord:
     """
@@ -56,3 +64,22 @@ class BoardRecord:
 
     def __str__(self) -> str:
         return str(vars(self))
+
+    def __eq__(self, other) -> bool:
+        return (
+            self.bidding_record == other.bidding_record
+            and self.raw_bidding_record == other.raw_bidding_record
+            and self.play_record == other.play_record
+            and self.declarer == other.declarer
+            and self.contract == other.contract
+            and self.tricks == other.tricks
+            and self.scoring == other.scoring
+            and self.north == other.north
+            and self.south == other.south
+            and self.east == other.east
+            and self.west == other.west
+            and self.date == other.date
+            and self.event == other.event
+            and self.bidding_metadata == other.bidding_metadata
+            and self.commentary == other.commentary
+        )

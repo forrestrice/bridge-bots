@@ -1,7 +1,9 @@
 import unittest
 from pathlib import Path
 
-from bridgebots.pbn import _build_record_dict, _sort_play_record, parse_pbn
+from bridgebots.board_record import BidMetadata
+from bridgebots.deal_enums import Direction, Rank, Suit
+from bridgebots.pbn import _build_record_dict, _parse_bidding_record, _sort_play_record, parse_pbn
 
 
 class TestParsePbnFile(unittest.TestCase):
@@ -9,16 +11,121 @@ class TestParsePbnFile(unittest.TestCase):
         sample_pbn_path = Path(__file__).parent / "sample.pbn"
         records = parse_pbn(sample_pbn_path)
         self.assertEqual(3, len(records))
-        # TODO assert about files
+
+        deal_1, board_record_1 = records[0]
+        self.assertEqual(True, deal_1.ns_vulnerable)
+        self.assertEqual(True, deal_1.ew_vulnerable)
+        self.assertEqual(Direction.EAST, deal_1.dealer)
+        self.assertEqual(
+            [Rank.KING, Rank.QUEEN, Rank.JACK, Rank.SEVEN], deal_1.hands[Direction.EAST].suits[Suit.SPADES]
+        )
+        self.assertEqual(
+            [
+                "1H",
+                "Pass",
+                "1S",
+                "=1=",
+                "Pass",
+                "2C",
+                "!",
+                "Pass",
+                "2H",
+                "=2=",
+                "Pass",
+                "2S",
+                "=3=",
+                "Pass",
+                "3NT",
+                "AP",
+            ],
+            board_record_1.raw_bidding_record,
+        )
+
+        self.assertEqual(
+            ["1H", "PASS", "1S", "PASS", "2C", "PASS", "2H", "PASS", "2S", "PASS", "3NT", "PASS", "PASS", "PASS"],
+            board_record_1.bidding_record,
+        )
+
+        self.assertEqual(
+            [
+                BidMetadata(2, "1S", False, "0-4 !ss"),
+                BidMetadata(4, "2C", True, None),
+                BidMetadata(6, "2H", False, "less than 8 points"),
+                BidMetadata(8, "2S", False, "17+ with 4 !S"),
+            ],
+            board_record_1.bidding_metadata,
+        )
+
+        self.assertEqual(
+            [
+                "CQ",
+                "CA",
+                "C8",
+                "C3",
+                "H4",
+                "HT",
+                "HK",
+                "H6",
+                "H3",
+                "H2",
+                "HQ",
+                "HA",
+                "C5",
+                "C6",
+                "CK",
+                "CT",
+                "D4",
+                "DJ",
+                "DQ",
+                "DK",
+                "CJ",
+                "C2",
+                "S7",
+                "C7",
+                "C9",
+                "C4",
+                "H5",
+                "S4",
+                "S6",
+            ],
+            [str(card) for card in board_record_1.play_record],
+        )
+        self.assertEqual(Direction.WEST, board_record_1.declarer)
+        self.assertEqual("3NT", board_record_1.contract)
+        self.assertEqual(9, board_record_1.tricks)
+        self.assertEqual("IMP;Cross", board_record_1.scoring)
+        self.assertEqual("2004.05.05", board_record_1.date)
+        self.assertEqual("Cavendish Pairs Day 2", board_record_1.event)
+
+        deal_2, board_record_2 = records[1]
+        self.assertEqual(
+            (
+                "{ Indonesians Franky Karwur and Denny Sacul, recent winners of the IOC Grand Prix in Lausanne and "
+                "Rhodes Olympiad finalists in 1996, are mainstays of their  consistent national team. True gentlemen at"
+                " and away from the table, they focus on partnership and error-free bridge. 51 VP out of first, they "
+                "need a win here to stay in the hunt. Their opponents, Wubbo de Boer and Bauke Muller of Holland, "
+                "Bermuda Bowl champs in 1993, are a further 24 behind . Our first deal, a partscore, is played "
+                "successfully in diamonds at every table but one (Auken/von Arnim fail in 3C). Karwur/Sacul achieve par"
+                " [datum is N/S minus 110] at 3D. However, getting there is half the fun, as the old Greyhound Bus "
+                "adverts used to boast. Muller\\\\'s (probably necessary) balanced takeout double is hardly a classic, "
+                "and de Boer shows no mercy, bidding both his majors on very slender values. Sacul (1D showed 2+ cards)"
+                " saves the day by converting 3C to 3D, expecting 2/3 in dummy on the auction. Muller leads a "
+                "challenging low heart but Sacul puts up the king: plus 110. {Your host for this match, John "
+                "Carruthers} }"
+            ),
+            board_record_2.commentary,
+        )
+        self.assertEqual(board_record_2.north, "Wubbo De Boer")
+        self.assertEqual(board_record_2.south, "Bauke Muller")
+        self.assertEqual(board_record_2.east, "Denny Sacul")
+        self.assertEqual(board_record_2.west, "Franky Karwur")
 
 
 class TestPbnRecordDict(unittest.TestCase):
     def test_ignore_non_key_lines(self):
         pbn_strings = [
-            "% PBN 1.0" "{Brad Moss of USA and Fred Gitelman of Canada won the Cavendish",
-            "Teams earlier this week, and with one 27-board session to go,",
-            "they are in front again.",
-            "}",
+            "% PBN 1.0",
+            "Random String",
             '[Contract "3NT"]',
         ]
         record_dict = _build_record_dict(pbn_strings)
@@ -58,6 +165,48 @@ class TestPbnRecordDict(unittest.TestCase):
         }
         self.assertEqual(expected, record_dict)
 
+    def test_commentary_at_end(self):
+        pbn_strings = [
+            '[Contract "3NT"]',
+            "{Brad Moss of USA and Fred Gitelman of Canada won the Cavendish",
+            "Teams earlier this week, and with one 27-board session to go,",
+            "they are in front again.",
+            "}",
+        ]
+        record_dict = _build_record_dict(pbn_strings)
+        self.assertEqual(
+            {
+                "Contract": "3NT",
+                "Commentary": (
+                    "{Brad Moss of USA and Fred Gitelman of Canada won the Cavendish Teams earlier this week, and with "
+                    "one 27-board session to go, they are in front again. }"
+                ),
+            },
+            record_dict,
+        )
+
+    def test_commentary_in_middle(self):
+        pbn_strings = [
+            '[Contract "3NT"]',
+            "{Brad Moss of USA and Fred Gitelman of Canada won the Cavendish",
+            "Teams earlier this week, and with one 27-board session to go,",
+            "they are in front again.",
+            "}",
+            '[Declarer "W"]',
+        ]
+        record_dict = _build_record_dict(pbn_strings)
+        self.assertEqual(
+            {
+                "Contract": "3NT",
+                "Commentary": (
+                    "{Brad Moss of USA and Fred Gitelman of Canada won the Cavendish Teams earlier this week, and with "
+                    "one 27-board session to go, they are in front again. }"
+                ),
+                "Declarer": "W",
+            },
+            record_dict,
+        )
+
 
 class TestPbnPlayRecord(unittest.TestCase):
     def test_sort_suit_play_record(self):
@@ -91,3 +240,46 @@ class TestPbnPlayRecord(unittest.TestCase):
     def test_handle_malformed_play_record(self):
         self.assertEqual([], _sort_play_record([], "junk"))
         self.assertEqual([], _sort_play_record([["H3"]], "2NT"))
+
+
+class TestPbnBiddingRecord(unittest.TestCase):
+    def test_bidding_record_without_annotations(self):
+        raw_auction = ["Pass", "1D", "X", "XX", "1S", "X", "Pass", "2C", "2H", "Pass", "Pass", "Pass"]
+        bidding_record, bidding_metadata = _parse_bidding_record(raw_auction, {})
+        self.assertEqual(
+            ["PASS", "1D", "X", "XX", "1S", "X", "PASS", "2C", "2H", "PASS", "PASS", "PASS"], bidding_record
+        )
+        self.assertEqual([], bidding_metadata)
+
+    def test_bidding_metadata_without_notes(self):
+        raw_auction = ["Pass", "1D", "X", "=0=", "Pass", "Pass", "Pass"]
+        bidding_record, bidding_metadata = _parse_bidding_record(raw_auction, {})
+        self.assertEqual(["PASS", "1D", "X", "PASS", "PASS", "PASS"], bidding_record)
+        self.assertEqual([BidMetadata(2, "X", False, "=0=")], bidding_metadata)
+
+    def test_bidding_metadata_with_notes(self):
+        raw_auction = ["Pass", "1D", "=1=", "X", "=2=", "Pass", "Pass", "Pass"]
+        record_dict = {"Note_1": "2+", "Note_2": "Majors"}
+        bidding_record, bidding_metadata = _parse_bidding_record(raw_auction, record_dict)
+        self.assertEqual(["PASS", "1D", "X", "PASS", "PASS", "PASS"], bidding_record)
+        self.assertEqual([BidMetadata(1, "1D", False, "2+"), BidMetadata(2, "X", False, "Majors")], bidding_metadata)
+
+    def test_alert(self):
+        raw_auction = ["Pass", "1D", "!", "X", "!", "Pass", "Pass", "Pass"]
+        bidding_record, bidding_metadata = _parse_bidding_record(raw_auction, {})
+        self.assertEqual(["PASS", "1D", "X", "PASS", "PASS", "PASS"], bidding_record)
+        self.assertEqual([BidMetadata(1, "1D", True, None), BidMetadata(2, "X", True, None)], bidding_metadata)
+
+    def test_bidding_metadata_with_duplicate_notes(self):
+        raw_auction = ["1C", "2NT", "=0=", "!", "3H", "=0=", "=1=", "pass", "3S", "pass", "3NT", "pass", "pass", "pass"]
+        bidding_record, bidding_metadata = _parse_bidding_record(raw_auction, {"Note_1": "Spades"})
+        self.assertEqual(["1C", "2NT", "3H", "PASS", "3S", "PASS", "3NT", "PASS", "PASS", "PASS"], bidding_record)
+        self.assertEqual(
+            [BidMetadata(1, "2NT", True, "=0="), BidMetadata(2, "3H", False, "=0= | Spades")], bidding_metadata
+        )
+
+    def test_bidding_record_with_all_pass(self):
+        raw_auction = ["1C", "1S", "AP"]
+        bidding_record, bidding_metadata = _parse_bidding_record(raw_auction, {})
+        self.assertEqual(["1C", "1S", "PASS", "PASS", "PASS"], bidding_record)
+        self.assertEqual([], bidding_metadata)

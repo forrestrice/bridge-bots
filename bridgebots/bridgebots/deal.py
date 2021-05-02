@@ -20,23 +20,23 @@ class Card:
         self.suit = suit
         self.rank = rank
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self.rank == other.rank and self.suit == other.suit
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.suit, self.rank))
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         return (self.suit, self.rank) < (other.suit, other.rank)
 
-    def __str__(self):
+    def __str__(self) -> bool:
         return self.suit.name[0] + self.rank.value[1]
 
-    def __repr__(self):
-        return f"Card({self.suit!r},{self.rank!r})"
+    def __repr__(self) -> str:
+        return self.suit.name[0] + self.rank.value[1]
 
     @classmethod
-    def from_str(cls, card_str):
+    def from_str(cls, card_str) -> Card:
         return Card(Suit.from_str(card_str[0]), Rank.from_str(card_str[1]))
 
 
@@ -54,7 +54,7 @@ class PlayerHand:
                 self.cards.append(Card(suit, rank))
 
     @staticmethod
-    def from_string_lists(clubs: List[str], diamonds: List[str], hearts: List[str], spades: List[str]):
+    def from_string_lists(clubs: List[str], diamonds: List[str], hearts: List[str], spades: List[str]) -> PlayerHand:
         """
         Build a PlayerHand out of Lists of Strings which map to Ranks for each suit. e.g. ['A', 'T', '3'] to represent
         a suit holding of Ace, Ten, Three
@@ -68,15 +68,15 @@ class PlayerHand:
         }
         return PlayerHand(suits)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Clubs:{}\nDiamonds:{}\nHearts:{}\nSpades:{}".format(
             self.suits[Suit.CLUBS], self.suits[Suit.DIAMONDS], self.suits[Suit.HEARTS], self.suits[Suit.SPADES]
         )
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self.suits == other.suits
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(set(self.cards))
 
 
@@ -92,7 +92,7 @@ class Deal:
         self.hands = hands
         self.player_cards = {direction: self.hands[direction].cards for direction in self.hands}
 
-    def __str__(self):
+    def __str__(self) -> str:
         header = "{} Deals\nns_vuln:{}\new_vuln:{}\n".format(self.dealer, self.ns_vulnerable, self.ew_vulnerable)
         hands_str = "North:\n{}\nEast:\n{}\nSouth:\n{}\nWest:\n{}".format(
             self.hands[Direction.NORTH],
@@ -102,7 +102,7 @@ class Deal:
         )
         return header + hands_str
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return (
             self.dealer == other.dealer
             and self.ns_vulnerable == other.ns_vulnerable
@@ -110,6 +110,6 @@ class Deal:
             and self.hands == other.hands
         )
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         card_sets = [(direction, frozenset(self.hands[direction].cards)) for direction in self.hands]
         return hash((self.dealer, self.ns_vulnerable, self.ew_vulnerable, frozenset(card_sets)))

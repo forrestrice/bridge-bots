@@ -21,13 +21,13 @@ class Direction(Enum):
     def from_str(cls, direction_str) -> Direction:
         return Direction(cls.__from_str_map__[direction_str.upper()])
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         return self.value < other.value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name
 
-    def next(self):
+    def next(self) -> Direction:
         return Direction((self.value + 1) % 4)
 
 
@@ -44,10 +44,10 @@ class Suit(Enum):
     def from_str(cls, suit_str: str) -> Suit:
         return Suit(cls.__from_str_map__[suit_str.upper()])
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         return self.value < other.value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name
 
 
@@ -61,13 +61,13 @@ class BiddingSuit(Enum):
 
     __from_str_map__ = {"S": SPADES, "H": HEARTS, "D": DIAMONDS, "C": CLUBS, "N": NO_TRUMP, "NT": NO_TRUMP}
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         return self.value < other.value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name
 
-    def to_suit(self):
+    def to_suit(self) -> Suit:
         return self.value[1]
 
     @classmethod
@@ -112,11 +112,11 @@ class Rank(Enum):
     def from_str(cls, rank_str: str) -> Rank:
         return Rank(cls.__from_str_map__[rank_str.upper()])
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         return self.value < other.value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name
 
-    def to_char(self):
+    def to_char(self) -> str:
         return self.value[1]

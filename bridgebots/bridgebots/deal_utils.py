@@ -97,7 +97,7 @@ def from_pbn_deal(dealer_str: str, vulnerability_str: str, deal_str: str) -> Dea
 
     dealer = Direction.from_str(dealer_str)
 
-    hands_direction = Direction.from_str(dealer_str[0])
+    hands_direction = Direction.from_str(deal_str[0])
     deal_str = deal_str[2:]
     player_hands = {}
     for player_str in deal_str.split():

@@ -1,117 +1,122 @@
-[Event "2009 European Open Champ - Women Teams - Final - B"]
-[Site ""]
-[Date ""]
-[Board "2"]
-[West "Zwol"]
-[North "Severgnini"]
-[East "Verbeek"]
-[South "Gentili"]
+% PBN created by BFC 731.lin P
+[Event "Cavendish Pairs Day 2"]
+[Site "Rio Hotel, Las Vegas, USA"]
+[Date "2004.05.05"]
+[Board "10"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
 [Dealer "E"]
-[Vulnerable "NS"]
-[Deal "W:A652.3.KJ764.A53 Q3.AKT976.A.KJ72 KJ97.84.Q832.T86 T84.QJ52.T95.Q94"]
-[Scoring "#"]
-[Declarer "N"]
-[Contract "4H"]
-[Result "10"]
+[Vulnerable "All"]
+[Deal "W:63.K3.K9532.J963 T82.62.T764.KQ42 KQJ7.QJ754.AJ.AT A954.AT98.Q8.875"]
+[Scoring "IMP;Cross"]
+[Declarer "W"]
+[Contract "3NT"]
+[Result "9"]
 [Auction "E"]
-Pass Pass 1D X
-2D Pass 3D 3H
-Pass 4H AP
-[Play "E"]
-D3 D5 DJ DA
-H4 H2 H3 HA
-H8 HQ D4 H6
-C6 C4 C5 CJ
-C8 CQ CA C2
-SK S4 S2 SQ
-S7 S8 SA S3
+1H Pass 1S =1= Pass
+2C ! Pass 2H =2= Pass
+2S =3= Pass 3NT AP
+[Note "1:0-4 !ss"]
+[Note "2:less than 8 points"]
+[Note "3:17+ with 4 !S"]
+[Play "N"]
+CQ CA C8 C3
+H6 H4 HT HK
+H2 HQ HA H3
+CK CT C5 C6
+D4 DJ DQ DK
+C2 S7 C7 CJ
+C4 H5 S4 C9
+-  -  -  S6
 *
-[Description "#"]
-[Stage "1_3"]
-[HomeTeam "Cbc Milano"]
-[VisitTeam "Dutch Blue"]
+[Stage "Round 4"]
+[HomeTeam "Team 1"]
+[VisitTeam "Team 2"]
+[ScoreIMP "NS -241"]
+
+[Event "14th Cap Gemini Ernst & Young World Top Pairs 2001"]
+[Site "Hotel Des Indes- The Hague, Netherlands, NLD"]
+[Date "2001.01.21"]
+[Round "13"]
+[Board "1"]
+[West "Franky Karwur"]
+[North "Wubbo De Boer"]
+[East "Denny Sacul"]
+[South "Bauke Muller"]
 [Room "Open"]
+[Dealer "N"]
+[Deal "S:K72.A863.K93.AT8 98.KT7.A8.QJ9532 J543.QJ94.65.764 AQT6.52.QJT742.K"]
+[Vulnerable "None"]
+[Auction "N"]
+Pass 1D X XX
+1S X Pass 2C
+2H Pass Pass 3C
+Pass 3D Pass Pass
+Pass
+[Contract "3D"]
+[Declarer "E"]
+{
+Indonesians Franky Karwur and Denny Sacul, recent winners of
+the IOC Grand Prix in Lausanne and Rhodes Olympiad finalists
+in 1996, are mainstays of their  consistent national team. True
+gentlemen at and away from the table, they focus on partnership
+and error-free bridge. 51 VP out of first, they need a win here
+to stay in the hunt. Their opponents, Wubbo de Boer and Bauke
+Muller of Holland, Bermuda Bowl champs in 1993, are a further
+24 behind . Our first deal, a partscore, is played successfully
+in diamonds at every table but one (Auken/von Arnim fail in 3C).
+Karwur/Sacul achieve par [datum is N/S minus 110] at 3D. However,
+getting there is half the fun, as the old Greyhound Bus adverts
+used to boast. Muller\\'s (probably necessary) balanced takeout
+double is hardly a classic, and de Boer shows no mercy, bidding
+both his majors on very slender values. Sacul (1D showed 2+ cards)
+saves the day by converting 3C to 3D, expecting 2/3 in dummy
+on the auction. Muller leads a challenging low heart but Sacul
+puts up the king: plus 110. {Your host for this match, John Carruthers}
+}
+[Play "S"]
+H6 HK H4 H5
+CA C2 C7 CK
+H3 H7 H9 H2
+SK S8 S5 S6
+HA HT HJ D2
+D3 D8 D5 DT
+D9 DA D6 D4
+- S9 S3 ST
+*
+[Result "9"]
 
-[Event "2009 European Open Champ - Women Teams - Final - B"]
-[Site ""]
-[Date ""]
-[Board "2"]
-[West "Preve M."]
-[North "Wijma A."]
-[East "Colombo G."]
-[South "V. D. Salm"]
+[Event "Bermuda Bowl 2015"]
+[Site "ITC Grand Chola Hotel, Chennai, India"]
+[Date "2015.09.?"]
+[Board "14"]
+[West "Combescure"]
+[North "Chagas"]
+[East "Rombaut"]
+[South "Villas-Boa"]
 [Dealer "E"]
-[Vulnerable "NS"]
-[Deal "W:A652.3.KJ764.A53 Q3.AKT976.A.KJ72 KJ97.84.Q832.T86 T84.QJ52.T95.Q94"]
+[Vulnerable "None"]
+[Deal "W:A97.QJ.Q764.K876 JT8643.87.983.Q3 KQ5.A964.J.AT952 2.KT532.AKT52.J4"]
 [Scoring "#"]
 [Declarer "E"]
-[Contract "4SX"]
-[Result "10"]
+[Contract "5C"]
+[Result "11"]
 [Auction "E"]
-Pass Pass 1D X
-1S =1= Pass 2S 3H
-Pass 4H 4S X
-AP
-[Note "1: "]
+1C 2NT =0= ! 3H =0= pass
+3S pass 3NT pass
+5C pass pass pass
 [Play "S"]
-HQ H3 H6 H8
-C4 CA C2 C6
-S4 SA S3 S7
-S8 S2 SQ SK
-ST S5 H7 SJ
-D5 DJ DA D2
-H2 S6 HA H4
-D9 D4 H9 DQ
-DT DK C7 D8
-H5 D6 HT D3
-C9 D7 CJ C8
-CQ C3 CK CT
-HJ C5 HK S9
+DK D4 D3 DJ
+S2 S7 S8 SK
+C4 CK C3 C5
+CJ C6 CQ CA
+D2 SA S3 S5
+-- HQ H7 --
 *
-[Description "#"]
-[Stage "1_3"]
-[HomeTeam "Cbc Milano"]
-[VisitTeam "Dutch Blue"]
-[Room "Closed"]
-
-[Event "2009 European Open Champ - Women Teams - Final - B"]
-[Site ""]
-[Date ""]
-[Board "3"]
-[West "Zwol"]
-[North "Severgnini"]
-[East "Verbeek"]
-[South "Gentili"]
-[Dealer "S"]
-[Vulnerable "EW"]
-[Deal "W:QJ7.KQT8.KJT6.74 T98.53.A982.QJ65 AK532.A74.4.AT83 64.J962.Q753.K92"]
-[Scoring "#"]
-[Declarer "E"]
-[Contract "4S"]
-[Result "10"]
-[Auction "S"]
-Pass 1D Pass 1S
-Pass 1NT Pass 2H
-Pass 2S Pass 3NT
-Pass 4S AP
-[Play "S"]
-S6 SQ S8 S2
-C9 C4 C5 C8
-S4 S7 S9 SA
-C2 C7 C6 CA
-CK SJ CJ C3
-H2 H8 H3 HA
-D7 D6 ST SK
-D3 DT D2 S3
-D5 DJ D8 S5
-H6 HK H5 H4
-H9 HQ D9 H7
-DQ DK DA D4
-HJ HT CQ CT
-*
-[Description "#"]
-[Stage "1_3"]
-[HomeTeam "Cbc Milano"]
-[VisitTeam "Dutch Blue"]
+[Stage "Rr17"]
+[HomeTeam "Brazil"]
+[VisitTeam "France"]
 [Room "Open"]
 
