@@ -11,8 +11,11 @@ class BidMetadata:
         self.alerted = alerted
         self.explanation = explanation
 
-    def __str__(self) -> str:
-        return str(vars(self))
+    def __repr__(self) -> str:
+        return (
+            f"BidMetadata(bid_index={self.bid_index}, bid={self.bid}, alerted={self.alerted}, "
+            f"explanation={self.explanation})"
+        )
 
     def __eq__(self, other) -> bool:
         return (
@@ -62,8 +65,14 @@ class BoardRecord:
         self.bidding_metadata = bidding_metadata
         self.commentary = commentary
 
-    def __str__(self) -> str:
-        return str(vars(self))
+    def __repr__(self) -> str:
+        return (
+            f"BoardRecord(bidding_record={self.bidding_record}, raw_bidding_record={self.raw_bidding_record}, "
+            f"play_record={self.play_record}, declarer={self.declarer}, contract={self.contract}, "
+            f"tricks={self.tricks}, scoring={self.scoring}, north={self.north}, south={self.south}, east={self.east}, "
+            f"west={self.west}, date={self.date}, event={self.event}, bidding_metadata={self.bidding_metadata}, "
+            f"commentary={self.commentary})"
+        )
 
     def __eq__(self, other) -> bool:
         return (

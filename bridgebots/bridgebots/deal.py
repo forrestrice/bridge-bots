@@ -68,10 +68,12 @@ class PlayerHand:
         }
         return PlayerHand(suits)
 
-    def __str__(self) -> str:
-        return "Clubs:{}\nDiamonds:{}\nHearts:{}\nSpades:{}".format(
-            self.suits[Suit.CLUBS], self.suits[Suit.DIAMONDS], self.suits[Suit.HEARTS], self.suits[Suit.SPADES]
-        )
+    def __repr__(self):
+        suit_arrays = [[], [], [], []]
+        for card in self.cards:
+            suit_arrays[card.suit.value].append(repr(card))
+        repr_str = " | ".join(" ".join(suit) for suit in suit_arrays)
+        return f"PlayerHand({repr_str})"
 
     def __eq__(self, other) -> bool:
         return self.suits == other.suits
@@ -92,15 +94,16 @@ class Deal:
         self.hands = hands
         self.player_cards = {direction: self.hands[direction].cards for direction in self.hands}
 
-    def __str__(self) -> str:
-        header = "{} Deals\nns_vuln:{}\new_vuln:{}\n".format(self.dealer, self.ns_vulnerable, self.ew_vulnerable)
-        hands_str = "North:\n{}\nEast:\n{}\nSouth:\n{}\nWest:\n{}".format(
-            self.hands[Direction.NORTH],
-            self.hands[Direction.EAST],
-            self.hands[Direction.SOUTH],
-            self.hands[Direction.WEST],
+    def __repr__(self):
+        return (
+            f"Deal(\n"
+            f"\tdealer={self.dealer}, ns_vulnerable={self.ns_vulnerable}, ew_vulnerable={self.ew_vulnerable}\n"
+            f"\tNorth: {self.hands[Direction.NORTH]}\n"
+            f"\tSouth: {self.hands[Direction.SOUTH]}\n"
+            f"\tEast: {self.hands[Direction.EAST]}\n"
+            f"\tWest: {self.hands[Direction.WEST]}\n"
+            f")"
         )
-        return header + hands_str
 
     def __eq__(self, other) -> bool:
         return (
