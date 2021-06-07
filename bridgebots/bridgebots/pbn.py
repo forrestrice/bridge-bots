@@ -248,6 +248,7 @@ def _parse_board_record(record_dict: Dict) -> BoardRecord:
         date=record_dict.get("Date"),
         event=record_dict.get("Event"),
         bidding_metadata=bidding_metadata,
+        # TODO adjust to use commentary type
         commentary=record_dict.get("Commentary"),
     )
 
@@ -276,6 +277,6 @@ def parse_pbn(file_path: Path) -> List[Tuple[Deal, BoardRecord]]:
     for record_strings in records_strings:
         try:
             results.append(_parse_single_pbn_record(record_strings))
-        except KeyError as e:
+        except (KeyError, ValueError) as e:
             logging.warning(f"Malformed record {record_strings}: {e}")
     return results

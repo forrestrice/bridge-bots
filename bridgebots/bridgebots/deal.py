@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import total_ordering
-from typing import Dict, List
+from typing import Dict, Iterable, List
 
 from bridgebots.deal_enums import Direction, Rank, Suit
 
@@ -65,6 +65,16 @@ class PlayerHand:
             Suit.DIAMONDS: sorted([Rank.from_str(card_str) for card_str in diamonds], reverse=True),
             Suit.HEARTS: sorted([Rank.from_str(card_str) for card_str in hearts], reverse=True),
             Suit.SPADES: sorted([Rank.from_str(card_str) for card_str in spades], reverse=True),
+        }
+        return PlayerHand(suits)
+
+    @staticmethod
+    def from_cards(cards: Iterable[Card]) -> PlayerHand:
+        suits = {
+            Suit.CLUBS: sorted([card.rank for card in cards if card.suit == Suit.CLUBS], reverse=True),
+            Suit.DIAMONDS: sorted([card.rank for card in cards if card.suit == Suit.DIAMONDS], reverse=True),
+            Suit.HEARTS: sorted([card.rank for card in cards if card.suit == Suit.HEARTS], reverse=True),
+            Suit.SPADES: sorted([card.rank for card in cards if card.suit == Suit.SPADES], reverse=True),
         }
         return PlayerHand(suits)
 
