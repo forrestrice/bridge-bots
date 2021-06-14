@@ -49,7 +49,7 @@ class PlayerHand:
         self.suits = suits
         assert 13 == sum([len(ranks) for suit, ranks in self.suits.items()])
         self.cards = []
-        for suit in Suit:
+        for suit in reversed(Suit):
             for rank in self.suits[suit]:
                 self.cards.append(Card(suit, rank))
 
@@ -82,7 +82,7 @@ class PlayerHand:
         suit_arrays = [[], [], [], []]
         for card in self.cards:
             suit_arrays[card.suit.value].append(repr(card))
-        repr_str = " | ".join(" ".join(suit) for suit in suit_arrays)
+        repr_str = " | ".join(" ".join(suit) for suit in reversed(suit_arrays))
         return f"PlayerHand({repr_str})"
 
     def __eq__(self, other) -> bool:

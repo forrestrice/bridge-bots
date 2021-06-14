@@ -36,6 +36,9 @@ class Direction(Enum):
     def previous(self) -> Direction:
         return Direction((self.value + 3) % 4)
 
+    def abbreviation(self) -> str:
+        return self.name[0]
+
 
 @total_ordering
 class Suit(Enum):

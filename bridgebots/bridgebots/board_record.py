@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from bridgebots.deal import Card
+from bridgebots.deal import Card, Deal
 from bridgebots.deal_enums import Direction
 
 
@@ -112,3 +112,18 @@ class BoardRecord:
             and self.bidding_metadata == other.bidding_metadata
             and self.commentary == other.commentary
         )
+
+
+class DealRecord:
+    def __init__(self, deal: Deal, board_records: List[BoardRecord]):
+        self.deal = deal
+        self.board_records = board_records
+
+    def __repr__(self) -> str:
+        return f"DealRecord(\n" \
+               f"deal={self.deal},\n" \
+               f"board_records={self.board_records})"
+
+    def __eq__(self, other) -> bool:
+        return self.deal == other.deal and self.board_records == other.board_records
+
