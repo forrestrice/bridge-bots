@@ -126,3 +126,8 @@ class Deal:
     def __hash__(self) -> int:
         card_sets = [(direction, frozenset(self.hands[direction].cards)) for direction in self.hands]
         return hash((self.dealer, self.ns_vulnerable, self.ew_vulnerable, frozenset(card_sets)))
+
+    @staticmethod
+    def from_cards(dealer: Direction, ns_vulnerable: bool, ew_vulnerable: bool, player_cards: Dict[Direction, List[Card]]) -> Deal:
+        hands = {direction: PlayerHand.from_cards(cards) for direction,cards in player_cards.items()}
+        return Deal(dealer, ns_vulnerable, ew_vulnerable, hands)

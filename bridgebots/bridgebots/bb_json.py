@@ -93,3 +93,5 @@ loaded = json.loads(json.dumps(some_deal_records, cls=BridgeBotsEncoder), cls=Br
 # loaded_record =
 print(loaded[0])
 print(loaded[0] == some_deal_records[0])
+
+print(json.dumps(some_deal_records, cls=BridgeBotsEncoder))
