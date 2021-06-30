@@ -122,7 +122,8 @@ class DealRecord:
     def __repr__(self) -> str:
         return f"DealRecord(\n" \
                f"deal={self.deal},\n" \
-               f"board_records={self.board_records})"
+               f"board_records={self.board_records}\n" \
+               f")"
 
     def __eq__(self, other) -> bool:
         return self.deal == other.deal and self.board_records == other.board_records

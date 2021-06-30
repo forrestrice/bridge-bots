@@ -12,7 +12,7 @@ from bridgebots.deal_enums import BiddingSuit, Direction, Rank, Suit
 DECK_SET = frozenset({Card(suit, rank) for rank in Rank for suit in Suit})
 
 
-def parse_lin_string(lin_str: str):
+def _parse_lin_string(lin_str: str) -> Dict:
     lin_dict = defaultdict(list)
     while not (lin_str.isspace() or lin_str == ""):
         key, value, lin_str = lin_str.split("|", maxsplit=2)
@@ -181,7 +181,7 @@ def _parse_board_record(lin_dict: Dict, deal: Deal) -> BoardRecord:
 def parse_single():
     with open("/Users/frice/bridge/lin_parse/sample_hand.lin") as lin_file:
         for line in lin_file:
-            lin_dict = parse_lin_string(line)
+            lin_dict = _parse_lin_string(line)
             deal = _parse_deal(lin_dict)
             board_record = _parse_board_record(lin_dict, deal)
             return [(deal, board_record)]
@@ -190,9 +190,9 @@ def parse_single():
 def parse_multi() -> List[Tuple[Deal, BoardRecord]]:
     # https://www.bridgebase.com/tools/handviewer.html?bbo=y&linurl=https://www.bridgebase.com/tools/vugraph_linfetch.php?id=14502
     with open("/Users/frice/bridge/lin_parse/usbf_sf_14502.lin") as lin_file:
-        title_line = parse_lin_string(lin_file.readline())
-        results = parse_lin_string(lin_file.readline())
-        player_names = parse_lin_string(lin_file.readline())
+        title_line = _parse_lin_string(lin_file.readline())
+        results = _parse_lin_string(lin_file.readline())
+        player_names = _parse_lin_string(lin_file.readline())
         board_strings = []
         current_board = ""
         for line in lin_file:
@@ -206,14 +206,12 @@ def parse_multi() -> List[Tuple[Deal, BoardRecord]]:
         board_single_strings = [board_string.replace("\n", "") for board_string in board_strings]
         records = []
         for board_single_string in board_single_strings:
-            lin_dict = parse_lin_string(board_single_string)
+            lin_dict = _parse_lin_string(board_single_string)
             lin_dict["pn"] = player_names["pn"]
             deal = _parse_deal(lin_dict)
             board_record = _parse_board_record(lin_dict, deal)
             records.append((deal, board_record))
         return records
-
-
 
 
 bid_translation = {"PASS": "p", "DBL": "d", "RDBL": "r"}
@@ -247,7 +245,6 @@ def build_play_str(board_record):
     if len(board_record.play_record) < 52:
         play_str += f"mc|{board_record.tricks}|"
     return play_str
-
 
 
 def build_lin_str(deal: Deal, board_record: BoardRecord) -> str:
@@ -284,8 +281,9 @@ def build_lin_str(deal: Deal, board_record: BoardRecord) -> str:
     lin_str += play_str
     lin_str += "pg||"
 
-    #print(lin_str)
+    # print(lin_str)
     return lin_str
+
 
 def build_lin_url(deal: Deal, board_record: BoardRecord):
     lin_str = build_lin_str(deal, board_record)
@@ -295,5 +293,5 @@ def build_lin_url(deal: Deal, board_record: BoardRecord):
 
 
 lin_records = parse_multi()
-#lin_records = parse_single()
+# lin_records = parse_single()
 print(build_lin_url(*lin_records[1]))

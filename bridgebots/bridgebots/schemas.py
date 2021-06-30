@@ -1,7 +1,11 @@
+from collections import defaultdict
+
 from marshmallow import Schema, ValidationError, fields, post_load
 
-from bridgebots.deal import Card, Deal, PlayerHand
+from bridgebots.board_record import BidMetadata, BoardRecord, Commentary, DealRecord
+from bridgebots.deal import Card, Deal
 from bridgebots.deal_enums import Direction
+from bridgebots.lin import parse_multi
 
 
 class CardField(fields.Field):
@@ -35,30 +39,91 @@ class DealSchema(Schema):
     ew_vulnerable = fields.Bool()
     player_cards = fields.Dict(keys=DirectionField(), values=fields.List(CardField()), data_key="hands")
 
+    class Meta:
+        ordered = True
+
     @post_load
     def load_deal(self, deal_dict, **kwargs):
         print("load_deal", deal_dict)
         return Deal.from_cards(**deal_dict)
 
-deal_schema = DealSchema()
-#print(deal_schema.dump({"dealer" : Direction.NORTH, "ns_vulnerable":True, "ew_vulnerable":False}))
 
-hands = {
-        Direction.NORTH: PlayerHand.from_string_lists(
-            ["9", "8", "6", "4"], ["K", "Q", "7", "6", "3"], ["A", "K"], ["7", "3"]
-        ),
-        Direction.SOUTH: PlayerHand.from_string_lists(
-            ["A", "K", "Q", "5"], ["A", "9", "4"], ["J", "5", "2"], ["K", "8", "4"]
-        ),
-        Direction.EAST: PlayerHand.from_string_lists(
-            ["2"], ["J", "10", "8", "5", "2"], ["Q", "8", "7", "4", "3"], ["A", "10"]
-        ),
-        Direction.WEST: PlayerHand.from_string_lists(
-            ["J", "10", "7", "3"], [], ["10", "9", "6"], ["Q", "J", "9", "6", "5", "2"]
-        ),
-    }
-test_deal = Deal(Direction.EAST, True, False, hands)
-dumped_deal = deal_schema.dump(test_deal)
-print(dumped_deal)
-loaded = deal_schema.load(dumped_deal)
-print(loaded)
+class CommentarySchema(Schema):
+    bid_index = fields.Int(missing=None)
+    play_index = fields.Int(missing=None)
+    comment = fields.Str()
+
+    class Meta:
+        ordered = True
+
+    @post_load
+    def load_commentary(self, commentary_dict, **kwargs):
+        return Commentary(**commentary_dict)
+
+
+class BidMetadataSchema(Schema):
+    bid_index = fields.Int()
+    bid = fields.Str()
+    alerted = fields.Bool()
+    explanation = fields.Str(missing=None)
+
+    class Meta:
+        ordered = True
+
+    @post_load
+    def load_bid_metadata(self, bid_metadata_dict, **kwargs):
+        return BidMetadata(**bid_metadata_dict)
+
+
+class BoardRecordSchema(Schema):
+    bidding_record = fields.List(fields.Str)
+    raw_bidding_record = fields.List(fields.Str)
+    play_record = fields.List(CardField())
+    declarer = DirectionField()
+    contract = fields.Str()
+    tricks = fields.Int()
+    scoring = fields.Str(missing=None)
+    north = fields.Str(missing="NORTH")
+    south = fields.Str(missing="SOUTH")
+    east = fields.Str(missing="EAST")
+    west = fields.Str(missing="WEST")
+    date = fields.Str(missing=None)  # TODO make this datetime?
+    event = fields.Str(missing=None)
+    bidding_metadata = fields.List(fields.Nested(BidMetadataSchema()))
+    commentary = fields.List(fields.Nested(CommentarySchema()))
+
+    class Meta:
+        ordered = True
+
+    @post_load
+    def load_board_record(self, board_record_dict, **kwargs):
+        return BoardRecord(**board_record_dict)
+
+
+class DealRecordSchema(Schema):
+    deal = fields.Nested(DealSchema())
+    board_records = fields.List(fields.Nested(BoardRecordSchema()))
+
+    class Meta:
+        ordered = True
+
+    @post_load
+    def load_deal_record(self, deal_record_dict, **kwargs):
+        return DealRecord(**deal_record_dict)
+
+
+lin_records = parse_multi()
+
+deal_dict = defaultdict(list)
+for deal, table_record in lin_records:
+    deal_dict[deal].append(table_record)
+
+deal_records = [DealRecord(deal, board_records) for deal, board_records in deal_dict.items()]
+some_deal_records = deal_records[0:1]
+print(some_deal_records[0])
+
+deal_record_schema = DealRecordSchema(many=True)
+dumped_records = deal_record_schema.dumps(some_deal_records)
+print(dumped_records)
+loaded_records = deal_record_schema.loads(dumped_records)
+print(loaded_records == some_deal_records)
