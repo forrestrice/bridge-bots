@@ -96,14 +96,16 @@ def from_pbn_deal(dealer_str: str, vulnerability_str: str, deal_str: str) -> Dea
     ew_vulnerable = vulnerability_str in EW_VULNERABLE_STRINGS
 
     dealer = Direction.from_str(dealer_str)
-
+    if deal_str is None or deal_str == '':
+        raise ValueError(f"Invalid deal_str:{deal_str}")
     hands_direction = Direction.from_str(deal_str[0])
     deal_str = deal_str[2:]
     player_hands = {}
     for player_str in deal_str.split():
         suits = player_str.split(".")
         suits.reverse()
-        player_hands[hands_direction] = PlayerHand.from_string_lists(*suits)
+        suit_lists = [list(suit) for suit in suits]
+        player_hands[hands_direction] = PlayerHand.from_string_lists(*suit_lists)
         hands_direction = hands_direction.next()
 
     return Deal(dealer, ns_vulnerable, ew_vulnerable, player_hands)
