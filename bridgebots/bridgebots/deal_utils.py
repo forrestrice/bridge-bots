@@ -1,3 +1,4 @@
+import re
 from collections import defaultdict
 from typing import Dict, List, Tuple
 
@@ -7,9 +8,12 @@ from bridgebots.deal_enums import Direction, Rank, Suit
 """
 Utilities for converting bridge data to/from a bridgebots representation
 """
-REVERSE_SORTED_CARDS = sorted([Card(suit, rank) for suit in Suit for rank in Rank], reverse=True)
-NS_VULNERABLE_STRINGS = {"Both", "N-S", "All", "NS"}
-EW_VULNERABLE_STRINGS = {"Both", "E-W", "All", "EW"}
+_NS_VULNERABLE_STRINGS = {"Both", "N-S", "All", "NS", "b", "n"}
+_EW_VULNERABLE_STRINGS = {"Both", "E-W", "All", "EW", "b", "e"}
+_REVERSE_SORTED_CARDS = sorted([Card(suit, rank) for suit in Suit for rank in Rank], reverse=True)
+_LIN_DEALER_TO_DIRECTION = {"1": Direction.SOUTH, "2": Direction.WEST, "3": Direction.NORTH, "4": Direction.EAST}
+_SUIT_CHAR_REGEX = re.compile("[SHDC]")
+_DECK_SET = frozenset({Card(suit, rank) for rank in Rank for suit in Suit})
 
 
 def serialize(deal: Deal) -> bytes:
@@ -49,7 +53,7 @@ def deserialize(binary_deal_bytes: bytes) -> Deal:
     dealer = Direction(binary_deal & 3)
     binary_deal = binary_deal >> 2
     hands = defaultdict(lambda: defaultdict(list))
-    for card in REVERSE_SORTED_CARDS:
+    for card in _REVERSE_SORTED_CARDS:
         card_direction = Direction(binary_deal & 3)
         hands[card_direction][card.suit].append(card.rank)
         binary_deal = binary_deal >> 2
@@ -79,8 +83,8 @@ def from_acbl_dict(acbl_dict: Dict[str, str]) -> Deal:
 
     dealer_direction = Direction[acbl_dict["dealer"].upper()]
     vuln_string = acbl_dict["vulnerability"]
-    ns_vuln = vuln_string in NS_VULNERABLE_STRINGS
-    ew_vuln = vuln_string in EW_VULNERABLE_STRINGS
+    ns_vuln = vuln_string in _NS_VULNERABLE_STRINGS
+    ew_vuln = vuln_string in _EW_VULNERABLE_STRINGS
     return Deal(dealer_direction, ns_vuln, ew_vuln, player_cards)
 
 
@@ -92,11 +96,11 @@ def from_pbn_deal(dealer_str: str, vulnerability_str: str, deal_str: str) -> Dea
     :param deal_str: value of the 'Deal' key in the pbn record
     :return: Deal representation of the pbn record
     """
-    ns_vulnerable = vulnerability_str in NS_VULNERABLE_STRINGS
-    ew_vulnerable = vulnerability_str in EW_VULNERABLE_STRINGS
+    ns_vulnerable = vulnerability_str in _NS_VULNERABLE_STRINGS
+    ew_vulnerable = vulnerability_str in _EW_VULNERABLE_STRINGS
 
     dealer = Direction.from_str(dealer_str)
-    if deal_str is None or deal_str == '':
+    if deal_str is None or deal_str == "":
         raise ValueError(f"Invalid deal_str:{deal_str}")
     hands_direction = Direction.from_str(deal_str[0])
     deal_str = deal_str[2:]
@@ -109,3 +113,35 @@ def from_pbn_deal(dealer_str: str, vulnerability_str: str, deal_str: str) -> Dea
         hands_direction = hands_direction.next()
 
     return Deal(dealer, ns_vulnerable, ew_vulnerable, player_hands)
+
+
+def from_lin_deal(lin_dealer_str: str, vulnerability_str: str, holdings_str: str) -> Deal:
+    """
+    Convert LIN deal nodes into a bridgebots deal
+    :param lin_dealer_str: Numbers map to directions starting with 1=South
+    :param vulnerability_str: LIN vulnerability. One of b,o,n,e
+    :param holdings_str: Holding like "1S98643HAJT54DCJT4,SQJTH98DKT7542C76,S5HKQ3DJ93CAKQ832,"
+    :return: bridgebots deal representation
+    """
+    dealer = _LIN_DEALER_TO_DIRECTION[lin_dealer_str]
+    holdings = holdings_str.strip(",").split(",")
+    # Convert a holding string like SA63HJ8642DK53CKJ into a PlayerHand
+    players_suit_holdings = [_SUIT_CHAR_REGEX.split(holding)[1:] for holding in holdings]
+    player_hands = {}
+    current_direction = Direction.SOUTH
+    for suit_holdings in players_suit_holdings:
+        suit_holdings.reverse()
+        suit_holdings_lists = [list(suit_holding) for suit_holding in suit_holdings]
+        player_hands[current_direction] = PlayerHand.from_string_lists(*suit_holdings_lists)
+        current_direction = current_direction.next()
+
+    # Some LIN files only include 3 hands. In that case infer the 4th hand
+    if len(player_hands) == 3:
+        held_cards = {card for player_hand in player_hands.values() for card in player_hand.cards}
+        remaining_cards = _DECK_SET - held_cards
+        player_hands[current_direction] = PlayerHand.from_cards(remaining_cards)
+
+    ns_vulnerable = vulnerability_str in _NS_VULNERABLE_STRINGS
+    ew_vulnerable = vulnerability_str in _EW_VULNERABLE_STRINGS
+    deal = Deal(dealer, ns_vulnerable, ew_vulnerable, player_hands)
+    return deal

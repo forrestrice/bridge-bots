@@ -5,6 +5,10 @@ from bridgebots.deal_enums import Direction
 
 
 class BidMetadata:
+    """
+    Represents the alert status and the explanation of a bid
+    """
+
     def __init__(self, bid_index: int, bid: str, alerted: bool = False, explanation: str = None):
         self.bid_index = bid_index
         self.bid = bid
@@ -27,7 +31,15 @@ class BidMetadata:
 
 
 class Commentary:
+    """
+    Analyst commentary on the board, bidding, or play.
+    Commentary before the board will have a bid_index of -1 and a play_index of None
+    Commentary during bidding or cardplay will have the appropriate bidding/play indices
+    Commentary after the play will have a play_index of the last card played in the hand
+    """
+
     def __init__(self, bid_index: Optional[int], play_index: Optional[int], comment):
+        assert (bid_index is None) != (play_index is None)  # One of the two must be None
         self.bid_index = bid_index
         self.play_index = play_index
         self.comment = comment
@@ -115,16 +127,16 @@ class BoardRecord:
 
 
 class DealRecord:
+    """
+    Wrapper class for a deal and all the board records associated with the deal
+    """
+
     def __init__(self, deal: Deal, board_records: List[BoardRecord]):
         self.deal = deal
         self.board_records = board_records
 
     def __repr__(self) -> str:
-        return f"DealRecord(\n" \
-               f"deal={self.deal},\n" \
-               f"board_records={self.board_records}\n" \
-               f")"
+        return f"DealRecord(\n" f"deal={self.deal},\n" f"board_records={self.board_records}\n" f")"
 
     def __eq__(self, other) -> bool:
         return self.deal == other.deal and self.board_records == other.board_records
-

@@ -1,6 +1,6 @@
 from typing import Optional
 
-legal_bids = {
+_LEGAL_BIDS = {
     "PASS",
     "X",
     "XX",
@@ -52,4 +52,4 @@ def canonicalize_bid(bid: str) -> Optional[str]:
         bid = "XX"
     elif bid == "P":
         bid = "PASS"
-    return bid if bid in legal_bids else None
+    return bid if bid in _LEGAL_BIDS else None
