@@ -3,7 +3,7 @@ import unittest
 from bridgebots.board_record import BidMetadata
 from bridgebots.deal import Card
 from bridgebots.deal_enums import Direction, Rank, Suit
-from bridgebots.lin import _determine_declarer, _parse_bidding_record, _parse_deal, _parse_lin_string
+from bridgebots.lin import _determine_declarer, _parse_bidding_record, _parse_deal, _parse_lin_string, _parse_tricks
 
 
 class TestParseLin(unittest.TestCase):
@@ -123,3 +123,31 @@ class TestParseLin(unittest.TestCase):
         bidding_record = ["PASS", "PASS", "1D", "PASS", "1S", "2H", "3C", "PASS", "3D", "PASS", "PASS", "PASS"]
         play_record = [Card.from_str("SA")]
         self.assertEqual(Direction.NORTH, _determine_declarer(play_record, bidding_record, deal))
+
+    def test_parse_tricks_with_claim(self):
+        self.assertEqual(10, _parse_tricks({"mc": ["10"]}, Direction.NORTH, "2S", []))
+
+    def test_parse_tricks_with_invalid_number_of_cards(self):
+        with self.assertRaises(ValueError):
+            _parse_tricks({}, Direction.NORTH, "2S", [])
+
+    def test_parse_tricks_from_play(self):
+        # fmt: off
+        play_record_strings = [
+            "H4", "H2", "HJ", "HA",
+            "DA", "D4", "D3", "S3",
+            "DJ", "D8", "D6", "S4",
+            "DT", "D9", "D7", "S6",
+            "D2", "C3", "DK", "SJ",
+            "DQ", "C4", "D5", "S7",
+            "S2", "H3", "SK", "SA",
+            "HT", "HQ", "HK", "C2",
+            "H5", "S5", "H9", "H8",
+            "C5", "CT", "CA", "C6",
+            "H7", "C7", "ST", "S8",
+            "H6", "C9", "C8", "S9",
+            "CQ", "CJ", "CK", "SQ",
+        ]
+        # fmt: on
+        play_record = [Card.from_str(card_str) for card_str in play_record_strings]
+        self.assertEqual(6, _parse_tricks({}, Direction.NORTH, "3NT", play_record))

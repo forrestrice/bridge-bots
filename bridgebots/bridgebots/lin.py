@@ -298,6 +298,9 @@ def build_lin_url(deal: Deal, board_record: BoardRecord) -> str:
     return f"https://www.bridgebase.com/tools/handviewer.html?lin={encoded_lin_str}"
 
 
-lin_records = parse_multi(Path("/Users/frice/bridge/lin_parse/usbf_sf_14502.lin"))
-# lin_records = parse_single()
-print(build_lin_url(lin_records[1].deal, lin_records[1].board_records[0]))
+#lin_records = parse_multi(Path("/Users/frice/bridge/lin_parse/usbf_sf_14502.lin"))
+#print(build_lin_url(lin_records[1].deal, lin_records[1].board_records[0]))
+
+lin_records = parse_single(Path("/Users/frice/bridge/lin_parse/sample_hand.lin"))
+print(lin_records)
+
