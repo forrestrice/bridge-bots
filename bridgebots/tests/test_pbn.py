@@ -8,7 +8,7 @@ from bridgebots.pbn import _build_record_dict, _parse_bidding_record, _sort_play
 
 class TestParsePbnFile(unittest.TestCase):
     def test_parse_file(self):
-        sample_pbn_path = Path(__file__).parent / "sample.pbn"
+        sample_pbn_path = Path(__file__).parent / "resources" / "sample.pbn"
         records = parse_pbn(sample_pbn_path)
         self.assertEqual(3, len(records))
 

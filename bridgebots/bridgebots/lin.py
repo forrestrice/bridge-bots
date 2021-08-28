@@ -209,13 +209,14 @@ def parse_single(file_path: Path) -> List[DealRecord]:
     :return: A list of parsed DealRecords, one for each line of the LIN file
     """
     with open(file_path) as lin_file:
-        deal_records = []
+        # Maintain a mapping from deal to board records to create a single deal record per deal
+        records = defaultdict(list)
         for line in lin_file:
             lin_dict = _parse_lin_string(line)
             deal = _parse_deal(lin_dict)
             board_record = _parse_board_record(lin_dict, deal)
-            deal_records.append(DealRecord(deal, [board_record]))
-        return deal_records
+            records[deal].append(board_record)
+        return [DealRecord(deal, board_records) for deal, board_records in records.items()]
 
 
 def parse_multi(file_path: Path) -> List[DealRecord]:
@@ -231,6 +232,7 @@ def parse_multi(file_path: Path) -> List[DealRecord]:
         board_strings = []
         current_board = ""
         for line in lin_file:
+            # Boards are split with a qx node
             if line.startswith("qx") or line == "":
                 if current_board != "":
                     board_strings.append(current_board)
@@ -239,14 +241,15 @@ def parse_multi(file_path: Path) -> List[DealRecord]:
 
         # Create single-line LIN for each record
         board_single_strings = [board_string.replace("\n", "") for board_string in board_strings]
-        records = []
+        # Maintain a mapping from deal to board records to create a single deal record per deal
+        records = defaultdict(list)
         for board_single_string in board_single_strings:
             lin_dict = _parse_lin_string(board_single_string)
             lin_dict["pn"] = player_names["pn"]
             deal = _parse_deal(lin_dict)
             board_record = _parse_board_record(lin_dict, deal)
-            records.append(DealRecord(deal, [board_record]))
-        return records
+            records[deal].append(board_record)
+        return [DealRecord(deal, board_records) for deal, board_records in records.items()]
 
 
 def build_lin_str(deal: Deal, board_record: BoardRecord) -> str:
@@ -296,11 +299,3 @@ def build_lin_url(deal: Deal, board_record: BoardRecord) -> str:
     lin_str = build_lin_str(deal, board_record)
     encoded_lin_str = urllib.parse.quote_plus(lin_str)
     return f"https://www.bridgebase.com/tools/handviewer.html?lin={encoded_lin_str}"
-
-
-#lin_records = parse_multi(Path("/Users/frice/bridge/lin_parse/usbf_sf_14502.lin"))
-#print(build_lin_url(lin_records[1].deal, lin_records[1].board_records[0]))
-
-lin_records = parse_single(Path("/Users/frice/bridge/lin_parse/sample_hand.lin"))
-print(lin_records)
-
