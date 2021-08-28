@@ -1,14 +1,14 @@
 import logging
 import re
-from functools import partial
 from pathlib import Path
 from typing import Dict, List, Tuple
 
 from bridgebots.bids import canonicalize_bid
 from bridgebots.board_record import BidMetadata, BoardRecord
 from bridgebots.deal import Card, Deal
-from bridgebots.deal_enums import BiddingSuit, Direction, Suit
+from bridgebots.deal_enums import BiddingSuit, Direction
 from bridgebots.deal_utils import from_pbn_deal
+from bridgebots.play_utils import trick_evaluator
 
 
 def _split_pbn(file_path: Path) -> List[List[str]]:
@@ -156,18 +156,6 @@ def _parse_bidding_record(raw_bidding_record: List[str], record_dict: dict) -> T
     return bidding_record, bidding_metadata
 
 
-def _evaluate_card(trump_suit: Suit, suit_led: Suit, card: Card) -> int:
-    """
-    :return: Score a card on its ability to win a trick given the trump suit and the suit that was led to the trick
-    """
-    score = card.rank.value[0]
-    if card.suit == trump_suit:
-        score += 100
-    elif card.suit != suit_led:
-        score -= 100
-    return score
-
-
 def _sort_play_record(trick_records: List[List[str]], contract: str) -> List[Card]:
     """
     Untangle the true play order of the cards for a board
@@ -194,7 +182,7 @@ def _sort_play_record(trick_records: List[List[str]], contract: str) -> List[Car
     if contract.upper() == "PASS":
         return []
     try:
-        trump_suit = BiddingSuit.from_str(contract[1:2]).to_suit()
+        trump_suit = BiddingSuit.from_str(contract[1:2])
         play_record = []
         start_index = 0  # represents which column is on lead
         for trick_record in trick_records:
@@ -208,8 +196,7 @@ def _sort_play_record(trick_records: List[List[str]], contract: str) -> List[Car
                     trick_cards.append(card)
             # 4 cards played to trick. Determine the winning index relative to the column on lead
             if len(trick_cards) == 4:
-                suit_led = trick_cards[0].suit
-                evaluator = partial(_evaluate_card, trump_suit, suit_led)
+                evaluator = trick_evaluator(trump_suit, trick_cards[0].suit)
                 winning_index, winning_card = max(enumerate(trick_cards), key=lambda c: evaluator(c[1]))
                 start_index = (start_index + winning_index) % 4  # wrap-around to first column if necessary
         return play_record
@@ -248,6 +235,7 @@ def _parse_board_record(record_dict: Dict) -> BoardRecord:
         date=record_dict.get("Date"),
         event=record_dict.get("Event"),
         bidding_metadata=bidding_metadata,
+        # TODO adjust to use commentary type
         commentary=record_dict.get("Commentary"),
     )
 
@@ -276,6 +264,6 @@ def parse_pbn(file_path: Path) -> List[Tuple[Deal, BoardRecord]]:
     for record_strings in records_strings:
         try:
             results.append(_parse_single_pbn_record(record_strings))
-        except KeyError as e:
+        except (KeyError, ValueError) as e:
             logging.warning(f"Malformed record {record_strings}: {e}")
     return results

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import total_ordering
-from typing import Dict, List
+from typing import Dict, Iterable, List
 
 from bridgebots.deal_enums import Direction, Rank, Suit
 
@@ -49,7 +49,7 @@ class PlayerHand:
         self.suits = suits
         assert 13 == sum([len(ranks) for suit, ranks in self.suits.items()])
         self.cards = []
-        for suit in Suit:
+        for suit in reversed(Suit):
             for rank in self.suits[suit]:
                 self.cards.append(Card(suit, rank))
 
@@ -68,11 +68,21 @@ class PlayerHand:
         }
         return PlayerHand(suits)
 
+    @staticmethod
+    def from_cards(cards: Iterable[Card]) -> PlayerHand:
+        suits = {
+            Suit.CLUBS: sorted([card.rank for card in cards if card.suit == Suit.CLUBS], reverse=True),
+            Suit.DIAMONDS: sorted([card.rank for card in cards if card.suit == Suit.DIAMONDS], reverse=True),
+            Suit.HEARTS: sorted([card.rank for card in cards if card.suit == Suit.HEARTS], reverse=True),
+            Suit.SPADES: sorted([card.rank for card in cards if card.suit == Suit.SPADES], reverse=True),
+        }
+        return PlayerHand(suits)
+
     def __repr__(self):
         suit_arrays = [[], [], [], []]
         for card in self.cards:
             suit_arrays[card.suit.value].append(repr(card))
-        repr_str = " | ".join(" ".join(suit) for suit in suit_arrays)
+        repr_str = " | ".join(" ".join(suit) for suit in reversed(suit_arrays))
         return f"PlayerHand({repr_str})"
 
     def __eq__(self, other) -> bool:
@@ -116,3 +126,8 @@ class Deal:
     def __hash__(self) -> int:
         card_sets = [(direction, frozenset(self.hands[direction].cards)) for direction in self.hands]
         return hash((self.dealer, self.ns_vulnerable, self.ew_vulnerable, frozenset(card_sets)))
+
+    @staticmethod
+    def from_cards(dealer: Direction, ns_vulnerable: bool, ew_vulnerable: bool, player_cards: Dict[Direction, List[Card]]) -> Deal:
+        hands = {direction: PlayerHand.from_cards(cards) for direction,cards in player_cards.items()}
+        return Deal(dealer, ns_vulnerable, ew_vulnerable, hands)

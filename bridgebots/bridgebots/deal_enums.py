@@ -30,6 +30,15 @@ class Direction(Enum):
     def next(self) -> Direction:
         return Direction((self.value + 1) % 4)
 
+    def partner(self) -> Direction:
+        return Direction((self.value + 2) % 4)
+
+    def previous(self) -> Direction:
+        return Direction((self.value + 3) % 4)
+
+    def abbreviation(self) -> str:
+        return self.name[0]
+
 
 @total_ordering
 class Suit(Enum):
@@ -49,6 +58,9 @@ class Suit(Enum):
 
     def __repr__(self) -> str:
         return self.name
+
+    def abbreviation(self) -> str:
+        return self.name[0]
 
 
 @total_ordering
@@ -118,5 +130,5 @@ class Rank(Enum):
     def __repr__(self) -> str:
         return self.name
 
-    def to_char(self) -> str:
+    def abbreviation(self) -> str:
         return self.value[1]
