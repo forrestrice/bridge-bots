@@ -1,4 +1,5 @@
 from collections import defaultdict
+from pathlib import Path
 
 from marshmallow import Schema, ValidationError, fields, post_load
 
@@ -112,14 +113,8 @@ class DealRecordSchema(Schema):
         return DealRecord(**deal_record_dict)
 
 
-lin_records = parse_multi()
-
-deal_dict = defaultdict(list)
-for deal, table_record in lin_records:
-    deal_dict[deal].append(table_record)
-
-deal_records = [DealRecord(deal, board_records) for deal, board_records in deal_dict.items()]
-some_deal_records = deal_records[0:1]
+lin_records = parse_multi(Path("/Users/frice/bridge/lin_parse/usbf_sf_14502.lin"))
+some_deal_records = lin_records[0:1]
 print(some_deal_records[0])
 
 deal_record_schema = DealRecordSchema(many=True)
