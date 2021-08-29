@@ -1,19 +1,23 @@
-from collections import defaultdict
-from pathlib import Path
+import typing
 
 from marshmallow import Schema, ValidationError, fields, post_load
 
 from bridgebots.board_record import BidMetadata, BoardRecord, Commentary, DealRecord
 from bridgebots.deal import Card, Deal
 from bridgebots.deal_enums import Direction
-from bridgebots.lin import parse_multi
+
+"""
+Marshmallow schemas for serializing and deserializing bridgebots objects to/from JSON
+"""
 
 
 class CardField(fields.Field):
-    def _serialize(self, value, attr, obj, **kwargs):
+    def _serialize(self, value: Card, attr: str, obj: typing.Any, **kwargs) -> str:
         return repr(value)
 
-    def _deserialize(self, value, attr, data, **kwargs):
+    def _deserialize(
+        self, value: str, attr: typing.Optional[str], data: typing.Optional[typing.Mapping[str, typing.Any]], **kwargs
+    ) -> Card:
         try:
             return Card.from_str(value)
         except ValueError as error:
@@ -21,13 +25,15 @@ class CardField(fields.Field):
 
 
 class DirectionField(fields.Field):
-    def _serialize(self, value, attr, obj, **kwargs):
+    def _serialize(self, value: Direction, attr: str, obj: typing.Any, **kwargs) -> str:
         try:
             return value.abbreviation()
         except AttributeError as error:
             raise ValidationError(f"Invalid direction: {value}") from error
 
-    def _deserialize(self, value, attr, data, **kwargs):
+    def _deserialize(
+        self, value: str, attr: typing.Optional[str], data: typing.Optional[typing.Mapping[str, typing.Any]], **kwargs
+    ) -> Direction:
         try:
             return Direction.from_str(value)
         except ValueError as error:
@@ -44,8 +50,7 @@ class DealSchema(Schema):
         ordered = True
 
     @post_load
-    def load_deal(self, deal_dict, **kwargs):
-        print("load_deal", deal_dict)
+    def load_deal(self, deal_dict: dict, **kwargs) -> Deal:
         return Deal.from_cards(**deal_dict)
 
 
@@ -58,7 +63,7 @@ class CommentarySchema(Schema):
         ordered = True
 
     @post_load
-    def load_commentary(self, commentary_dict, **kwargs):
+    def load_commentary(self, commentary_dict: dict, **kwargs) -> Commentary:
         return Commentary(**commentary_dict)
 
 
@@ -72,7 +77,7 @@ class BidMetadataSchema(Schema):
         ordered = True
 
     @post_load
-    def load_bid_metadata(self, bid_metadata_dict, **kwargs):
+    def load_bid_metadata(self, bid_metadata_dict: dict, **kwargs) -> BidMetadata:
         return BidMetadata(**bid_metadata_dict)
 
 
@@ -97,7 +102,7 @@ class BoardRecordSchema(Schema):
         ordered = True
 
     @post_load
-    def load_board_record(self, board_record_dict, **kwargs):
+    def load_board_record(self, board_record_dict: dict, **kwargs) -> BoardRecord:
         return BoardRecord(**board_record_dict)
 
 
@@ -109,16 +114,5 @@ class DealRecordSchema(Schema):
         ordered = True
 
     @post_load
-    def load_deal_record(self, deal_record_dict, **kwargs):
+    def load_deal_record(self, deal_record_dict: dict, **kwargs) -> DealRecord:
         return DealRecord(**deal_record_dict)
-
-
-lin_records = parse_multi(Path("/Users/frice/bridge/lin_parse/usbf_sf_14502.lin"))
-some_deal_records = lin_records[0:1]
-print(some_deal_records[0])
-
-deal_record_schema = DealRecordSchema(many=True)
-dumped_records = deal_record_schema.dumps(some_deal_records)
-print(dumped_records)
-loaded_records = deal_record_schema.loads(dumped_records)
-print(loaded_records == some_deal_records)

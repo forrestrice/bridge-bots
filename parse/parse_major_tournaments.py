@@ -3,6 +3,7 @@ import pickle
 from collections import defaultdict
 from pathlib import Path
 
+from bridgebots.board_record import DealRecord
 from bridgebots.pbn import parse_pbn
 
 logging.basicConfig(level=logging.DEBUG)
@@ -17,11 +18,13 @@ logging.info(f"{len(all_results)} total results")
 
 # Deduplicate deals, collecting all boards to a list
 deal_dict = defaultdict(list)
-for deal, table_record in all_results:
-    deal_dict[deal].append(table_record)
+for deal_record in all_results:
+    deal_dict[deal_record.deal].extend(deal_record.board_records)
+
+deduped_results = [DealRecord(deal, board_records) for deal, board_records in deal_dict.items()]
 
 pickle_file_path = "/Users/frice/bridge/results/major_tournaments_pbn.pickle"
 with open(pickle_file_path, "wb") as pickle_file:
-    pickle.dump(deal_dict, pickle_file)
+    pickle.dump(deduped_results, pickle_file)
 
-logging.info(f"wrote {len(deal_dict)} deals to {pickle_file_path}")
+logging.info(f"wrote {len(deduped_results)} deals to {pickle_file_path}")
