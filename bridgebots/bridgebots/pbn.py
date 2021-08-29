@@ -1,10 +1,11 @@
 import logging
 import re
+from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple
 
 from bridgebots.bids import canonicalize_bid
-from bridgebots.board_record import BidMetadata, BoardRecord
+from bridgebots.board_record import BidMetadata, BoardRecord, DealRecord
 from bridgebots.deal import Card, Deal
 from bridgebots.deal_enums import BiddingSuit, Direction
 from bridgebots.deal_utils import from_pbn_deal
@@ -251,19 +252,21 @@ def _parse_single_pbn_record(record_strings: List[str]) -> Tuple[Deal, BoardReco
     return deal, board_record
 
 
-def parse_pbn(file_path: Path) -> List[Tuple[Deal, BoardRecord]]:
+def parse_pbn(file_path: Path) -> List[DealRecord]:
     """
     Split PBN file into boards then decompose those boards into Deal and BoardRecord objects. Only supports PBN v1.0
     See https://www.tistis.nl/pbn/pbn_v10.txt
 
     :param file_path: path to a PBN file
-    :return: A list of pairs of Deal and BoardRecord
+    :return: A list of DealRecords representing all the boards played
     """
     records_strings = _split_pbn(file_path)
-    results = []
+    # Maintain a mapping from deal to board records to create a single deal record per deal
+    records = defaultdict(list)
     for record_strings in records_strings:
         try:
-            results.append(_parse_single_pbn_record(record_strings))
+            deal, board_record = _parse_single_pbn_record(record_strings)
+            records[deal].append(board_record)
         except (KeyError, ValueError) as e:
             logging.warning(f"Malformed record {record_strings}: {e}")
-    return results
+    return [DealRecord(deal, board_records) for deal, board_records in records.items()]

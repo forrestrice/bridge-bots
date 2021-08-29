@@ -12,7 +12,7 @@ class TestParsePbnFile(unittest.TestCase):
         records = parse_pbn(sample_pbn_path)
         self.assertEqual(3, len(records))
 
-        deal_1, board_record_1 = records[0]
+        deal_1, board_record_1 = records[0].deal, records[0].board_records[0]
         self.assertEqual(True, deal_1.ns_vulnerable)
         self.assertEqual(True, deal_1.ew_vulnerable)
         self.assertEqual(Direction.EAST, deal_1.dealer)
@@ -97,7 +97,7 @@ class TestParsePbnFile(unittest.TestCase):
         self.assertEqual("2004.05.05", board_record_1.date)
         self.assertEqual("Cavendish Pairs Day 2", board_record_1.event)
 
-        deal_2, board_record_2 = records[1]
+        deal_2, board_record_2 = records[1].deal, records[1].board_records[0]
         self.assertEqual(
             (
                 "{ Indonesians Franky Karwur and Denny Sacul, recent winners of the IOC Grand Prix in Lausanne and "
