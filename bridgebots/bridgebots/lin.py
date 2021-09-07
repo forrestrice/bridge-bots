@@ -152,10 +152,7 @@ def _parse_board_record(lin_dict: Dict, deal: Deal) -> BoardRecord:
         contract=contract,
         tricks=tricks,
         scoring=None,
-        north=player_names[Direction.NORTH],
-        south=player_names[Direction.SOUTH],
-        east=player_names[Direction.EAST],
-        west=player_names[Direction.WEST],
+        names=player_names,
         date=None,
         event=None,
         bidding_metadata=bidding_metadata,
@@ -281,9 +278,10 @@ def build_lin_str(deal: Deal, board_record: BoardRecord) -> str:
 
     bidding_str = _build_bidding_str(board_record)
     play_str = _build_play_str(board_record)
+    names = board_record.names
 
     lin_str = ""
-    lin_str += f"pn|{board_record.south},{board_record.west},{board_record.north},{board_record.east}|"
+    lin_str += f"pn|{names[Direction.SOUTH]},{names[Direction.WEST]},{names[Direction.NORTH]},{names[Direction.EAST]}|"
     lin_str += f"st||md|{lin_dealer}{','.join(player_holding_strings)}|"
     lin_str += f"sv|{vuln_str}|"
     lin_str += bidding_str

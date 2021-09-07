@@ -89,10 +89,11 @@ class BoardRecordSchema(Schema):
     contract = fields.Str()
     tricks = fields.Int()
     scoring = fields.Str(missing=None)
-    north = fields.Str(missing="NORTH")
-    south = fields.Str(missing="SOUTH")
-    east = fields.Str(missing="EAST")
-    west = fields.Str(missing="WEST")
+    names = fields.Dict(
+        keys=DirectionField(),
+        values=fields.Str,
+        missing={Direction.NORTH: "NORTH", Direction.SOUTH: "SOUTH", Direction.EAST: "EAST", Direction.WEST: "WEST"},
+    )
     date = fields.Str(missing=None)  # TODO make this datetime?
     event = fields.Str(missing=None)
     bidding_metadata = fields.List(fields.Nested(BidMetadataSchema()))

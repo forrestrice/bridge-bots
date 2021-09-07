@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from bridgebots.deal import Card, Deal
 from bridgebots.deal_enums import Direction
@@ -67,10 +67,7 @@ class BoardRecord:
         contract: str,
         tricks: int,
         scoring: str = None,
-        north: str = None,
-        south: str = None,
-        east: str = None,
-        west: str = None,
+        names: Dict[Direction, str] = None,
         date: str = None,
         event: str = None,
         bidding_metadata: List[BidMetadata] = None,
@@ -83,10 +80,7 @@ class BoardRecord:
         self.contract = contract
         self.tricks = tricks
         self.scoring = scoring
-        self.north = north
-        self.south = south
-        self.east = east
-        self.west = west
+        self.names = names
         self.date = date
         self.event = event
         self.bidding_metadata = bidding_metadata
@@ -99,7 +93,7 @@ class BoardRecord:
             f"\traw_bidding_record={self.raw_bidding_record},\n"
             f"\tplay_record={self.play_record},\n"
             f"\tdeclarer={self.declarer}, contract={self.contract}, tricks={self.tricks}, scoring={self.scoring},\n"
-            f"\tnorth={self.north}, south={self.south}, east={self.east}, west={self.west},\n"
+            f"\tnames={self.names},\n"
             f"\tdate={self.date}, event={self.event},\n"
             f"\tbidding_metadata={self.bidding_metadata},\n"
             f"\tcommentary={self.commentary})\n"
@@ -115,10 +109,7 @@ class BoardRecord:
             and self.contract == other.contract
             and self.tricks == other.tricks
             and self.scoring == other.scoring
-            and self.north == other.north
-            and self.south == other.south
-            and self.east == other.east
-            and self.west == other.west
+            and self.names == other.names
             and self.date == other.date
             and self.event == other.event
             and self.bidding_metadata == other.bidding_metadata

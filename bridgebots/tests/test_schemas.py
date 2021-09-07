@@ -38,10 +38,12 @@ class TestSchemas(unittest.TestCase):
         contract="3NT",
         tricks=6,
         scoring=None,
-        north="smalark",
-        south="PrinceBen",
-        east="granola357",
-        west="Forrest_",
+        names={
+            Direction.NORTH: "smalark",
+            Direction.SOUTH: "PrinceBen",
+            Direction.EAST: "granola357",
+            Direction.WEST: "Forrest_",
+        },
         date=None,
         event=None,
         bidding_metadata=[
@@ -91,10 +93,7 @@ class TestSchemas(unittest.TestCase):
             "contract": "3NT",
             "tricks": 6,
             "scoring": None,
-            "north": "smalark",
-            "south": "PrinceBen",
-            "east": "granola357",
-            "west": "Forrest_",
+            "names": {"N": "smalark", "S": "PrinceBen", "E": "granola357", "W": "Forrest_"},
             "date": None,
             "event": None,
             "bidding_metadata": [
