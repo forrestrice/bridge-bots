@@ -115,10 +115,10 @@ class TestParsePbnFile(unittest.TestCase):
             ),
             board_record_2.commentary,
         )
-        self.assertEqual(board_record_2.north, "Wubbo De Boer")
-        self.assertEqual(board_record_2.south, "Bauke Muller")
-        self.assertEqual(board_record_2.east, "Denny Sacul")
-        self.assertEqual(board_record_2.west, "Franky Karwur")
+        self.assertEqual(board_record_2.names[Direction.NORTH], "Wubbo De Boer")
+        self.assertEqual(board_record_2.names[Direction.SOUTH], "Bauke Muller")
+        self.assertEqual(board_record_2.names[Direction.EAST], "Denny Sacul")
+        self.assertEqual(board_record_2.names[Direction.WEST], "Franky Karwur")
 
 
 class TestPbnRecordDict(unittest.TestCase):

@@ -220,6 +220,12 @@ def _parse_board_record(record_dict: Dict) -> BoardRecord:
     play_record = _sort_play_record(play_record_strings, record_dict["Contract"])
     result_str = record_dict.get("Result")
     result = int(result_str) if result_str and result_str != "" else None
+    player_names = {
+        Direction.NORTH: record_dict.get("North"),
+        Direction.SOUTH: record_dict.get("South"),
+        Direction.EAST: record_dict.get("East"),
+        Direction.WEST: record_dict.get("West"),
+    }
 
     return BoardRecord(
         bidding_record=bidding_record,
@@ -229,10 +235,7 @@ def _parse_board_record(record_dict: Dict) -> BoardRecord:
         contract=record_dict["Contract"],
         tricks=result,
         scoring=record_dict.get("Scoring"),
-        north=record_dict.get("North"),
-        south=record_dict.get("South"),
-        east=record_dict.get("East"),
-        west=record_dict.get("West"),
+        names=player_names,
         date=record_dict.get("Date"),
         event=record_dict.get("Event"),
         bidding_metadata=bidding_metadata,
