@@ -96,8 +96,8 @@ class BoardRecordSchema(Schema):
     )
     date = fields.Str(missing=None)  # TODO make this datetime?
     event = fields.Str(missing=None)
-    bidding_metadata = fields.List(fields.Nested(BidMetadataSchema()))
-    commentary = fields.List(fields.Nested(CommentarySchema()))
+    bidding_metadata = fields.List(fields.Nested(BidMetadataSchema()), missing=[])
+    commentary = fields.List(fields.Nested(CommentarySchema()), missing=[])
 
     class Meta:
         ordered = True

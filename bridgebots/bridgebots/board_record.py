@@ -83,8 +83,8 @@ class BoardRecord:
         self.names = names
         self.date = date
         self.event = event
-        self.bidding_metadata = bidding_metadata
-        self.commentary = commentary
+        self.bidding_metadata = [] if bidding_metadata is None else bidding_metadata
+        self.commentary = [] if commentary is None else commentary
 
     def __repr__(self) -> str:
         return (
