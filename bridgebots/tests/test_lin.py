@@ -1,9 +1,21 @@
 import unittest
 from pathlib import Path
 
-from bridgebots.board_record import BidMetadata, BoardRecord, Commentary, Contract
-from bridgebots.deal import Card
-from bridgebots.deal_enums import BiddingSuit, Direction, Rank, Suit
+from bridgebots import (
+    BidMetadata,
+    BiddingSuit,
+    BoardRecord,
+    Card,
+    Commentary,
+    Contract,
+    Direction,
+    Rank,
+    Suit,
+    build_lin_str,
+    build_lin_url,
+    parse_multi,
+    parse_single,
+)
 from bridgebots.lin import (
     _determine_declarer,
     _parse_bidding_record,
@@ -12,10 +24,6 @@ from bridgebots.lin import (
     _parse_lin_string,
     _parse_player_names,
     _parse_tricks,
-    build_lin_str,
-    build_lin_url,
-    parse_multi,
-    parse_single,
 )
 
 

@@ -1,7 +1,6 @@
 import unittest
 
-from bridgebots.deal import Card, PlayerHand
-from bridgebots.deal_enums import Rank, Suit
+from bridgebots import Card, PlayerHand, Rank, Suit
 
 
 class TestDeal(unittest.TestCase):

@@ -1,9 +1,8 @@
 import unittest
 from pathlib import Path
 
-from bridgebots.board_record import BidMetadata, Contract
-from bridgebots.deal_enums import BiddingSuit, Direction, Rank, Suit
-from bridgebots.pbn import _build_record_dict, _parse_bidding_record, _sort_play_record, parse_pbn
+from bridgebots import BidMetadata, BiddingSuit, Contract, Direction, Rank, Suit, parse_pbn
+from bridgebots.pbn import _build_record_dict, _parse_bidding_record, _sort_play_record
 
 
 class TestParsePbnFile(unittest.TestCase):

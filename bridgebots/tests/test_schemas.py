@@ -1,16 +1,21 @@
 import unittest
 
-from bridgebots import deal_utils
-from bridgebots.board_record import BidMetadata, BoardRecord, Commentary, Contract, DealRecord
-from bridgebots.deal import Card
-from bridgebots.deal_enums import BiddingSuit, Direction
-from bridgebots.schemas import (
+from bridgebots import (
+    BidMetadata,
     BidMetadataSchema,
+    BiddingSuit,
+    BoardRecord,
     BoardRecordSchema,
+    Card,
+    Commentary,
     CommentarySchema,
+    Contract,
     ContractSchema,
+    DealRecord,
     DealRecordSchema,
     DealSchema,
+    Direction,
+    deal_utils,
 )
 
 

@@ -1,7 +1,6 @@
 import unittest
 
-from bridgebots.deal_enums import BiddingSuit, Direction
-from bridgebots.double_dummy import DoubleDummyScore
+from bridgebots import BiddingSuit, Direction, DoubleDummyScore
 
 
 class TestDoubleDummyScore(unittest.TestCase):

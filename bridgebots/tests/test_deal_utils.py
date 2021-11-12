@@ -1,10 +1,7 @@
 import json
 import unittest
 
-from bridgebots import deal_utils
-from bridgebots.deal import Deal, PlayerHand
-from bridgebots.deal_enums import Direction, Suit
-from bridgebots.deal_utils import from_acbl_dict
+from bridgebots import Deal, Direction, PlayerHand, Suit, deal_utils, from_acbl_dict
 
 
 class TestAcblDeal(unittest.TestCase):
