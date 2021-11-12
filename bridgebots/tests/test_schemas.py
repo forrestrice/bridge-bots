@@ -1,10 +1,17 @@
 import unittest
 
 from bridgebots import deal_utils
-from bridgebots.board_record import BidMetadata, BoardRecord, Commentary, DealRecord
+from bridgebots.board_record import BidMetadata, BoardRecord, Commentary, Contract, DealRecord
 from bridgebots.deal import Card
-from bridgebots.deal_enums import Direction
-from bridgebots.schemas import BidMetadataSchema, BoardRecordSchema, CommentarySchema, DealRecordSchema, DealSchema
+from bridgebots.deal_enums import BiddingSuit, Direction
+from bridgebots.schemas import (
+    BidMetadataSchema,
+    BoardRecordSchema,
+    CommentarySchema,
+    ContractSchema,
+    DealRecordSchema,
+    DealSchema,
+)
 
 
 class TestSchemas(unittest.TestCase):
@@ -35,7 +42,8 @@ class TestSchemas(unittest.TestCase):
         raw_bidding_record=["p", "1H", "2N", "p", "3N", "p", "p", "p"],
         play_record=[Card.from_str(c) for c in play_record],
         declarer=Direction.NORTH,
-        contract="3NT",
+        contract=Contract.from_str("3NT"),
+        declarer_vulnerable=False,
         tricks=6,
         scoring=None,
         names={
@@ -83,6 +91,13 @@ class TestSchemas(unittest.TestCase):
         self.assertEqual(expected_bid_metadata, bid_metadata_schema.dump(bid_metadata))
         self.assertEqual(bid_metadata, bid_metadata_schema.load(expected_bid_metadata))
 
+    def test_contract_schema(self):
+        contract = Contract(2, BiddingSuit.DIAMONDS, 1)
+        contract_schema = ContractSchema()
+        expected_contract = {"level": 2, "suit": "D", "doubled": 1}
+        self.assertEqual(expected_contract, contract_schema.dump(contract))
+        self.assertEqual(contract, contract_schema.load(expected_contract))
+
     def test_board_record_schema(self):
         board_record_schema = BoardRecordSchema()
         expected_board_record = {
@@ -90,7 +105,8 @@ class TestSchemas(unittest.TestCase):
             "raw_bidding_record": ["p", "1H", "2N", "p", "3N", "p", "p", "p"],
             "play_record": self.play_record,
             "declarer": "N",
-            "contract": "3NT",
+            "contract": {"level": 3, "suit": "N", "doubled": 0},
+            "score": -150,
             "tricks": 6,
             "scoring": None,
             "names": {"N": "smalark", "S": "PrinceBen", "E": "granola357", "W": "Forrest_"},

@@ -128,6 +128,11 @@ class Deal:
         return hash((self.dealer, self.ns_vulnerable, self.ew_vulnerable, frozenset(card_sets)))
 
     @staticmethod
-    def from_cards(dealer: Direction, ns_vulnerable: bool, ew_vulnerable: bool, player_cards: Dict[Direction, List[Card]]) -> Deal:
-        hands = {direction: PlayerHand.from_cards(cards) for direction,cards in player_cards.items()}
+    def from_cards(
+        dealer: Direction, ns_vulnerable: bool, ew_vulnerable: bool, player_cards: Dict[Direction, List[Card]]
+    ) -> Deal:
+        hands = {direction: PlayerHand.from_cards(cards) for direction, cards in player_cards.items()}
         return Deal(dealer, ns_vulnerable, ew_vulnerable, hands)
+
+    def is_vulnerable(self, direction: Direction):
+        return self.ns_vulnerable if direction in [Direction.NORTH, Direction.SOUTH] else self.ew_vulnerable

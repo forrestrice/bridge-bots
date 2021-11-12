@@ -70,6 +70,7 @@ class DoubleDummyScore:
         return scores
 
 
+# TODO remove in favor of DealRecord
 class DoubleDummyDeal:
     """
     Wrapper class which holds a deal and its double dummy scores

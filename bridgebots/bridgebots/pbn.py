@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 from bridgebots.bids import canonicalize_bid
-from bridgebots.board_record import BidMetadata, BoardRecord, DealRecord
+from bridgebots.board_record import BidMetadata, BoardRecord, Contract, DealRecord
 from bridgebots.deal import Card, Deal
 from bridgebots.deal_enums import BiddingSuit, Direction
 from bridgebots.deal_utils import from_pbn_deal
@@ -206,7 +206,7 @@ def _sort_play_record(trick_records: List[List[str]], contract: str) -> List[Car
         return []
 
 
-def _parse_board_record(record_dict: Dict) -> BoardRecord:
+def _parse_board_record(record_dict: Dict, deal: Deal) -> BoardRecord:
     """
     Convert the record dictionary to a BoardRecord
     :param record_dict: mapping of PBN keys to deal or board information
@@ -232,7 +232,8 @@ def _parse_board_record(record_dict: Dict) -> BoardRecord:
         raw_bidding_record=raw_bidding_record,
         play_record=play_record,
         declarer=declarer,
-        contract=record_dict["Contract"],
+        contract=Contract.from_str(record_dict["Contract"]),
+        declarer_vulnerable=deal.is_vulnerable(declarer),
         tricks=result,
         scoring=record_dict.get("Scoring"),
         names=player_names,
@@ -251,7 +252,7 @@ def _parse_single_pbn_record(record_strings: List[str]) -> Tuple[Deal, BoardReco
     """
     record_dict = _build_record_dict(record_strings)
     deal = from_pbn_deal(record_dict["Dealer"], record_dict["Vulnerable"], record_dict["Deal"])
-    board_record = _parse_board_record(record_dict)
+    board_record = _parse_board_record(record_dict, deal)
     return deal, board_record
 
 

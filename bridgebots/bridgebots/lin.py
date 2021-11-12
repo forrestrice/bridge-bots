@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 from bridgebots.bids import canonicalize_bid
-from bridgebots.board_record import BidMetadata, BoardRecord, Commentary, DealRecord
+from bridgebots.board_record import BidMetadata, BoardRecord, Commentary, Contract, DealRecord
 from bridgebots.deal import Card, Deal
 from bridgebots.deal_enums import BiddingSuit, Direction, Suit
 from bridgebots.deal_utils import from_lin_deal
@@ -50,7 +50,7 @@ def _parse_deal(lin_dict: dict) -> Deal:
     return from_lin_deal(lin_dealer_str, vulnerability_str, holding_str)
 
 
-def _parse_bidding_record(raw_bidding_record: List[str], lin_dict: Dict) -> Tuple[List[str], List[BidMetadata]]:
+def _parse_bidding_record(raw_bidding_record: List[str], lin_dict: Dict) -> Tuple[List[str], List[BidMetadata], str]:
     """
     Convert LIN bids to their bridgebots representation. Create BiddingMetadata to capture alerts and bid explanations.
     :return: A pair of the parsed bidding record and the list of BiddingMetadata associated with the auction
@@ -66,7 +66,14 @@ def _parse_bidding_record(raw_bidding_record: List[str], lin_dict: Dict) -> Tupl
         alerted = "!" in bid
         if alerted or bid_index in bid_announcements:
             bidding_metadata.append(BidMetadata(bid_index, canonical_bid, alerted, bid_announcements.get(bid_index)))
-    return bidding_record, bidding_metadata
+
+    contract = bidding_record[-4]
+    if contract in ["X", "XX"]:
+        for i in range(len(bidding_record) - 5, 0, -1):
+            if bidding_record[i] not in ["X", "PASS"]:
+                contract = bidding_record[i] + contract
+                break
+    return bidding_record, bidding_metadata, contract
 
 
 def _determine_declarer(play_record: List[Card], bidding_record: List[str], deal: Deal) -> Direction:
@@ -138,8 +145,7 @@ def _parse_board_record(lin_dict: Dict, deal: Deal) -> BoardRecord:
     """
     player_names = _parse_player_names(lin_dict)
     raw_bidding_record = lin_dict["mb"]
-    bidding_record, bidding_metadata = _parse_bidding_record(raw_bidding_record, lin_dict)
-    contract = bidding_record[-4]  # Last bid before pass out
+    bidding_record, bidding_metadata, contract = _parse_bidding_record(raw_bidding_record, lin_dict)
     play_record = [Card.from_str(cs) for cs in lin_dict["pc"]]
     declarer = _determine_declarer(play_record, bidding_record, deal)
     tricks = _parse_tricks(lin_dict, declarer, contract, play_record)
@@ -149,7 +155,8 @@ def _parse_board_record(lin_dict: Dict, deal: Deal) -> BoardRecord:
         raw_bidding_record=raw_bidding_record,
         play_record=play_record,
         declarer=declarer,
-        contract=contract,
+        contract=Contract.from_str(contract),
+        declarer_vulnerable=deal.is_vulnerable(declarer),
         tricks=tricks,
         scoring=None,
         names=player_names,
