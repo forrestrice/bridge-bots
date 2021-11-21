@@ -3,14 +3,12 @@ import unittest
 from bridgebots import (
     BidMetadata,
     BidMetadataSchema,
-    BiddingSuit,
     BoardRecord,
     BoardRecordSchema,
     Card,
     Commentary,
     CommentarySchema,
     Contract,
-    ContractSchema,
     DealRecord,
     DealRecordSchema,
     DealSchema,
@@ -96,13 +94,6 @@ class TestSchemas(unittest.TestCase):
         self.assertEqual(expected_bid_metadata, bid_metadata_schema.dump(bid_metadata))
         self.assertEqual(bid_metadata, bid_metadata_schema.load(expected_bid_metadata))
 
-    def test_contract_schema(self):
-        contract = Contract(2, BiddingSuit.DIAMONDS, 1)
-        contract_schema = ContractSchema()
-        expected_contract = {"level": 2, "suit": "D", "doubled": 1}
-        self.assertEqual(expected_contract, contract_schema.dump(contract))
-        self.assertEqual(contract, contract_schema.load(expected_contract))
-
     def test_board_record_schema(self):
         board_record_schema = BoardRecordSchema()
         expected_board_record = {
@@ -110,7 +101,7 @@ class TestSchemas(unittest.TestCase):
             "raw_bidding_record": ["p", "1H", "2N", "p", "3N", "p", "p", "p"],
             "play_record": self.play_record,
             "declarer": "N",
-            "contract": {"level": 3, "suit": "N", "doubled": 0},
+            "contract": "3N",
             "score": -150,
             "tricks": 6,
             "scoring": None,

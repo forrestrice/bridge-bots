@@ -4,7 +4,7 @@ from marshmallow import Schema, ValidationError, fields, post_load
 
 from bridgebots.board_record import BidMetadata, BoardRecord, Commentary, Contract, DealRecord
 from bridgebots.deal import Card, Deal
-from bridgebots.deal_enums import BiddingSuit, Direction
+from bridgebots.deal_enums import Direction
 
 """
 Marshmallow schemas for serializing and deserializing bridgebots objects to/from JSON
@@ -40,20 +40,20 @@ class DirectionField(fields.Field):
             raise ValidationError(f"Invalid direction: {value}") from error
 
 
-class BiddingSuitField(fields.Field):
-    def _serialize(self, value: BiddingSuit, attr: str, obj: typing.Any, **kwargs) -> str:
+class ContractField(fields.Field):
+    def _serialize(self, value: Contract, attr: str, obj: typing.Any, **kwargs) -> str:
         try:
-            return value.abbreviation()
+            return str(value)
         except AttributeError as error:
-            raise ValidationError(f"Invalid direction: {value}") from error
+            raise ValidationError(f"Invalid contract: {value}") from error
 
     def _deserialize(
         self, value: str, attr: typing.Optional[str], data: typing.Optional[typing.Mapping[str, typing.Any]], **kwargs
-    ) -> BiddingSuit:
+    ) -> Contract:
         try:
-            return BiddingSuit.from_str(value)
+            return Contract.from_str(value)
         except ValueError as error:
-            raise ValidationError(f"Invalid direction: {value}") from error
+            raise ValidationError(f"Invalid contract: {value}") from error
 
 
 class DealSchema(Schema):
@@ -97,25 +97,12 @@ class BidMetadataSchema(Schema):
         return BidMetadata(**bid_metadata_dict)
 
 
-class ContractSchema(Schema):
-    level = fields.Int()
-    suit = BiddingSuitField()
-    doubled = fields.Int()
-
-    class Meta:
-        ordered = True
-
-    @post_load
-    def load_contract(self, contract_dict: dict, **kwargs) -> Contract:
-        return Contract(**contract_dict)
-
-
 class BoardRecordSchema(Schema):
     bidding_record = fields.List(fields.Str)
     raw_bidding_record = fields.List(fields.Str)
     play_record = fields.List(CardField())
     declarer = DirectionField()
-    contract = fields.Nested(ContractSchema)
+    contract = ContractField()
     tricks = fields.Int()
     score = fields.Int()
     scoring = fields.Str(missing=None)

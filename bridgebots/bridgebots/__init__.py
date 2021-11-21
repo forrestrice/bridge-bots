@@ -11,7 +11,6 @@ from .schemas import (
     BidMetadataSchema,
     BoardRecordSchema,
     CommentarySchema,
-    ContractSchema,
     DealRecordSchema,
     DealSchema,
 )

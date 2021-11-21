@@ -51,6 +51,15 @@ class Contract:
         suit = BiddingSuit.from_str(contract[1:])
         return Contract(level, suit, doubled)
 
+    def __str__(self):
+        if self.level == 0:
+            return "PASS"
+        contract_str = str(self.level) + self.suit.abbreviation()
+        for i in range(self.doubled):
+            contract_str += "X"
+        return contract_str
+
+
 
 @dataclass
 class BoardRecord:
