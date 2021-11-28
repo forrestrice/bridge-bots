@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import InitVar, dataclass, field
+from dataclasses import InitVar, dataclass
 from typing import Dict, List, Optional
 
 from bridgebots.deal import Card, Deal
@@ -8,7 +8,7 @@ from bridgebots.deal_enums import BiddingSuit, Direction
 from bridgebots.play_utils import calculate_score
 
 
-@dataclass
+@dataclass(frozen=True)
 class BidMetadata:
     """
     Represents the alert status and the explanation of a bid
@@ -20,7 +20,7 @@ class BidMetadata:
     explanation: Optional[str] = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class Commentary:
     """
     Analyst commentary on the board, bidding, or play.
@@ -34,7 +34,7 @@ class Commentary:
     comment: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class Contract:
     level: int
     suit: Optional[BiddingSuit]
@@ -60,11 +60,11 @@ class Contract:
         return contract_str
 
 
-
-@dataclass
+@dataclass(frozen=True)
 class BoardRecord:
     """
     The record of a played deal.
+    This class implements __hash__ and __eq__ so the internal lists should be treated as immutable
     """
 
     bidding_record: List[str]
@@ -86,9 +86,29 @@ class BoardRecord:
         if self.score is None and declarer_vulnerable is None:
             raise ValueError("score and declarer_vulnerable may not both be None")
         if self.score is None:
-            self.score = calculate_score(
+            score = calculate_score(
                 self.contract.level, self.contract.suit, self.contract.doubled, self.tricks, declarer_vulnerable
             )
+            super().__setattr__("score", score)  # Cannot assign directly because dataclass is frozen
+
+    def __hash__(self):
+        return hash(
+            (
+                tuple(self.bidding_record),
+                tuple(self.raw_bidding_record),
+                tuple(self.play_record),
+                self.declarer,
+                self.contract,
+                self.tricks,
+                self.scoring,
+                frozenset(self.names.items()) if self.names else None,
+                self.date,
+                self.event,
+                tuple(self.bidding_record) if self.bidding_record else None,
+                tuple(self.commentary) if self.commentary else None,
+                self.score,
+            )
+        )
 
 
 @dataclass
