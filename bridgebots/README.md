@@ -48,19 +48,19 @@ from typing import List
 Construct a deal manually
 ```pycon
 >>> hands = {
-    Direction.NORTH: PlayerHand.from_string_lists(
-        ["9", "8", "6", "4"], ["K", "Q", "7", "6", "3"], ["A", "K"], ["7", "3"]
-    ),
-    Direction.SOUTH: PlayerHand.from_string_lists(
-        ["A", "K", "Q", "5"], ["A", "9", "4"], ["J", "5", "2"], ["K", "8", "4"]
-    ),
-    Direction.EAST: PlayerHand.from_string_lists(
-        ["2"], ["J", "10", "8", "5", "2"], ["Q", "8", "7", "4", "3"], ["A", "10"]
-    ),
-    Direction.WEST: PlayerHand.from_string_lists(
-        ["J", "10", "7", "3"], [], ["10", "9", "6"], ["Q", "J", "9", "6", "5", "2"]
-    ),
-}
+        Direction.NORTH: PlayerHand.from_string_lists(
+            ["7", "3"], ["A", "K"], ["K", "Q", "7", "6", "3"], ["9", "8", "6", "4"]
+        ),
+        Direction.SOUTH: PlayerHand.from_string_lists(
+            ["K", "8", "4"], ["J", "5", "2"], ["A", "9", "4"], ["A", "K", "Q", "5"]
+        ),
+        Direction.EAST: PlayerHand.from_string_lists(
+            ["A", "10"], ["Q", "8", "7", "4", "3"], ["J", "10", "8", "5", "2"], ["2"]
+        ),
+        Direction.WEST: PlayerHand.from_string_lists(
+            ["Q", "J", "9", "6", "5", "2"], ["10", "9", "6"], [], ["J", "10", "7", "3"]
+        ),
+    }
 >>> deal = Deal(dealer=Direction.EAST, ns_vulnerable=True, ew_vulnerable=False, hands=hands)
 ```
 

@@ -54,17 +54,17 @@ class PlayerHand:
                 self.cards.append(Card(suit, rank))
 
     @staticmethod
-    def from_string_lists(clubs: List[str], diamonds: List[str], hearts: List[str], spades: List[str]) -> PlayerHand:
+    def from_string_lists(spades: List[str], hearts: List[str], diamonds: List[str], clubs: List[str]) -> PlayerHand:
         """
         Build a PlayerHand out of Lists of Strings which map to Ranks for each suit. e.g. ['A', 'T', '3'] to represent
         a suit holding of Ace, Ten, Three
         :return: PlayerHand representing the holdings provided by the arguments
         """
         suits = {
-            Suit.CLUBS: sorted([Rank.from_str(card_str) for card_str in clubs], reverse=True),
-            Suit.DIAMONDS: sorted([Rank.from_str(card_str) for card_str in diamonds], reverse=True),
-            Suit.HEARTS: sorted([Rank.from_str(card_str) for card_str in hearts], reverse=True),
             Suit.SPADES: sorted([Rank.from_str(card_str) for card_str in spades], reverse=True),
+            Suit.HEARTS: sorted([Rank.from_str(card_str) for card_str in hearts], reverse=True),
+            Suit.DIAMONDS: sorted([Rank.from_str(card_str) for card_str in diamonds], reverse=True),
+            Suit.CLUBS: sorted([Rank.from_str(card_str) for card_str in clubs], reverse=True),
         }
         return PlayerHand(suits)
 

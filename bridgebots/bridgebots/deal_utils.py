@@ -79,6 +79,7 @@ def from_acbl_dict(acbl_dict: Dict[str, str]) -> Deal:
         suit_string_lists = [
             [] if acbl_dict[suit_key] == "-----" else acbl_dict[suit_key].split() for suit_key in suit_keys
         ]
+        suit_string_lists.reverse()
         player_cards[direction] = PlayerHand.from_string_lists(*suit_string_lists)
 
     dealer_direction = Direction[acbl_dict["dealer"].upper()]
@@ -106,9 +107,7 @@ def from_pbn_deal(dealer_str: str, vulnerability_str: str, deal_str: str) -> Dea
     deal_str = deal_str[2:]
     player_hands = {}
     for player_str in deal_str.split():
-        suits = player_str.split(".")
-        suits.reverse()
-        suit_lists = [list(suit) for suit in suits]
+        suit_lists = [list(suit) for suit in player_str.split(".")]
         player_hands[hands_direction] = PlayerHand.from_string_lists(*suit_lists)
         hands_direction = hands_direction.next()
 
@@ -130,7 +129,6 @@ def from_lin_deal(lin_dealer_str: str, vulnerability_str: str, holdings_str: str
     player_hands = {}
     current_direction = Direction.SOUTH
     for suit_holdings in players_suit_holdings:
-        suit_holdings.reverse()
         suit_holdings_lists = [list(suit_holding) for suit_holding in suit_holdings]
         player_hands[current_direction] = PlayerHand.from_string_lists(*suit_holdings_lists)
         current_direction = current_direction.next()

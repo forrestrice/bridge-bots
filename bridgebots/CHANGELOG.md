@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.7] - 2021-11-27
+### Added
+- BoardRecord and BoardRecord schema have better handling of missing commentary or bidding metadata
+
 ## [0.0.6] - 2021-09-06
 ### Changed
 - BoardRecord and BoardRecord schema have better handling of missing commentary or bidding metadata
