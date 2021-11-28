@@ -16,7 +16,7 @@ _SUIT_CHAR_REGEX = re.compile("[SHDC]")
 _DECK_SET = frozenset({Card(suit, rank) for rank in Rank for suit in Suit})
 
 
-def serialize(deal: Deal) -> bytes:
+def serialize_deal(deal: Deal) -> bytes:
     """
     Convert a Deal to a binary representation. Use two bits for each card to represent the Direction which holds that
     card. Two more bits encode the Direction that delt, and two final bits to encode vulnerability.
@@ -40,7 +40,7 @@ def serialize(deal: Deal) -> bytes:
     return binary_deal.to_bytes(14, byteorder="big")
 
 
-def deserialize(binary_deal_bytes: bytes) -> Deal:
+def deserialize_deal(binary_deal_bytes: bytes) -> Deal:
     """
     Unpack compressed deal data into a Deal object
     :param binary_deal_bytes: compressed byte representation of a deal

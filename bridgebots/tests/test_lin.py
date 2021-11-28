@@ -13,8 +13,8 @@ from bridgebots import (
     Suit,
     build_lin_str,
     build_lin_url,
-    parse_multi,
-    parse_single,
+    parse_multi_lin,
+    parse_single_lin,
 )
 from bridgebots.lin import (
     _determine_declarer,
@@ -195,7 +195,7 @@ class TestParseLin(unittest.TestCase):
 
     def test_parse_multi(self):
         lin_path = Path(__file__).parent / "resources" / "usbf_sf_14502.lin"
-        deal_records = parse_multi(lin_path)
+        deal_records = parse_multi_lin(lin_path)
         self.assertEqual(15, len(deal_records))
         self.assertEqual(2, len(deal_records[0].board_records))
         self.assertEqual(
@@ -209,7 +209,7 @@ class TestParseLin(unittest.TestCase):
 
 
 class TestBuildLin(unittest.TestCase):
-    deal_records = parse_single(Path(__file__).parent / "resources" / "sample.lin")
+    deal_records = parse_single_lin(Path(__file__).parent / "resources" / "sample.lin")
 
     def test_build_lin_str(self):
         expected_lin_str = (

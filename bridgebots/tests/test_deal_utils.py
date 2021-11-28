@@ -60,6 +60,6 @@ class TestBinaryDeal(unittest.TestCase):
     test_deal = Deal(Direction.EAST, True, False, hands)
 
     def test_serialize_then_deserialize(self):
-        binary_deal = deal_utils.serialize(TestBinaryDeal.test_deal)
-        out_deal = deal_utils.deserialize(binary_deal)
+        binary_deal = deal_utils.serialize_deal(TestBinaryDeal.test_deal)
+        out_deal = deal_utils.deserialize_deal(binary_deal)
         self.assertEqual(TestBinaryDeal.test_deal, out_deal)

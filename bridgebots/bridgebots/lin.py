@@ -206,7 +206,7 @@ def _build_play_str(board_record: BoardRecord) -> str:
     return play_str
 
 
-def parse_single(file_path: Path) -> List[DealRecord]:
+def parse_single_lin(file_path: Path) -> List[DealRecord]:
     """
     Parse a board-per-line LIN file
     :param file_path: path to single-board LIN file
@@ -223,7 +223,7 @@ def parse_single(file_path: Path) -> List[DealRecord]:
         return [DealRecord(deal, board_records) for deal, board_records in records.items()]
 
 
-def parse_multi(file_path: Path) -> List[DealRecord]:
+def parse_multi_lin(file_path: Path) -> List[DealRecord]:
     """
     Parse a multi-board session LIN file
     :param file_path: path to multi-board LIN file
