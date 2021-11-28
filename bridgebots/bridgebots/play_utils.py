@@ -42,7 +42,7 @@ _TRICK_VALUE = {
 }
 
 
-def calculate_bonus(
+def _calculate_bonus(
     level: int, suit: BiddingSuit, doubled: int, vulnerable: bool, contracted_trick_score: int, overtricks: int
 ) -> int:
     score = 0
@@ -113,11 +113,11 @@ def calculate_score(level: int, suit: Optional[BiddingSuit], doubled: int, trick
     if scoring_tricks >= level:
         double_multiplier = pow(2, doubled)
         first_trick_score = _FIRST_TRICK_VALUE[suit] * double_multiplier
-        contracted_tricks_score = _TRICK_VALUE[suit] * double_multiplier * (level - 1)
-        bonus = calculate_bonus(
-            level, suit, doubled, vulnerable, first_trick_score + contracted_tricks_score, scoring_tricks - level
+        subsequent_tricks_score = _TRICK_VALUE[suit] * double_multiplier * (level - 1)
+        bonus = _calculate_bonus(
+            level, suit, doubled, vulnerable, first_trick_score + subsequent_tricks_score, scoring_tricks - level
         )
-        return first_trick_score + contracted_tricks_score + bonus
+        return first_trick_score + subsequent_tricks_score + bonus
     else:
         undertricks = level + 6 - tricks
         score_key = (vulnerable, doubled)

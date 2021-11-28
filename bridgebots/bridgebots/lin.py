@@ -69,6 +69,7 @@ def _parse_bidding_record(raw_bidding_record: List[str], lin_dict: Dict) -> Tupl
 
     contract = bidding_record[-4]
     if contract in ["X", "XX"]:
+        # Loop backwards until we find the first contractual bid
         for i in range(len(bidding_record) - 5, 0, -1):
             if bidding_record[i] not in ["X", "PASS"]:
                 contract = bidding_record[i] + contract

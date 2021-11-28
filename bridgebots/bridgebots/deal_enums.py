@@ -90,8 +90,6 @@ class BiddingSuit(Enum):
         return BiddingSuit(cls.__from_str_map__[bidding_suit_str.upper()])
 
 
-
-
 @total_ordering
 class Rank(Enum):
     TWO = 2, "2"
@@ -137,4 +135,3 @@ class Rank(Enum):
 
     def abbreviation(self) -> str:
         return self.value[1]
-
