@@ -22,7 +22,6 @@ def parse_suit_cell(suit_cell):
 def parse_diagram_cell(hand_cell):
     suit_cells = hand_cell.find_all("td", class_="bchand")
     suit_string_lists = [parse_suit_cell(suit_cell) for suit_cell in suit_cells]
-    suit_string_lists.reverse()
     return PlayerHand.from_string_lists(*suit_string_lists)
 
 

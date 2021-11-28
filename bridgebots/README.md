@@ -33,7 +33,7 @@ Any added functionality should include unit tests.
 There are a few introductory guides with detailed examples available.
 1. [Representing Bridge Components](https://forrestrice.com/posts/Announcing-Bridgebots/)
 2. [Deal/Board Records and PBN files](https://forrestrice.com/posts/Introducing-Bridgebots-Part-2/)
-3. LIN files and JSON (forthcoming)
+3. [LIN files and JSON](https://forrestrice.com/posts/Introducing-Bridgebots-Part-3/)
 
 
 ## Examples

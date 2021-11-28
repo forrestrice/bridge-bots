@@ -17,14 +17,15 @@ for results_path in Path("/Users/frice/bridge/results/").rglob("*.pbn"):
 logging.info(f"{len(all_results)} total results")
 
 # Deduplicate deals, collecting all boards to a list
-deal_dict = defaultdict(list)
+deal_dict = defaultdict(set)
 for deal_record in all_results:
-    deal_dict[deal_record.deal].extend(deal_record.board_records)
+    deal_dict[deal_record.deal] |= set(deal_record.board_records)
 
-deduped_results = [DealRecord(deal, board_records) for deal, board_records in deal_dict.items()]
+deduped_results = [DealRecord(deal, list(board_records)) for deal, board_records in deal_dict.items()]
 
 pickle_file_path = "/Users/frice/bridge/results/major_tournaments_pbn.pickle"
 with open(pickle_file_path, "wb") as pickle_file:
     pickle.dump(deduped_results, pickle_file)
 
-logging.info(f"wrote {len(deduped_results)} deals to {pickle_file_path}")
+board_record_count = sum(len(deal_record.board_records) for deal_record in deduped_results)
+logging.info(f"wrote {len(deduped_results)} deals with {board_record_count} board records to {pickle_file_path}")
