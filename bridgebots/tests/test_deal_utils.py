@@ -1,10 +1,7 @@
 import json
 import unittest
 
-from bridgebots import deal_utils
-from bridgebots.deal import Deal, PlayerHand
-from bridgebots.deal_enums import Direction, Suit
-from bridgebots.deal_utils import from_acbl_dict
+from bridgebots import Deal, Direction, PlayerHand, Suit, deal_utils, from_acbl_dict
 
 
 class TestAcblDeal(unittest.TestCase):
@@ -22,7 +19,10 @@ class TestAcblDeal(unittest.TestCase):
         handrecord_json = json.loads(handrecord)
         deal = from_acbl_dict(handrecord_json)
         expected_north = PlayerHand.from_string_lists(
-            ["K", "8", "2"], ["6", "2"], ["A", "Q", "10", "9", "3"], ["10", "6", "2"]
+            ["10", "6", "2"],
+            ["A", "Q", "10", "9", "3"],
+            ["6", "2"],
+            ["K", "8", "2"],
         )
         self.assertEqual(expected_north, deal.hands[Direction.NORTH])
         self.assertTrue(deal.ns_vulnerable)
@@ -48,21 +48,21 @@ class TestAcblDeal(unittest.TestCase):
 class TestBinaryDeal(unittest.TestCase):
     hands = {
         Direction.NORTH: PlayerHand.from_string_lists(
-            ["9", "8", "6", "4"], ["K", "Q", "7", "6", "3"], ["A", "K"], ["7", "3"]
+            ["7", "3"], ["A", "K"], ["K", "Q", "7", "6", "3"], ["9", "8", "6", "4"]
         ),
         Direction.SOUTH: PlayerHand.from_string_lists(
-            ["A", "K", "Q", "5"], ["A", "9", "4"], ["J", "5", "2"], ["K", "8", "4"]
+            ["K", "8", "4"], ["J", "5", "2"], ["A", "9", "4"], ["A", "K", "Q", "5"]
         ),
         Direction.EAST: PlayerHand.from_string_lists(
-            ["2"], ["J", "10", "8", "5", "2"], ["Q", "8", "7", "4", "3"], ["A", "10"]
+            ["A", "10"], ["Q", "8", "7", "4", "3"], ["J", "10", "8", "5", "2"], ["2"]
         ),
         Direction.WEST: PlayerHand.from_string_lists(
-            ["J", "10", "7", "3"], [], ["10", "9", "6"], ["Q", "J", "9", "6", "5", "2"]
+            ["Q", "J", "9", "6", "5", "2"], ["10", "9", "6"], [], ["J", "10", "7", "3"]
         ),
     }
     test_deal = Deal(Direction.EAST, True, False, hands)
 
     def test_serialize_then_deserialize(self):
-        binary_deal = deal_utils.serialize(TestBinaryDeal.test_deal)
-        out_deal = deal_utils.deserialize(binary_deal)
+        binary_deal = deal_utils.serialize_deal(TestBinaryDeal.test_deal)
+        out_deal = deal_utils.deserialize_deal(binary_deal)
         self.assertEqual(TestBinaryDeal.test_deal, out_deal)

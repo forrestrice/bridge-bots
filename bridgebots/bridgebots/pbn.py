@@ -1,3 +1,4 @@
+import dataclasses
 import logging
 import re
 from collections import defaultdict
@@ -5,7 +6,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 from bridgebots.bids import canonicalize_bid
-from bridgebots.board_record import BidMetadata, BoardRecord, DealRecord
+from bridgebots.board_record import BidMetadata, BoardRecord, Contract, DealRecord
 from bridgebots.deal import Card, Deal
 from bridgebots.deal_enums import BiddingSuit, Direction
 from bridgebots.deal_utils import from_pbn_deal
@@ -110,7 +111,7 @@ def _update_bidding_metadata(
         bid_metadata = BidMetadata(bid_index=bid_index - 1, bid=bidding_record[-1])
         bidding_metadata.append(bid_metadata)
     if raw_bid == "!":
-        bid_metadata.alerted = True
+        bid_metadata = dataclasses.replace(bid_metadata, alerted=True)
     else:
         # Attempt to determine which note should be used as an explanation
         match = re.match("=([0-9]+)=", raw_bid)
@@ -120,9 +121,10 @@ def _update_bidding_metadata(
         else:
             explanation = raw_bid
         if bid_metadata.explanation:
-            bid_metadata.explanation += " | " + explanation
+            bid_metadata = dataclasses.replace(bid_metadata, explanation=bid_metadata.explanation + " | " + explanation)
         else:
-            bid_metadata.explanation = explanation
+            bid_metadata = dataclasses.replace(bid_metadata, explanation=explanation)
+    bidding_metadata[-1] = bid_metadata
 
 
 def _parse_bidding_record(raw_bidding_record: List[str], record_dict: dict) -> Tuple[List[str], List[BidMetadata]]:
@@ -206,7 +208,7 @@ def _sort_play_record(trick_records: List[List[str]], contract: str) -> List[Car
         return []
 
 
-def _parse_board_record(record_dict: Dict) -> BoardRecord:
+def _parse_board_record(record_dict: Dict, deal: Deal) -> BoardRecord:
     """
     Convert the record dictionary to a BoardRecord
     :param record_dict: mapping of PBN keys to deal or board information
@@ -218,8 +220,17 @@ def _parse_board_record(record_dict: Dict) -> BoardRecord:
     bidding_record, bidding_metadata = _parse_bidding_record(raw_bidding_record, record_dict)
     play_record_strings = record_dict.get("play_record") or []
     play_record = _sort_play_record(play_record_strings, record_dict["Contract"])
-    result_str = record_dict.get("Result")
-    result = int(result_str) if result_str and result_str != "" else None
+
+    if not (result_str := record_dict.get("Result")):
+        message = f"Missing tricks result: {result_str}"
+        logging.warning(message)
+        raise ValueError(message)
+
+    if not (contract_str := record_dict.get("Contract")):
+        message = f"Missing contract: {contract_str}"
+        logging.warning(message)
+        raise ValueError(message)
+
     player_names = {
         Direction.NORTH: record_dict.get("North"),
         Direction.SOUTH: record_dict.get("South"),
@@ -232,8 +243,9 @@ def _parse_board_record(record_dict: Dict) -> BoardRecord:
         raw_bidding_record=raw_bidding_record,
         play_record=play_record,
         declarer=declarer,
-        contract=record_dict["Contract"],
-        tricks=result,
+        contract=Contract.from_str(contract_str),
+        declarer_vulnerable=deal.is_vulnerable(declarer),
+        tricks=int(result_str),
         scoring=record_dict.get("Scoring"),
         names=player_names,
         date=record_dict.get("Date"),
@@ -251,7 +263,7 @@ def _parse_single_pbn_record(record_strings: List[str]) -> Tuple[Deal, BoardReco
     """
     record_dict = _build_record_dict(record_strings)
     deal = from_pbn_deal(record_dict["Dealer"], record_dict["Vulnerable"], record_dict["Deal"])
-    board_record = _parse_board_record(record_dict)
+    board_record = _parse_board_record(record_dict, deal)
     return deal, board_record
 
 

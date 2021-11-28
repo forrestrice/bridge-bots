@@ -1,9 +1,21 @@
 import unittest
 from pathlib import Path
 
-from bridgebots.board_record import BidMetadata, BoardRecord, Commentary
-from bridgebots.deal import Card
-from bridgebots.deal_enums import Direction, Rank, Suit
+from bridgebots import (
+    BidMetadata,
+    BiddingSuit,
+    BoardRecord,
+    Card,
+    Commentary,
+    Contract,
+    Direction,
+    Rank,
+    Suit,
+    build_lin_str,
+    build_lin_url,
+    parse_multi_lin,
+    parse_single_lin,
+)
 from bridgebots.lin import (
     _determine_declarer,
     _parse_bidding_record,
@@ -12,10 +24,6 @@ from bridgebots.lin import (
     _parse_lin_string,
     _parse_player_names,
     _parse_tricks,
-    build_lin_str,
-    build_lin_url,
-    parse_multi,
-    parse_single,
 )
 
 
@@ -83,7 +91,7 @@ class TestParseLin(unittest.TestCase):
 
     def test_parse_bidding_record(self):
         raw_bidding_record = ["1N", "p", "p", "2C!", "p", "2D!", "d", "p", "p", "p"]
-        bidding_record, bidding_metadata = _parse_bidding_record(
+        bidding_record, bidding_metadata, contract = _parse_bidding_record(
             raw_bidding_record, {"an": [(0, "15-17"), (3, "!d or !h!s")]}
         )
         self.assertEqual(["1NT", "PASS", "PASS", "2C", "PASS", "2D", "X", "PASS", "PASS", "PASS"], bidding_record)
@@ -166,7 +174,8 @@ class TestParseLin(unittest.TestCase):
             raw_bidding_record=["p", "1H", "2N", "p", "3N", "p", "p", "p"],
             play_record=[Card.from_str(c) for c in self.expected_play_record],
             declarer=Direction.NORTH,
-            contract="3NT",
+            contract=Contract.from_str("3NT"),
+            declarer_vulnerable=False,
             tricks=6,
             scoring=None,
             names={
@@ -186,7 +195,7 @@ class TestParseLin(unittest.TestCase):
 
     def test_parse_multi(self):
         lin_path = Path(__file__).parent / "resources" / "usbf_sf_14502.lin"
-        deal_records = parse_multi(lin_path)
+        deal_records = parse_multi_lin(lin_path)
         self.assertEqual(15, len(deal_records))
         self.assertEqual(2, len(deal_records[0].board_records))
         self.assertEqual(
@@ -196,10 +205,11 @@ class TestParseLin(unittest.TestCase):
         self.assertEqual(
             [Rank.QUEEN, Rank.TEN, Rank.FIVE], deal_records[0].deal.hands[Direction.NORTH].suits[Suit.HEARTS]
         )
+        self.assertEqual(Contract(4, BiddingSuit.SPADES, 1), deal_records[7].board_records[0].contract)
 
 
 class TestBuildLin(unittest.TestCase):
-    deal_records = parse_single(Path(__file__).parent / "resources" / "sample.lin")
+    deal_records = parse_single_lin(Path(__file__).parent / "resources" / "sample.lin")
 
     def test_build_lin_str(self):
         expected_lin_str = (

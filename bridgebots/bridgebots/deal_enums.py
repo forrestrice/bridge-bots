@@ -82,6 +82,9 @@ class BiddingSuit(Enum):
     def to_suit(self) -> Suit:
         return self.value[1]
 
+    def abbreviation(self) -> str:
+        return self.name[0]
+
     @classmethod
     def from_str(cls, bidding_suit_str: str) -> BiddingSuit:
         return BiddingSuit(cls.__from_str_map__[bidding_suit_str.upper()])

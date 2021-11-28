@@ -1,10 +1,22 @@
 import unittest
+from pathlib import Path
 
-from bridgebots import deal_utils
-from bridgebots.board_record import BidMetadata, BoardRecord, Commentary, DealRecord
-from bridgebots.deal import Card
-from bridgebots.deal_enums import Direction
-from bridgebots.schemas import BidMetadataSchema, BoardRecordSchema, CommentarySchema, DealRecordSchema, DealSchema
+from bridgebots import (
+    BidMetadata,
+    BidMetadataSchema,
+    BoardRecord,
+    BoardRecordSchema,
+    Card,
+    Commentary,
+    CommentarySchema,
+    Contract,
+    DealRecord,
+    DealRecordSchema,
+    DealSchema,
+    Direction,
+    deal_utils,
+    parse_single_lin,
+)
 
 
 class TestSchemas(unittest.TestCase):
@@ -35,7 +47,8 @@ class TestSchemas(unittest.TestCase):
         raw_bidding_record=["p", "1H", "2N", "p", "3N", "p", "p", "p"],
         play_record=[Card.from_str(c) for c in play_record],
         declarer=Direction.NORTH,
-        contract="3NT",
+        contract=Contract.from_str("3NT"),
+        declarer_vulnerable=False,
         tricks=6,
         scoring=None,
         names={
@@ -90,7 +103,8 @@ class TestSchemas(unittest.TestCase):
             "raw_bidding_record": ["p", "1H", "2N", "p", "3N", "p", "p", "p"],
             "play_record": self.play_record,
             "declarer": "N",
-            "contract": "3NT",
+            "contract": "3N",
+            "score": -150,
             "tricks": 6,
             "scoring": None,
             "names": {"N": "smalark", "S": "PrinceBen", "E": "granola357", "W": "Forrest_"},
@@ -111,3 +125,9 @@ class TestSchemas(unittest.TestCase):
         loaded_deal_record = deal_record_schema.load(dumped_deal_record)
         self.assertEqual(self.deal, loaded_deal_record.deal)
         self.assertEqual(self.board_record, loaded_deal_record.board_records[0])
+
+    def test_missing_fields_schema(self):
+        results = parse_single_lin(Path(__file__).parent / "resources" / "sample.lin")
+        deal_record_schema = DealRecordSchema(many=True)
+        loaded_records = deal_record_schema.loads(deal_record_schema.dumps(results))
+        self.assertIsNone(loaded_records[0].board_records[0].commentary)

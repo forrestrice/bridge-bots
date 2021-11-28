@@ -1,9 +1,8 @@
 import unittest
 from pathlib import Path
 
-from bridgebots.board_record import BidMetadata
-from bridgebots.deal_enums import Direction, Rank, Suit
-from bridgebots.pbn import _build_record_dict, _parse_bidding_record, _sort_play_record, parse_pbn
+from bridgebots import BidMetadata, BiddingSuit, Contract, Direction, Rank, Suit, parse_pbn
+from bridgebots.pbn import _build_record_dict, _parse_bidding_record, _sort_play_record
 
 
 class TestParsePbnFile(unittest.TestCase):
@@ -91,7 +90,7 @@ class TestParsePbnFile(unittest.TestCase):
             [str(card) for card in board_record_1.play_record],
         )
         self.assertEqual(Direction.WEST, board_record_1.declarer)
-        self.assertEqual("3NT", board_record_1.contract)
+        self.assertEqual(Contract(3, BiddingSuit.NO_TRUMP, 0), board_record_1.contract)
         self.assertEqual(9, board_record_1.tricks)
         self.assertEqual("IMP;Cross", board_record_1.scoring)
         self.assertEqual("2004.05.05", board_record_1.date)
