@@ -1,4 +1,5 @@
 import unittest
+from pathlib import Path
 
 from bridgebots import (
     BidMetadata,
@@ -14,6 +15,7 @@ from bridgebots import (
     DealSchema,
     Direction,
     deal_utils,
+    parse_single_lin,
 )
 
 
@@ -123,3 +125,9 @@ class TestSchemas(unittest.TestCase):
         loaded_deal_record = deal_record_schema.load(dumped_deal_record)
         self.assertEqual(self.deal, loaded_deal_record.deal)
         self.assertEqual(self.board_record, loaded_deal_record.board_records[0])
+
+    def test_missing_fields_schema(self):
+        results = parse_single_lin(Path(__file__).parent / "resources" / "sample.lin")
+        deal_record_schema = DealRecordSchema(many=True)
+        loaded_records = deal_record_schema.loads(deal_record_schema.dumps(results))
+        self.assertIsNone(loaded_records[0].board_records[0].commentary)
