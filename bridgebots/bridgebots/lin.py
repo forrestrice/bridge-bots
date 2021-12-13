@@ -1,3 +1,4 @@
+import logging
 import urllib.parse
 from collections import defaultdict
 from pathlib import Path
@@ -44,10 +45,13 @@ def _parse_deal(lin_dict: dict) -> Deal:
     Parse the hands, vulnerability, and dealer from the LIN file and create a Deal object
     :return: a Deal representation of the parsed LIN file
     """
-    lin_dealer_str = lin_dict["md"][0][0]
-    vulnerability_str = lin_dict["sv"][0]
-    holding_str = lin_dict["md"][0][1:]
-    return from_lin_deal(lin_dealer_str, vulnerability_str, holding_str)
+    try:
+        lin_dealer_str = lin_dict["md"][0][0]
+        vulnerability_str = lin_dict["sv"][0]
+        holding_str = lin_dict["md"][0][1:]
+        return from_lin_deal(lin_dealer_str, vulnerability_str, holding_str)
+    except IndexError as e:
+        raise ValueError(f"Invalid dealer, vulnerability, or holding: {lin_dict}", e)
 
 
 def _parse_bidding_record(raw_bidding_record: List[str], lin_dict: Dict) -> Tuple[List[str], List[BidMetadata], str]:
@@ -67,10 +71,12 @@ def _parse_bidding_record(raw_bidding_record: List[str], lin_dict: Dict) -> Tupl
         if alerted or bid_index in bid_announcements:
             bidding_metadata.append(BidMetadata(bid_index, canonical_bid, alerted, bid_announcements.get(bid_index)))
 
+    if len(bidding_record) < 4:
+        raise ValueError("auctions must have 4+ bids")
     contract = bidding_record[-4]
     if contract in ["X", "XX"]:
         # Loop backwards until we find the first contractual bid
-        for i in range(len(bidding_record) - 5, 0, -1):
+        for i in range(len(bidding_record) - 5, -1, -1):
             if bidding_record[i] not in ["X", "PASS"]:
                 contract = bidding_record[i] + contract
                 break
@@ -84,6 +90,10 @@ def _determine_declarer(play_record: List[Card], bidding_record: List[str], deal
     """
     if bidding_record == _PASS_OUT_AUCTION:
         return deal.dealer
+
+    if len(play_record) == 0:
+        raise ValueError(f"Missing play record")
+
     first_card = play_record[0]
     leader = next(direction for direction in Direction if first_card in deal.player_cards[direction])
     return leader.previous()
@@ -99,6 +109,9 @@ def _parse_tricks(
     Use the play record and claim record to determine how many tricks were taken by declarer
     :return: the number of tricks taken by declarer
     """
+    if contract == "PASS":
+        return 0
+
     if "mc" in lin_dict:  # Use claim node if it is present
         return int(lin_dict["mc"][0])
 
@@ -206,6 +219,13 @@ def _build_play_str(board_record: BoardRecord) -> str:
         play_str += f"mc|{board_record.tricks}|"
     return play_str
 
+def combine_lines(file):
+    line = ""
+    while True:
+        line += file.readline()
+        if line.endswith("|pg||\n"):
+            return line
+
 
 def parse_single_lin(file_path: Path) -> List[DealRecord]:
     """
@@ -231,9 +251,15 @@ def parse_multi_lin(file_path: Path) -> List[DealRecord]:
     :return: A list of parsed DealRecords corresponding to the session in the LIN file
     """
     with open(file_path) as lin_file:
-        title_line = _parse_lin_string(lin_file.readline())
+        first_line = lin_file.readline()
+        if not first_line:
+            raise UnicodeError("no content") #TODO not unicode
+        if first_line.lower() == "pf|y|\n":
+            title_line = lin_file.readline()
+        else:
+            title_line = first_line
         results = _parse_lin_string(lin_file.readline())
-        player_names = _parse_lin_string(lin_file.readline())
+        player_names = _parse_lin_string(combine_lines(lin_file))
         board_strings = []
         current_board = ""
         for line in lin_file:
@@ -249,11 +275,14 @@ def parse_multi_lin(file_path: Path) -> List[DealRecord]:
         # Maintain a mapping from deal to board records to create a single deal record per deal
         records = defaultdict(list)
         for board_single_string in board_single_strings:
-            lin_dict = _parse_lin_string(board_single_string)
-            lin_dict["pn"] = player_names["pn"]
-            deal = _parse_deal(lin_dict)
-            board_record = _parse_board_record(lin_dict, deal)
-            records[deal].append(board_record)
+            try:
+                lin_dict = _parse_lin_string(board_single_string)
+                lin_dict["pn"] = player_names["pn"]
+                deal = _parse_deal(lin_dict)
+                board_record = _parse_board_record(lin_dict, deal)
+                records[deal].append(board_record)
+            except (ValueError, AssertionError) as e:
+                logging.warning(f"Malformed record {board_single_string}: {e}")
         return [DealRecord(deal, board_records) for deal, board_records in records.items()]
 
 
