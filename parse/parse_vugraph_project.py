@@ -9,12 +9,11 @@ logging.basicConfig(level=logging.DEBUG)
 
 # /Users/frice/bridge/vugraph_project/www.sarantakos.com/bridge/vugraph/2013/nec/rr10b.lin
 # "/Users/frice/bridge/vugraph_project/"
-#test_path="/Users/frice/bridge/vugraph_project/www.sarantakos.com/bridge/vugraph/2015/wbc/rr134.lin"
-#parse_multi_lin(Path(test_path))
+# test_path="/Users/frice/bridge/vugraph_project/www.sarantakos.com/bridge/vugraph/2015/wbc/rr134.lin"
+test_path = "/Users/frice/bridge/vugraph_project/www.sarantakos.com/bridge/vugraph/2004/cav/p4.lin"
+parse_multi_lin(Path(test_path))
 all_results = []
-for results_path in Path("/Users/frice/bridge/vugraph_project/").rglob(
-    "*.lin"
-):
+for results_path in Path("/Users/frice/bridge/vugraph_project/").rglob("*.lin"):
     logging.debug(f"results_path: {str(results_path)}")
     try:
         file_results = parse_multi_lin(results_path)

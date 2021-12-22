@@ -51,7 +51,7 @@ def _parse_deal(lin_dict: dict) -> Deal:
         holding_str = lin_dict["md"][0][1:]
         return from_lin_deal(lin_dealer_str, vulnerability_str, holding_str)
     except IndexError as e:
-        raise ValueError(f"Invalid dealer, vulnerability, or holding: {lin_dict}", e)
+        raise ValueError(f"Invalid dealer, vulnerability, or holding: {lin_dict}") from e
 
 
 def _parse_bidding_record(raw_bidding_record: List[str], lin_dict: Dict) -> Tuple[List[str], List[BidMetadata], str]:
@@ -138,8 +138,10 @@ def _parse_player_names(lin_dict: Dict) -> Dict[Direction, str]:
     """
     if "pn" in lin_dict:
         player_names = lin_dict["pn"][0].split(",")
-        if "qx" in lin_dict and len(player_names) > 4:  # True if LIN file is from a team match
-            if lin_dict["qx"][0].startswith("o"):
+        if "qx" in lin_dict and len(player_names) > 4:  # True if LIN file is from a multi-board match
+            if ["South", "West", "North", "East"] == player_names[4:8]:
+                player_names = player_names[0:4]
+            elif lin_dict["qx"][0].startswith("o"):
                 player_names = player_names[0:4]
             else:
                 player_names = player_names[4:8]
@@ -219,12 +221,15 @@ def _build_play_str(board_record: BoardRecord) -> str:
         play_str += f"mc|{board_record.tricks}|"
     return play_str
 
-def combine_lines(file):
-    line = ""
-    while True:
-        line += file.readline()
-        if line.endswith("|pg||\n"):
-            return line
+def combine_header(file) -> str:
+    combined = ""
+    while line := file.readline():
+        combined += line.replace("\n", "")
+        if combined.endswith("|pg||"):
+            return combined
+    #TODO not unicode
+    raise UnicodeError(f"Invalid multi-lin header in file: {file}")
+
 
 
 def parse_single_lin(file_path: Path) -> List[DealRecord]:
@@ -251,6 +256,9 @@ def parse_multi_lin(file_path: Path) -> List[DealRecord]:
     :return: A list of parsed DealRecords corresponding to the session in the LIN file
     """
     with open(file_path) as lin_file:
+        header = combine_header(lin_file)
+        parsed_header = _parse_lin_string(header)
+        '''
         first_line = lin_file.readline()
         if not first_line:
             raise UnicodeError("no content") #TODO not unicode
@@ -260,6 +268,7 @@ def parse_multi_lin(file_path: Path) -> List[DealRecord]:
             title_line = first_line
         results = _parse_lin_string(lin_file.readline())
         player_names = _parse_lin_string(combine_lines(lin_file))
+        '''
         board_strings = []
         current_board = ""
         for line in lin_file:
@@ -277,11 +286,12 @@ def parse_multi_lin(file_path: Path) -> List[DealRecord]:
         for board_single_string in board_single_strings:
             try:
                 lin_dict = _parse_lin_string(board_single_string)
-                lin_dict["pn"] = player_names["pn"]
+                if "pn" in parsed_header:
+                    lin_dict["pn"] = parsed_header["pn"]
                 deal = _parse_deal(lin_dict)
                 board_record = _parse_board_record(lin_dict, deal)
                 records[deal].append(board_record)
-            except (ValueError, AssertionError) as e:
+            except (ValueError, AssertionError, KeyError) as e:
                 logging.warning(f"Malformed record {board_single_string}: {e}")
         return [DealRecord(deal, board_records) for deal, board_records in records.items()]
 

@@ -42,14 +42,19 @@ class Contract:
 
     @staticmethod
     def from_str(contract: str) -> Contract:
-        if contract == "PASS":
-            return Contract(0, None, 0)
-        doubled = contract.count("X")
-        if doubled > 0:
-            contract = contract.replace("X", "")
-        level = int(contract[0])
-        suit = BiddingSuit.from_str(contract[1:])
-        return Contract(level, suit, doubled)
+        working_contract = contract
+        try:
+            if working_contract == "PASS":
+                return Contract(0, None, 0)
+            doubled = working_contract.count("X")
+            if doubled > 0:
+                working_contract = working_contract.replace("X", "")
+            level = int(working_contract[0])
+            suit = BiddingSuit.from_str(working_contract[1:])
+            return Contract(level, suit, doubled)
+        except (ValueError, IndexError) as e:
+            raise ValueError(f"Invalid Contract: {contract}") from e
+
 
     def __str__(self):
         if self.level == 0:

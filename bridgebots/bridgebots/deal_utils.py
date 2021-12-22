@@ -13,6 +13,7 @@ _EW_VULNERABLE_STRINGS = {"Both", "E-W", "All", "EW", "b", "e"}
 _REVERSE_SORTED_CARDS = sorted([Card(suit, rank) for suit in Suit for rank in Rank], reverse=True)
 _LIN_DEALER_TO_DIRECTION = {"1": Direction.SOUTH, "2": Direction.WEST, "3": Direction.NORTH, "4": Direction.EAST}
 _SUIT_CHAR_REGEX = re.compile("[SHDC]")
+_HOLDING_SUIT_IDENTIFIERS = ["S", "H", "D", "C"]
 _DECK_SET = frozenset({Card(suit, rank) for rank in Rank for suit in Suit})
 
 
@@ -114,6 +115,24 @@ def from_pbn_deal(dealer_str: str, vulnerability_str: str, deal_str: str) -> Dea
     return Deal(dealer, ns_vulnerable, ew_vulnerable, player_hands)
 
 
+def _parse_lin_holding(holding: str) -> List[List[str]]:
+    suit_holdings = []
+    holding_index = 0
+    for id in _HOLDING_SUIT_IDENTIFIERS:
+        suit_holding = []
+        while holding_index < len(holding):
+            c = holding[holding_index]
+            if c == id:
+                holding_index += 1
+                continue
+            if c in _HOLDING_SUIT_IDENTIFIERS:
+                break
+            suit_holding.append(c)
+            holding_index += 1
+        suit_holdings.append(suit_holding)
+    return suit_holdings
+
+
 def from_lin_deal(lin_dealer_str: str, vulnerability_str: str, holdings_str: str) -> Deal:
     """
     Convert LIN deal nodes into a bridgebots deal
@@ -125,7 +144,7 @@ def from_lin_deal(lin_dealer_str: str, vulnerability_str: str, holdings_str: str
     dealer = _LIN_DEALER_TO_DIRECTION[lin_dealer_str]
     holdings = holdings_str.strip(",").split(",")
     # Convert a holding string like SA63HJ8642DK53CKJ into a PlayerHand
-    players_suit_holdings = [_SUIT_CHAR_REGEX.split(holding)[1:] for holding in holdings]
+    players_suit_holdings = [_parse_lin_holding(holding) for holding in holdings]
     player_hands = {}
     current_direction = Direction.SOUTH
     for suit_holdings in players_suit_holdings:
