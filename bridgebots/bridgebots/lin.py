@@ -238,12 +238,15 @@ def _build_play_str(board_record: BoardRecord) -> str:
         play_str += f"mc|{board_record.tricks}|"
     return play_str
 
-def combine_lines(file):
-    line = ""
-    while True:
-        line += file.readline()
-        if line.endswith("|pg||\n"):
-            return line
+def combine_header(file) -> str:
+    combined = ""
+    while line := file.readline():
+        combined += line.replace("\n", "")
+        if combined.endswith("|pg||"):
+            return combined
+    #TODO not unicode
+    raise UnicodeError(f"Invalid multi-lin header in file: {file}")
+
 
 
 def _build_board_name(board_name: Optional[str]) -> str:
