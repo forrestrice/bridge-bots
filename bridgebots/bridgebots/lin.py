@@ -240,10 +240,12 @@ def _build_play_str(board_record: BoardRecord) -> str:
 
 def combine_header(file) -> str:
     combined = ""
-    while line := file.readline():
+    line = file.readline()
+    while line:
         combined += line.replace("\n", "")
         if combined.endswith("|pg||"):
             return combined
+        line = file.readline()
     #TODO not unicode
     raise UnicodeError(f"Invalid multi-lin header in file: {file}")
 
