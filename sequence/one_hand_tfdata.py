@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 
 import numpy as np
 import tensorflow as tf
@@ -91,12 +91,24 @@ class OneHandExampleGenerator:
         """Create each bidding subsequence in the bidding record. Keep the sequences in order but track which
         player's turn it was to act."""
         sequences = []
-        for i in range(0, max(len(board_record.bidding_record), MAX_BIDDING_SEQUENCE)):
+        for i in range(0, min(len(board_record.bidding_record), MAX_BIDDING_SEQUENCE)):
             sequences.append((dealer.offset(i), board_record.bidding_record[0:i]))
         return sequences
 
-    def build_example(self, bidding_data: BiddingExampleData, calculated_deal_targets: List):
+    def build_example(self, bidding_data: BiddingExampleData, calculated_deal_targets: Dict):
         feature_map = {type(feature).__name__: feature.calculate(bidding_data) for feature in self.features}
         feature_map.update(calculated_deal_targets)
         features = tf.train.Features(feature=feature_map)
         return tf.train.Example(features=features)
+
+
+class OneHandModelAdapter:
+
+    def prepare_sequence(self, bidding_example):
+        bidding_indices = bidding_example["BiddingIndices"]
+        padded_sequence = tf.keras.preprocessing.sequence.pad_sequences(
+            bidding_indices, padding="pre", maxlen=MAX_BIDDING_SEQUENCE, truncating="post"
+        )
+        one_hot_bidding = tf.keras.utils.to_categorical(padded_sequence, num_classes=BIDDING_VOCAB_SIZE)
+        one_hot_players = tf.keras.utils.to_categorical(bidding_example["PlayerPosition"], num_classes=4)
+        return (one_hot_bidding, one_hot_players, bidding_example["Holding"]), bidding_example["HcpTarget"]

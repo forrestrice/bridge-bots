@@ -64,12 +64,27 @@ def create_examples_data():
     deal_targets = [HcpTarget()]
     example_gen = iter(OneHandExampleGenerator(deal_records, features, deal_targets))
 
-    example_path = "/Users/frice/bridge/bid_learn/one_hand/toy/train.tfrecords.gz"
+    example_path = "/Users/frice/bridge/bid_learn/one_hand/toy/train.tfrecords"
     write_count = 0
-    with tf.io.TFRecordWriter(example_path, TFRecordCompressionType.GZIP) as file_writer:
+    with tf.io.TFRecordWriter(example_path, TFRecordCompressionType.NONE) as file_writer:
         for example in example_gen:
+            print(example)
+            #print(example.SerializeToString())
             file_writer.write(example.SerializeToString())
+            parsed_example = tf.io.parse_single_example(
+                example.SerializeToString(),
+                features={
+                    "PlayerPosition": tf.io.FixedLenFeature([], dtype=tf.int64),
+                    "Holding": tf.io.FixedLenFeature([52], dtype=tf.int64),
+                    "HcpTarget":tf.io.FixedLenFeature([4], dtype=tf.int64),
+                },
+            )
+            #print(parsed_example)
+            #tf.print(parsed_example["PlayerPosition"])
+            #tf.print(parsed_example["Holding"])
             write_count += 1
+            #if write_count > 20:
+                #break
     print(f"wrote {write_count} results to {example_path}")
 
 

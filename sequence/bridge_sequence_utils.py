@@ -118,16 +118,27 @@ class PlayerPosition:
     def calculate(self, bidding_data: BiddingExampleData) -> tf.train.Feature:
         return _int64_feature((bidding_data.direction.value - bidding_data.deal_record.deal.dealer.value) % 4)
 
+    def schema(self):
+        return tf.io.FixedLenFeature([], dtype=tf.int64)
+
 
 class BiddingIndices:
     def calculate(self, bidding_data: BiddingExampleData) -> tf.train.Feature:
         bidding_indices = [BIDDING_VOCAB[bid] for bid in bidding_data.bidding_sequence]
         return tf.train.Feature(int64_list=tf.train.Int64List(value=bidding_indices))
 
+    def schema(self):
+        return tf.io.VarLenFeature(dtype=tf.int64)
+
 
 class Holding:
     def calculate(self, bidding_data: BiddingExampleData) -> tf.train.Feature:
-        return tf.train.Feature(int64_list=tf.train.Int64List(value=bidding_data.holdings[bidding_data.direction]))
+        holding = bidding_data.holdings[bidding_data.direction]
+        print(holding)
+        return tf.train.Feature(int64_list=tf.train.Int64List(value=holding))
+
+    def schema(self):
+        return tf.io.FixedLenFeature([52], dtype=tf.int64)
 
 
 class HcpTarget:
@@ -135,3 +146,7 @@ class HcpTarget:
         dealer = deal_record.deal.dealer
         hcps = [count_hcp(deal_record.deal.hands[dealer.offset(i)].cards) for i in range(4)]
         return tf.train.Feature(int64_list=tf.train.Int64List(value=hcps))
+
+    def schema(self):
+        # TODO should this really be int64?
+        return tf.io.FixedLenFeature([4], dtype=tf.int64)
