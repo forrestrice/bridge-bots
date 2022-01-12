@@ -29,6 +29,13 @@ class BiddingExampleData:
     holdings: Dict[Direction, ArrayLike]
 
 
+@dataclass
+class BiddingSequenceExampleData:
+    deal_record: DealRecord
+    board_record: BoardRecord
+    holdings: Dict[Direction, ArrayLike]
+
+
 # Taken from the documentation
 # The following functions can be used to convert a value to a type compatible
 # with tf.Example.
@@ -150,3 +157,34 @@ class HcpTarget:
     def schema(self):
         # TODO should this really be int64?
         return tf.io.FixedLenFeature([4], dtype=tf.int64)
+
+
+class HoldingSequence:
+    def calculate(self, bidding_data: BiddingSequenceExampleData) -> tf.train.FeatureList:
+        dealer = bidding_data.deal_record.deal.dealer
+        sequence_feature = []
+        for i, bid in enumerate(bidding_data.board_record.bidding_record):
+            player = dealer.offset(i)
+            holding = bidding_data.holdings[player]
+            feature = tf.train.Feature(int64_list=tf.train.Int64List(value=holding))
+            sequence_feature.append(feature)
+        return tf.train.FeatureList(feature=sequence_feature)
+
+
+class BiddingIndicesSequence:
+    def calculate(self, bidding_data: BiddingSequenceExampleData) -> tf.train.FeatureList:
+        sequence_feature = []
+        for bid in bidding_data.board_record.bidding_record:
+            bid_index = BIDDING_VOCAB[bid]
+            feature = tf.train.Feature(int64_list=tf.train.Int64List(value=[bid_index]))
+            sequence_feature.append(feature)
+        return tf.train.FeatureList(feature=sequence_feature)
+
+
+class PlayerPositionSequence:
+    def calculate(self, bidding_data: BiddingSequenceExampleData) -> tf.train.FeatureList:
+        sequence_feature = []
+        for i in range(len(bidding_data.board_record.bidding_record)):
+            feature = tf.train.Feature(int64_list=tf.train.Int64List(value=[i%4]))
+            sequence_feature.append(feature)
+        return tf.train.FeatureList(feature=sequence_feature)

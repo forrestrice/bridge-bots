@@ -7,8 +7,16 @@ import tensorflow as tf
 from tensorflow.python.lib.io.tf_record import TFRecordCompressionType
 
 from bridgebots import DealRecord
-from sequence.bridge_sequence_utils import BiddingIndices, HcpTarget, Holding, PlayerPosition
-from sequence.one_hand_tfdata import OneHandExampleGenerator
+from sequence.bridge_sequence_utils import (
+    BiddingIndices,
+    BiddingIndicesSequence,
+    HcpTarget,
+    Holding,
+    HoldingSequence,
+    PlayerPosition,
+    PlayerPositionSequence,
+)
+from sequence.one_hand_tfdata import OneHandExampleGenerator, OneHandSequenceExampleGenerator
 
 MAX_RECORDS = 10_000
 
@@ -69,25 +77,51 @@ def create_examples_data():
     with tf.io.TFRecordWriter(example_path, TFRecordCompressionType.NONE) as file_writer:
         for example in example_gen:
             print(example)
-            #print(example.SerializeToString())
+            # print(example.SerializeToString())
             file_writer.write(example.SerializeToString())
             parsed_example = tf.io.parse_single_example(
                 example.SerializeToString(),
                 features={
                     "PlayerPosition": tf.io.FixedLenFeature([], dtype=tf.int64),
                     "Holding": tf.io.FixedLenFeature([52], dtype=tf.int64),
-                    "HcpTarget":tf.io.FixedLenFeature([4], dtype=tf.int64),
+                    "HcpTarget": tf.io.FixedLenFeature([4], dtype=tf.int64),
                 },
             )
-            #print(parsed_example)
-            #tf.print(parsed_example["PlayerPosition"])
-            #tf.print(parsed_example["Holding"])
+            # print(parsed_example)
+            # tf.print(parsed_example["PlayerPosition"])
+            # tf.print(parsed_example["Holding"])
             write_count += 1
-            #if write_count > 20:
-                #break
+            # if write_count > 20:
+            # break
     print(f"wrote {write_count} results to {example_path}")
 
 
-create_examples_data()
+def create_sequence_examples():
+    pickle_file_path = "/Users/frice/bridge/bid_learn/one_hand/toy/TRAIN.pickle"
+    with open(pickle_file_path, "rb") as pickle_file:
+        deal_records: List[DealRecord] = pickle.load(pickle_file)
+    features = [BiddingIndicesSequence(), HoldingSequence(), PlayerPositionSequence()]
+    deal_targets = [HcpTarget()]
+    example_gen = iter(OneHandSequenceExampleGenerator(deal_records, features, deal_targets))
+    for example in example_gen:
+        print(example)
+        serialized_example = example.SerializeToString()
+        parsed_example = tf.io.parse_single_sequence_example(
+            serialized_example,
+            context_features={"HcpTarget": tf.io.FixedLenFeature([4], dtype=tf.int64)},
+            sequence_features={"BiddingIndicesSequence":tf.io.FixedLenSequenceFeature([1], dtype=tf.int64),
+                               "HoldingSequence":tf.io.FixedLenSequenceFeature([52], dtype=tf.int64),
+                               "PlayerPositionSequence":tf.io.FixedLenSequenceFeature([1], dtype=tf.int64)},
+        )
+        print("PARSED")
+        print("item 0")
+        print(parsed_example[0])
+        print("item 1")
+        print(parsed_example[1])
+        break
+
+
+create_sequence_examples()
+# create_examples_data()
 # create_toy_data()
 # create_all_training_data()
