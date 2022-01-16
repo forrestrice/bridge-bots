@@ -15,6 +15,7 @@ _LIN_DEALER_TO_DIRECTION = {"1": Direction.SOUTH, "2": Direction.WEST, "3": Dire
 _SUIT_CHAR_REGEX = re.compile("[SHDC]")
 _HOLDING_SUIT_IDENTIFIERS = ["S", "H", "D", "C"]
 _DECK_SET = frozenset({Card(suit, rank) for rank in Rank for suit in Suit})
+_RANK_HCP = {Rank.ACE: 4, Rank.KING: 3, Rank.QUEEN: 2, Rank.JACK: 1}
 
 
 def serialize_deal(deal: Deal) -> bytes:
@@ -162,3 +163,7 @@ def from_lin_deal(lin_dealer_str: str, vulnerability_str: str, holdings_str: str
     ew_vulnerable = vulnerability_str in _EW_VULNERABLE_STRINGS
     deal = Deal(dealer, ns_vulnerable, ew_vulnerable, player_hands)
     return deal
+
+
+def count_hcp(cards: List[Card]) -> int:
+    return sum((_RANK_HCP.get(c.rank, 0) for c in cards))

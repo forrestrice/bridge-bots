@@ -28,13 +28,17 @@ class Direction(Enum):
         return self.name
 
     def next(self) -> Direction:
-        return Direction((self.value + 1) % 4)
+        return self.offset(1)
 
     def partner(self) -> Direction:
-        return Direction((self.value + 2) % 4)
+        return self.offset(2)
 
     def previous(self) -> Direction:
-        return Direction((self.value + 3) % 4)
+        return self.offset(3)
+
+    def offset(self, offset: int) -> Direction:
+        return Direction((self.value + offset) % 4)
+
 
     def abbreviation(self) -> str:
         return self.name[0]

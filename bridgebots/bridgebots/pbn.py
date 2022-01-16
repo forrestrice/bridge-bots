@@ -221,12 +221,14 @@ def _parse_board_record(record_dict: Dict, deal: Deal) -> BoardRecord:
     play_record_strings = record_dict.get("play_record") or []
     play_record = _sort_play_record(play_record_strings, record_dict["Contract"])
 
-    if not (result_str := record_dict.get("Result")):
+    result_str = record_dict.get("Result")
+    if not result_str:
         message = f"Missing tricks result: {result_str}"
         logging.warning(message)
         raise ValueError(message)
 
-    if not (contract_str := record_dict.get("Contract")):
+    contract_str = record_dict.get("Contract")
+    if not contract_str:
         message = f"Missing contract: {contract_str}"
         logging.warning(message)
         raise ValueError(message)
