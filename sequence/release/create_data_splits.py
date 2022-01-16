@@ -1,0 +1,52 @@
+import logging
+import pickle
+import random
+from pathlib import Path
+from typing import List, Tuple
+
+from bridgebots import DealRecord
+
+MAX_RECORDS = 10_000
+
+
+def create_data_splits(
+    source_pickle: Path,
+    save_dir: Path,
+    splits: Tuple[Tuple[str, float]] = (("train", 0.8), ("validation", 0.1), ("test", 0.1)),
+    shuffle: bool = True,
+):
+    with open(source_pickle, "rb") as pickle_file:
+        deal_records: List[DealRecord] = pickle.load(pickle_file)
+
+    logging.info(f"Loaded {len(deal_records)} DealRecord")
+
+    if shuffle:
+        random.shuffle(deal_records)
+
+    weights = []
+    split_records = []
+    for split, weight in splits:
+        split_records.append((split, []))
+        weights.append(weight)
+
+    for deal_record in deal_records:
+        split_name, split_record_list = random.choices(split_records, weights)[0]
+        split_record_list.append(deal_record)
+
+    for split_name, split_record_list in split_records:
+        # Chunk writes to make pickle happy with large batches of records
+        records_chunks = [split_record_list[i : i + MAX_RECORDS] for i in range(0, len(split_record_list), MAX_RECORDS)]
+        split_directory = save_dir / split_name
+        split_directory.mkdir(parents=True, exist_ok=True)
+        for i, chunk in enumerate(records_chunks):
+            chunk_path = split_directory / (str(i) + ".pickle")
+            with open(chunk_path, "wb") as split_file:
+                pickle.dump(chunk, split_file)
+                logging.info(f"Wrote {len(chunk)} records to {split_file.name}")
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+    create_data_splits(
+        Path("/Users/frice/bridge/vugraph_project/all_deals.pickle"), Path("/Users/frice/bridge/bid_learn/deals/")
+    )
