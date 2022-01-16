@@ -103,7 +103,7 @@ class TestSchemas(unittest.TestCase):
             "raw_bidding_record": ["p", "1H", "2N", "p", "3N", "p", "p", "p"],
             "play_record": self.play_record,
             "declarer": "N",
-            "contract": "3N",
+            "contract": "3NT",
             "score": -150,
             "tricks": 6,
             "scoring": None,

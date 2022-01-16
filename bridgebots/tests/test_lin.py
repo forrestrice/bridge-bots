@@ -102,11 +102,21 @@ class TestParseLin(unittest.TestCase):
         ]
         self.assertEqual(expected_bidding_metadata, bidding_metadata)
 
+    def test_parse_contract(self):
+        raw_bidding_record = ["5C", "p", "p", "d", "p", "p", "r", "p", "p", "p"]
+        bidding_record, bidding_metadata, contract = _parse_bidding_record(raw_bidding_record, {})
+        self.assertEqual(["5C", "PASS", "PASS", "X", "PASS", "PASS", "XX", "PASS", "PASS", "PASS"], bidding_record)
+        self.assertEqual([], bidding_metadata)
+        self.assertEqual("5CXX", contract)
+
     def test_determine_declarer(self):
         deal = _parse_deal({"md": ["1SQ982HQ82DKQ763CT,SJ643HKJ7653DCAQ4,SK5HADAJT52CJ9762,"], "sv": ["e"]})
         bidding_record = ["PASS", "PASS", "1D", "PASS", "1S", "2H", "3C", "PASS", "3D", "PASS", "PASS", "PASS"]
         play_record = [Card.from_str("SA")]
         self.assertEqual(Direction.NORTH, _determine_declarer(play_record, bidding_record, deal))
+
+    def test_parse_tricks_with_passout(self):
+        self.assertEqual(0, _parse_tricks({}, Direction.EAST, "PASS", []))
 
     def test_parse_tricks_with_claim(self):
         self.assertEqual(10, _parse_tricks({"mc": ["10"]}, Direction.NORTH, "2S", []))

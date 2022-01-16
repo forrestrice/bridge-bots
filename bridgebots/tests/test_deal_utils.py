@@ -2,6 +2,7 @@ import json
 import unittest
 
 from bridgebots import Deal, Direction, PlayerHand, Suit, deal_utils, from_acbl_dict
+from bridgebots.deal_utils import _parse_lin_holding
 
 
 class TestAcblDeal(unittest.TestCase):
@@ -66,3 +67,34 @@ class TestBinaryDeal(unittest.TestCase):
         binary_deal = deal_utils.serialize_deal(TestBinaryDeal.test_deal)
         out_deal = deal_utils.deserialize_deal(binary_deal)
         self.assertEqual(TestBinaryDeal.test_deal, out_deal)
+
+
+class TestLinDeal(unittest.TestCase):
+    def test_parse_lin_holding_normal(self):
+        holding = "SAK7HJ6DJ3CQ98654"
+        self.assertEqual(
+            [["A", "K", "7"], ["J", "6"], ["J", "3"], ["Q", "9", "8", "6", "5", "4"]], _parse_lin_holding(holding)
+        )
+
+    def test_parse_lin_holding_missing_spades(self):
+        holding = "HAKJ76DJ3CQ98654"
+        self.assertEqual(
+            [[], ["A", "K", "J", "7", "6"], ["J", "3"], ["Q", "9", "8", "6", "5", "4"]], _parse_lin_holding(holding)
+        )
+
+    def test_parse_lin_holding_missing_clubs(self):
+        holding = "SAK7HJ6DQJ986543"
+        self.assertEqual(
+            [["A", "K", "7"], ["J", "6"], ["Q", "J", "9", "8", "6", "5", "4", "3"], []], _parse_lin_holding(holding)
+        )
+
+    def test_parse_lin_holding_missing_red_suits(self):
+        holding = "SAK7DQJ63CQ98654"
+        self.assertEqual(
+            [["A", "K", "7"], [], ["Q", "J", "6", "3"], ["Q", "9", "8", "6", "5", "4"]], _parse_lin_holding(holding)
+        )
+
+        holding = "SAK7HJ654CQ98654"
+        self.assertEqual(
+            [["A", "K", "7"], ["J", "6", "5", "4"], [], ["Q", "9", "8", "6", "5", "4"]], _parse_lin_holding(holding)
+        )

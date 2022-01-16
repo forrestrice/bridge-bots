@@ -36,20 +36,29 @@ class Commentary:
 
 @dataclass(frozen=True)
 class Contract:
+    """
+    The final contract of a played board. Includes level (6 in 6NT), Bidding Suit (None if passed out), and number of
+    times the contract was doubled
+    """
+
     level: int
     suit: Optional[BiddingSuit]
     doubled: int
 
     @staticmethod
     def from_str(contract: str) -> Contract:
-        if contract == "PASS":
-            return Contract(0, None, 0)
-        doubled = contract.count("X")
-        if doubled > 0:
-            contract = contract.replace("X", "")
-        level = int(contract[0])
-        suit = BiddingSuit.from_str(contract[1:])
-        return Contract(level, suit, doubled)
+        working_contract = contract
+        try:
+            if working_contract == "PASS":
+                return Contract(0, None, 0)
+            doubled = working_contract.count("X")
+            if doubled > 0:
+                working_contract = working_contract.replace("X", "")
+            level = int(working_contract[0])
+            suit = BiddingSuit.from_str(working_contract[1:])
+            return Contract(level, suit, doubled)
+        except (ValueError, IndexError, KeyError) as e:
+            raise ValueError(f"Invalid Contract: {contract}") from e
 
     def __str__(self):
         if self.level == 0:

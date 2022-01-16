@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "bridgebots"
-version = "0.0.7"
+version = "0.0.9-dev"
 description = "Data processing for Contract Bridge"
 authors = ["Forrest Rice <forrest.d.rice@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.7"
 marshmallow = "^3.12.1"
 
 [tool.poetry.dev-dependencies]

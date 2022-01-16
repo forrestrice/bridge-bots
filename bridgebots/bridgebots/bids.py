@@ -1,9 +1,7 @@
 from typing import Optional
 
-_LEGAL_BIDS = {
+LEGAL_BIDS = [
     "PASS",
-    "X",
-    "XX",
     "1C",
     "1D",
     "1H",
@@ -39,7 +37,11 @@ _LEGAL_BIDS = {
     "7H",
     "7S",
     "7NT",
-}
+    "X",
+    "XX",
+]
+
+_LEGAL_BIDS_SET = set(LEGAL_BIDS)
 
 
 def canonicalize_bid(bid: str) -> Optional[str]:
@@ -52,4 +54,4 @@ def canonicalize_bid(bid: str) -> Optional[str]:
         bid = "XX"
     elif bid == "P":
         bid = "PASS"
-    return bid if bid in _LEGAL_BIDS else None
+    return bid if bid in _LEGAL_BIDS_SET else None
