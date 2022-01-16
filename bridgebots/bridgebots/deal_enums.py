@@ -39,7 +39,6 @@ class Direction(Enum):
     def offset(self, offset: int) -> Direction:
         return Direction((self.value + offset) % 4)
 
-
     def abbreviation(self) -> str:
         return self.name[0]
 
@@ -86,7 +85,9 @@ class BiddingSuit(Enum):
     def to_suit(self) -> Suit:
         return self.value[1]
 
-    def abbreviation(self) -> str:
+    def abbreviation(self, verbose_no_trump=True) -> str:
+        if self.value == BiddingSuit.NO_TRUMP.value and verbose_no_trump:
+            return "NT"
         return self.name[0]
 
     @classmethod

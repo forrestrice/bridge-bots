@@ -1,4 +1,3 @@
-import re
 from collections import defaultdict
 from typing import Dict, List, Tuple
 
@@ -12,7 +11,6 @@ _NS_VULNERABLE_STRINGS = {"Both", "N-S", "All", "NS", "b", "n"}
 _EW_VULNERABLE_STRINGS = {"Both", "E-W", "All", "EW", "b", "e"}
 _REVERSE_SORTED_CARDS = sorted([Card(suit, rank) for suit in Suit for rank in Rank], reverse=True)
 _LIN_DEALER_TO_DIRECTION = {"1": Direction.SOUTH, "2": Direction.WEST, "3": Direction.NORTH, "4": Direction.EAST}
-_SUIT_CHAR_REGEX = re.compile("[SHDC]")
 _HOLDING_SUIT_IDENTIFIERS = ["S", "H", "D", "C"]
 _DECK_SET = frozenset({Card(suit, rank) for rank in Rank for suit in Suit})
 _RANK_HCP = {Rank.ACE: 4, Rank.KING: 3, Rank.QUEEN: 2, Rank.JACK: 1}
@@ -166,4 +164,5 @@ def from_lin_deal(lin_dealer_str: str, vulnerability_str: str, holdings_str: str
 
 
 def count_hcp(cards: List[Card]) -> int:
+    """:return Goren High Card Points for a list of cards"""
     return sum((_RANK_HCP.get(c.rank, 0) for c in cards))

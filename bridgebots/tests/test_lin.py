@@ -106,6 +106,8 @@ class TestParseLin(unittest.TestCase):
         raw_bidding_record = ["5C", "p", "p", "d", "p", "p", "r", "p", "p", "p"]
         bidding_record, bidding_metadata, contract = _parse_bidding_record(raw_bidding_record, {})
         self.assertEqual(["5C", "PASS", "PASS", "X", "PASS", "PASS", "XX", "PASS", "PASS", "PASS"], bidding_record)
+        self.assertEqual([], bidding_metadata)
+        self.assertEqual("5CXX", contract)
 
     def test_determine_declarer(self):
         deal = _parse_deal({"md": ["1SQ982HQ82DKQ763CT,SJ643HKJ7653DCAQ4,SK5HADAJT52CJ9762,"], "sv": ["e"]})

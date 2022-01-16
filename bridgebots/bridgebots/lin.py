@@ -221,6 +221,7 @@ def _build_play_str(board_record: BoardRecord) -> str:
         play_str += f"mc|{board_record.tricks}|"
     return play_str
 
+
 def combine_header(file) -> str:
     combined = ""
     line = file.readline()
@@ -229,9 +230,7 @@ def combine_header(file) -> str:
         if combined.endswith("|pg||"):
             return combined
         line = file.readline()
-    #TODO not unicode
-    raise UnicodeError(f"Invalid multi-lin header in file: {file}")
-
+    raise ValueError(f"Invalid multi-lin header in file: {file}")
 
 
 def parse_single_lin(file_path: Path) -> List[DealRecord]:
@@ -260,17 +259,6 @@ def parse_multi_lin(file_path: Path) -> List[DealRecord]:
     with open(file_path) as lin_file:
         header = combine_header(lin_file)
         parsed_header = _parse_lin_string(header)
-        '''
-        first_line = lin_file.readline()
-        if not first_line:
-            raise UnicodeError("no content") #TODO not unicode
-        if first_line.lower() == "pf|y|\n":
-            title_line = lin_file.readline()
-        else:
-            title_line = first_line
-        results = _parse_lin_string(lin_file.readline())
-        player_names = _parse_lin_string(combine_lines(lin_file))
-        '''
         board_strings = []
         current_board = ""
         for line in lin_file:

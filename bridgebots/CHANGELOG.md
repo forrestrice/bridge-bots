@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.8] - 2022-1-15
+### Added
+`Direction.offset` Can be used to get the Direction an arbitrary number of steps away
+### Changed
+- Bridgebots now supports python 3.7! Several small backwards compatibility changes were made.
+- Fixed several edge case bugs for LIN parsing. Improved error messages.
+- `BiddingSuit.NO_TRUMP.abbreviation()` now returns `NT` by default. `N` can be returned by setting the flag `verbose_no_trump=False`
+
 ## [0.0.7] - 2021-11-27
 ### Added
 - Utility method `calculate_score` to compute the scoring of a hand

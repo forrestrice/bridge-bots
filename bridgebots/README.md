@@ -31,7 +31,7 @@ Any added functionality should include unit tests.
 
 ## Guides
 There are a few introductory guides with detailed examples available.
-1. [Representing Bridge Components](https://forrestrice.com/posts/Announcing-Bridgebots/)
+1. [Representing Bridge Components](https://forrestrice.com/posts/Introducting-Bridgebots-Part-1/)
 2. [Deal/Board Records and PBN files](https://forrestrice.com/posts/Introducing-Bridgebots-Part-2/)
 3. [LIN files and JSON](https://forrestrice.com/posts/Introducing-Bridgebots-Part-3/)
 
