@@ -14,7 +14,7 @@ from sequence.bridge_sequence_utils import (
     Holding,
     HoldingSequence,
     PlayerPosition,
-    PlayerPositionSequence,
+    PlayerPositionSequence, Vulnerability,
 )
 from sequence.one_hand_tfdata import OneHandExampleGenerator, OneHandSequenceExampleGenerator
 
@@ -97,28 +97,29 @@ def create_examples_data():
 
 
 def create_sequence_examples():
-    pickle_file_path = "/Users/frice/bridge/bid_learn/one_hand/toy/TRAIN.pickle"
+    pickle_file_path = "/Users/frice/bridge/bid_learn/one_hand/VALIDATION.pickle"
     with open(pickle_file_path, "rb") as pickle_file:
         deal_records: List[DealRecord] = pickle.load(pickle_file)
     features = [BiddingIndicesSequence(), HoldingSequence(), PlayerPositionSequence()]
-    deal_targets = [HcpTarget()]
+    deal_targets = [HcpTarget(), Vulnerability()]
     example_gen = iter(OneHandSequenceExampleGenerator(deal_records, features, deal_targets))
-    for example in example_gen:
-        print(example)
-        serialized_example = example.SerializeToString()
+    example_path = "/Users/frice/bridge/bid_learn/one_hand/sequence_validation.tfrecords"
+    write_count = 0
+    with tf.io.TFRecordWriter(example_path, TFRecordCompressionType.NONE) as file_writer:
+        for example in example_gen:
+            file_writer.write(example.SerializeToString())
+            write_count += 1
+            if write_count % 1_000 == 0:
+                print(f"write_count={write_count}")
+    print(f"wrote {write_count} results to {example_path}")
+    """
         parsed_example = tf.io.parse_single_sequence_example(
             serialized_example,
             context_features={"HcpTarget": tf.io.FixedLenFeature([4], dtype=tf.int64)},
             sequence_features={"BiddingIndicesSequence":tf.io.FixedLenSequenceFeature([1], dtype=tf.int64),
                                "HoldingSequence":tf.io.FixedLenSequenceFeature([52], dtype=tf.int64),
                                "PlayerPositionSequence":tf.io.FixedLenSequenceFeature([1], dtype=tf.int64)},
-        )
-        print("PARSED")
-        print("item 0")
-        print(parsed_example[0])
-        print("item 1")
-        print(parsed_example[1])
-        break
+        )"""
 
 
 create_sequence_examples()

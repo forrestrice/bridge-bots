@@ -119,7 +119,7 @@ class OneHandSequenceExampleGenerator:
                 type(deal_target).__name__: deal_target.calculate(deal_record) for deal_target in self.deal_targets
             }
             for board_record in deal_record.board_records:
-                print(deal_record.deal, board_record)
+                #print(deal_record.deal, board_record)
                 bidding_data = BiddingSequenceExampleData(deal_record, board_record, player_holdings)
                 yield self.build_sequence_example(bidding_data, calculated_deal_targets)
                 # bidding_sequences = self.generate_bidding_sequences(dealer, board_record)

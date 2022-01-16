@@ -158,6 +158,11 @@ class HcpTarget:
         # TODO should this really be int64?
         return tf.io.FixedLenFeature([4], dtype=tf.int64)
 
+class Vulnerability:
+    def calculate(self, deal_record: DealRecord) -> tf.train.Feature:
+        dealer = deal_record.deal.dealer
+        vuln_feature = [deal_record.deal.is_vulnerable(dealer), deal_record.deal.is_vulnerable(dealer.next())]
+        return tf.train.Feature(int64_list=tf.train.Int64List(value=vuln_feature))
 
 class HoldingSequence:
     def calculate(self, bidding_data: BiddingSequenceExampleData) -> tf.train.FeatureList:
