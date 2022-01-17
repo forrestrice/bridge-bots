@@ -3,7 +3,7 @@ import logging
 import re
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from bridgebots.bids import canonicalize_bid
 from bridgebots.board_record import BidMetadata, BoardRecord, Contract, DealRecord
@@ -25,6 +25,8 @@ def _split_pbn(file_path: Path) -> List[List[str]]:
         while True:
             line = pbn_file.readline()
             if line == "":  # EOF
+                if current_record:
+                    records.append(current_record)
                 return records
             elif line == "\n":  # End of Board Record
                 records.append(current_record.splitlines())
@@ -258,13 +260,19 @@ def _parse_board_record(record_dict: Dict, deal: Deal) -> BoardRecord:
     )
 
 
-def _parse_single_pbn_record(record_strings: List[str]) -> Tuple[Deal, BoardRecord]:
+def _parse_single_pbn_record(record_strings: List[str], previous_deal: Optional[Deal]) -> Tuple[Deal, BoardRecord]:
     """
     :param record_strings: One string per line of a single PBN deal record
     :return: Deal and BoardRecord corresponding to the PBN record
     """
     record_dict = _build_record_dict(record_strings)
-    deal = from_pbn_deal(record_dict["Dealer"], record_dict["Vulnerable"], record_dict["Deal"])
+    try:
+        deal = from_pbn_deal(record_dict["Dealer"], record_dict["Vulnerable"], record_dict["Deal"])
+    except KeyError as e:
+        if previous_deal:
+            deal = previous_deal
+        else:
+            raise ValueError("Missing deal fields and no previous_deal provided") from e
     board_record = _parse_board_record(record_dict, deal)
     return deal, board_record
 
@@ -280,10 +288,13 @@ def parse_pbn(file_path: Path) -> List[DealRecord]:
     records_strings = _split_pbn(file_path)
     # Maintain a mapping from deal to board records to create a single deal record per deal
     records = defaultdict(list)
+    # Some PBNs have multiple board records per deal
+    previous_deal = None
     for record_strings in records_strings:
         try:
-            deal, board_record = _parse_single_pbn_record(record_strings)
+            deal, board_record = _parse_single_pbn_record(record_strings, previous_deal)
             records[deal].append(board_record)
+            previous_deal = deal
         except (KeyError, ValueError) as e:
             logging.warning(f"Malformed record {record_strings}: {e}")
     return [DealRecord(deal, board_records) for deal, board_records in records.items()]
