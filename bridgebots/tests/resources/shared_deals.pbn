@@ -1,0 +1,91 @@
+% PBN (c) 2021 rpbridge.net
+[Date "2014.07.??"]
+[Event "Spingold"]
+[Stage "Final:4"]
+[HomeTeam "Monaco"]
+[VisitTeam "Schwartz"]
+[West "Brogeland"]
+[North "Helness"]
+[East "Lindqvist"]
+[South "Helgemo"]
+[Board "62"]
+[Dealer "E"]
+[Vulnerable "None"]
+[Deal "W:KT32.Q9743.QT2.Q 6..A65.AKT987542 AQJ954.K.973.J63 87.AJT8652.KJ84."]
+[Declarer "N"]
+[Contract "6C"]
+[Result "11"]
+[Auction "E"]
+1S 3H 4S 6C
+AP
+[Play "E"]
+SA S7 S2 S6
+SQ S8 S3 C2
+C3 H2 CQ CA
+H5 H3 CK C6
+*
+
+[West "Nunes"]
+[North "SchwartzO"]
+[East "Fantoni"]
+[South "FisherL"]
+[Declarer "E"]
+[Contract "6SX"]
+[Result "9"]
+[Auction "E"]
+2S 3H 4S 6C
+Pass Pass 6S X
+AP
+[Play "S"]
+HA H3 CT HK
+D4 D2 DA D7
+H2 CQ CA C3
+DK DT D6 D3
+D8 DQ D5 D9
+S7 S2 S6 SQ
+*
+
+[Date "2014.07.??"]
+[Event "Spingold"]
+[Stage "SemiF:1"]
+[HomeTeam "Lavazza"]
+[VisitTeam "Monaco"]
+[West "Helgemo"]
+[North "Bocchi"]
+[East "Helness"]
+[South "Madala"]
+[Board "7"]
+[Dealer "S"]
+[Vulnerable "Both"]
+[Deal "W:T.A94.84.KQJ9753 94.QJT865.QJT7.8 KQ852.K.AK63.A62 AJ763.732.952.T4"]
+[Declarer "W"]
+[Contract "6N"]
+[Result "12"]
+[Auction "S"]
+1C 1H X 2H
+3C Pass 3H Pass
+3NT Pass 4C Pass
+4H Pass 4S X
+5C Pass 6NT AP
+[Play "N"]
+HQ - - -
+*
+
+[West "Zia"]
+[North "Zimmerm."]
+[East "Bianchedi"]
+[South "Multon"]
+[Declarer "W"]
+[Contract "6C"]
+[Result "12"]
+[Auction "S"]
+1C 3H 3S Pass
+4C Pass 4NT Pass
+5S Pass 6C AP
+[Play "N"]
+DQ DA D2 D4
+C8 C2 C4 CJ
+CK H8 C6 CT
+S4 SK SA ST
+*
+

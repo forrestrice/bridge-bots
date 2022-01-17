@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 
-from bridgebots import BidMetadata, BiddingSuit, Contract, Direction, Rank, Suit, parse_pbn
+from bridgebots import BidMetadata, BiddingSuit, Card, Contract, Direction, Rank, Suit, parse_pbn
 from bridgebots.pbn import _build_record_dict, _parse_bidding_record, _sort_play_record
 
 
@@ -19,24 +19,14 @@ class TestParsePbnFile(unittest.TestCase):
             [Rank.KING, Rank.QUEEN, Rank.JACK, Rank.SEVEN], deal_1.hands[Direction.EAST].suits[Suit.SPADES]
         )
         self.assertEqual(
+            # fmt: off
             [
-                "1H",
-                "Pass",
-                "1S",
-                "=1=",
-                "Pass",
-                "2C",
-                "!",
-                "Pass",
-                "2H",
-                "=2=",
-                "Pass",
-                "2S",
-                "=3=",
-                "Pass",
-                "3NT",
+                "1H", "Pass", "1S", "=1=", "Pass",
+                "2C", "!", "Pass", "2H", "=2=", "Pass",
+                "2S", "=3=", "Pass", "3NT",
                 "AP",
             ],
+            # fmt: on
             board_record_1.raw_bidding_record,
         )
 
@@ -56,37 +46,18 @@ class TestParsePbnFile(unittest.TestCase):
         )
 
         self.assertEqual(
+            # fmt: off
             [
-                "CQ",
-                "CA",
-                "C8",
-                "C3",
-                "H4",
-                "HT",
-                "HK",
-                "H6",
-                "H3",
-                "H2",
-                "HQ",
-                "HA",
-                "C5",
-                "C6",
-                "CK",
-                "CT",
-                "D4",
-                "DJ",
-                "DQ",
-                "DK",
-                "CJ",
-                "C2",
-                "S7",
-                "C7",
-                "C9",
-                "C4",
-                "H5",
-                "S4",
+                "CQ", "CA", "C8", "C3",
+                "H4", "HT", "HK", "H6",
+                "H3", "H2", "HQ", "HA",
+                "C5", "C6", "CK", "CT",
+                "D4", "DJ", "DQ", "DK",
+                "CJ", "C2", "S7", "C7",
+                "C9", "C4", "H5", "S4",
                 "S6",
             ],
+            # fmt: on
             [str(card) for card in board_record_1.play_record],
         )
         self.assertEqual(Direction.WEST, board_record_1.declarer)
@@ -118,6 +89,14 @@ class TestParsePbnFile(unittest.TestCase):
         self.assertEqual(board_record_2.names[Direction.SOUTH], "Bauke Muller")
         self.assertEqual(board_record_2.names[Direction.EAST], "Denny Sacul")
         self.assertEqual(board_record_2.names[Direction.WEST], "Franky Karwur")
+
+    def test_parse_shared_deals_file(self):
+        sample_pbn_path = Path(__file__).parent / "resources" / "shared_deals.pbn"
+        records = parse_pbn(sample_pbn_path)
+        self.assertEqual(2, len(records))
+        self.assertEqual(4, sum(len(deal_record.board_records) for deal_record in records))
+        self.assertEqual(Card.from_str("SA"), records[0].board_records[0].play_record[0])
+        self.assertEqual(Card.from_str("HA"), records[0].board_records[1].play_record[0])
 
 
 class TestPbnRecordDict(unittest.TestCase):
