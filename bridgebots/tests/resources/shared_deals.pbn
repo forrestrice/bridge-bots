@@ -89,3 +89,23 @@ CK H8 C6 CT
 S4 SK SA ST
 *
 
+[Board "6"]
+[Dealer "E"]
+[Vulnerable "EW"]
+[Deal "W:QJ542.A7.76.8742 A6.95.QJT83.QJT5 K97.J64.AK52.K96 T83.KQT832.94.A3"]
+[Declarer ""]
+[Contract "Pass"]
+[Result ""]
+
+[Declarer "S"]
+[Contract "3H"]
+[Result "8"]
+[Auction "E"]
+1NT 2H 2S 3H
+AP
+[Play "W"]
+SQ S6 SK S3
+HA H5 H4 H3
+HK H7 H9 HJ
+HQ S2 D3 H6
+*

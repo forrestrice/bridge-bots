@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.0.10] - 2022-1-16
+### Added
+- `parse_pbn` now handles files which omit the result if the auction was a pass out.
+- `parse_pbn` now handles files which use `r` for redouble in the contract.
+
 ## [0.0.9] - 2022-1-16
 ### Added
 - `parse_pbn` now handles files which used shared deals for multiple board records.

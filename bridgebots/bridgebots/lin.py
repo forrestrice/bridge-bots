@@ -9,10 +9,9 @@ from bridgebots.board_record import BidMetadata, BoardRecord, Commentary, Contra
 from bridgebots.deal import Card, Deal
 from bridgebots.deal_enums import BiddingSuit, Direction, Suit
 from bridgebots.deal_utils import from_lin_deal
-from bridgebots.play_utils import trick_evaluator
+from bridgebots.play_utils import _PASS_OUT_AUCTION, trick_evaluator
 
 _BID_TRANSLATION = {"PASS": "p", "DBL": "d", "RDBL": "r"}
-_PASS_OUT_AUCTION = ["PASS"] * 4
 
 
 def _parse_lin_string(lin_str: str) -> Dict:

@@ -4,6 +4,8 @@ from typing import Callable, Optional
 from bridgebots.deal import Card
 from bridgebots.deal_enums import BiddingSuit, Suit
 
+_PASS_OUT_AUCTION = ["PASS"] * 4
+
 
 def _evaluate_card(trump_suit: BiddingSuit, suit_led: Suit, card: Card) -> int:
     """

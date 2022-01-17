@@ -10,7 +10,7 @@ from bridgebots.board_record import BidMetadata, BoardRecord, Contract, DealReco
 from bridgebots.deal import Card, Deal
 from bridgebots.deal_enums import BiddingSuit, Direction
 from bridgebots.deal_utils import from_pbn_deal
-from bridgebots.play_utils import trick_evaluator
+from bridgebots.play_utils import _PASS_OUT_AUCTION, trick_evaluator
 
 
 def _split_pbn(file_path: Path) -> List[List[str]]:
@@ -225,9 +225,12 @@ def _parse_board_record(record_dict: Dict, deal: Deal) -> BoardRecord:
 
     result_str = record_dict.get("Result")
     if not result_str:
-        message = f"Missing tricks result: {result_str}"
-        logging.warning(message)
-        raise ValueError(message)
+        if bidding_record == _PASS_OUT_AUCTION:
+            result_str = "0"
+        else:
+            message = f"Missing tricks result: {result_str}"
+            logging.warning(message)
+            raise ValueError(message)
 
     contract_str = record_dict.get("Contract")
     if not contract_str:
