@@ -15,6 +15,13 @@ def create_data_splits(
     splits: Tuple[Tuple[str, float]] = (("train", 0.8), ("validation", 0.1), ("test", 0.1)),
     shuffle: bool = True,
 ):
+    """
+    Splits DealRecord data for model training and evaluation
+    :param source_pickle: DealRecord pickle file
+    :param save_dir: Write splits to this directory
+    :param splits: A tuple of name,weight pairs for splitting (e.g. train/validation/test)
+    :param shuffle: Shuffle all data before writing
+    """
     with open(source_pickle, "rb") as pickle_file:
         deal_records: List[DealRecord] = pickle.load(pickle_file)
 
