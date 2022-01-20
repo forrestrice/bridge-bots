@@ -3,7 +3,7 @@ from keras import Input
 from keras.layers import Dense, LSTM
 from tensorflow.keras import Input, Model, layers
 
-from sequence.bridge_sequence_utils import BIDDING_VOCAB_SIZE, MAX_BIDDING_SEQUENCE
+from sequence.dev.bridge_sequence_utils import BIDDING_VOCAB_SIZE, MAX_BIDDING_SEQUENCE
 
 filename = "/Users/frice/bridge/bid_learn/one_hand/sequence_train.tfrecords"
 

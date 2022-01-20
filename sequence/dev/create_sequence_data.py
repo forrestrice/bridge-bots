@@ -7,7 +7,7 @@ import numpy as np
 
 from bridgebots.deal import Deal
 from bridgebots.board_record import BoardRecord
-from sequence.bidding_training_data import BiddingTrainingData
+from sequence.dev.bidding_training_data import BiddingTrainingData
 from train.bridge_training_utils import BIDDING_VOCAB, canonicalize_bid, SORTED_CARDS
 
 

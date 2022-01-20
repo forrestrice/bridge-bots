@@ -3,7 +3,7 @@ from keras import Input
 from keras.layers import Dense, LSTM
 from tensorflow.keras import Input, Model, layers
 
-from sequence.bridge_sequence_utils import (
+from sequence.dev.bridge_sequence_utils import (
     BIDDING_VOCAB_SIZE,
     BiddingIndices,
     HcpTarget,

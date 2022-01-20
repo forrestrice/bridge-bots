@@ -5,8 +5,8 @@ import tensorflow as tf
 from keras.layers import Dense, LSTM
 from tensorflow.keras import Input, Model, layers
 
-from sequence.bridge_sequence_utils import BIDDING_VOCAB_SIZE, HcpDealTarget
-from sequence.one_hand_bidding_training_data import OneHandBiddingSequenceDataGenerator
+from sequence.dev.bridge_sequence_utils import BIDDING_VOCAB_SIZE, HcpDealTarget
+from sequence.dev.one_hand_bidding_training_data import OneHandBiddingSequenceDataGenerator
 
 bid_learn_prefix = Path("/Users/frice/bridge/bid_learn/one_hand/")
 training_path = bid_learn_prefix / "TRAIN.pickle"

@@ -5,7 +5,7 @@ import tensorflow as tf
 from numpy.typing import ArrayLike
 
 from bridgebots import BoardRecord, DealRecord, Direction
-from sequence.bridge_sequence_utils import (
+from sequence.dev.bridge_sequence_utils import (
     BIDDING_VOCAB,
     BIDDING_VOCAB_SIZE,
     BiddingExampleData,

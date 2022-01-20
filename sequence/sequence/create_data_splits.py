@@ -6,8 +6,6 @@ from typing import List, Tuple
 
 from bridgebots import DealRecord
 
-MAX_RECORDS = 10_000
-
 
 def create_data_splits(
     source_pickle: Path,
@@ -42,14 +40,11 @@ def create_data_splits(
 
     for split_name, split_record_list in split_records:
         # Chunk writes to make pickle happy with large batches of records
-        records_chunks = [split_record_list[i : i + MAX_RECORDS] for i in range(0, len(split_record_list), MAX_RECORDS)]
-        split_directory = save_dir / split_name
-        split_directory.mkdir(parents=True, exist_ok=True)
-        for i, chunk in enumerate(records_chunks):
-            chunk_path = split_directory / (str(i) + ".pickle")
-            with open(chunk_path, "wb") as split_file:
-                pickle.dump(chunk, split_file)
-                logging.info(f"Wrote {len(chunk)} records to {split_file.name}")
+        split_path = save_dir / (split_name + ".pickle")
+        save_dir.mkdir(parents=True, exist_ok=True)
+        with open(split_path, "wb") as split_file:
+            pickle.dump(split_record_list, split_file)
+            logging.info(f"Wrote {len(split_record_list)} records to {split_file.name}")
 
 
 if __name__ == "__main__":

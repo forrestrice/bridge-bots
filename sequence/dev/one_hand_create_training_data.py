@@ -7,7 +7,7 @@ import tensorflow as tf
 from tensorflow.python.lib.io.tf_record import TFRecordCompressionType
 
 from bridgebots import DealRecord
-from sequence.bridge_sequence_utils import (
+from sequence.dev.bridge_sequence_utils import (
     BiddingIndices,
     BiddingIndicesSequence,
     HcpTarget,
@@ -16,7 +16,7 @@ from sequence.bridge_sequence_utils import (
     PlayerPosition,
     PlayerPositionSequence, Vulnerability,
 )
-from sequence.one_hand_tfdata import OneHandExampleGenerator, OneHandSequenceExampleGenerator
+from sequence.dev.one_hand_tfdata import OneHandExampleGenerator, OneHandSequenceExampleGenerator
 
 MAX_RECORDS = 10_000
 

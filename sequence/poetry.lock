@@ -22,11 +22,11 @@ six = ">=1.6.1,<2.0"
 
 [[package]]
 name = "bridgebots"
-version = "0.0.7"
+version = "0.0.9"
 description = "Data processing for Contract Bridge"
 category = "main"
 optional = false
-python-versions = ">=3.8,<4.0"
+python-versions = ">=3.7,<4.0"
 
 [package.dependencies]
 marshmallow = ">=3.12.1,<4.0.0"
@@ -496,7 +496,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.11"
-content-hash = "55e1683e3cb46f2763202b31621b859870dd23eb80f94dcd44c88323b6db72a3"
+content-hash = "277e358b8c6d6dbca326cc8ddad4eb9dce73ddc61f4808416fb843009c33156e"
 
 [metadata.files]
 absl-py = [
@@ -508,8 +508,8 @@ astunparse = [
     {file = "astunparse-1.6.3.tar.gz", hash = "sha256:5ad93a8456f0d084c3456d059fd9a92cce667963232cbf763eac3bc5b7940872"},
 ]
 bridgebots = [
-    {file = "bridgebots-0.0.7-py3-none-any.whl", hash = "sha256:9193fe88f7f52246b07468f092d923637f3cbfe7d1dbacc5b7be1fb0ed5511f1"},
-    {file = "bridgebots-0.0.7.tar.gz", hash = "sha256:2834f710e476d903b55c254d3660bbf615b7beec0fadfe987d1aae5efa495d49"},
+    {file = "bridgebots-0.0.9-py3-none-any.whl", hash = "sha256:24da315fbbd79f9cbc83619f316d7d906bd1c46bd6b7fda5eca29c1e75d3e0d7"},
+    {file = "bridgebots-0.0.9.tar.gz", hash = "sha256:49b0b42737a3a0d5e3f1962f2f27a3081c94cb499ec0e3291fc87a9bddf99d8b"},
 ]
 cachetools = [
     {file = "cachetools-4.2.4-py3-none-any.whl", hash = "sha256:92971d3cb7d2a97efff7c7bb1657f21a8f5fb309a37530537c71b1774189f2d1"},

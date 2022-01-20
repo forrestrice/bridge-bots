@@ -1,15 +1,12 @@
 import math
-from abc import ABC, abstractmethod
 from typing import List
 
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.utils import Sequence
 
-from bridgebots import BoardRecord, Card, DealRecord, Direction, Rank, Suit
-from bridgebots.bids import LEGAL_BIDS
-from bridgebots.deal_utils import count_hcp
-from sequence.bridge_sequence_utils import BIDDING_VOCAB, DealTarget, numpy_holding
+from bridgebots import BoardRecord, DealRecord, Direction
+from sequence.dev.bridge_sequence_utils import BIDDING_VOCAB, DealTarget, numpy_holding
 
 
 class OneHandBiddingSequenceDataGenerator(Sequence):
