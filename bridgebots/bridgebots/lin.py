@@ -1,8 +1,9 @@
 import logging
+import re
 import urllib.parse
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from bridgebots.bids import canonicalize_bid
 from bridgebots.board_record import BidMetadata, BoardRecord, Commentary, Contract, DealRecord
@@ -141,7 +142,7 @@ def _parse_player_names(lin_dict: Dict) -> Dict[Direction, str]:
         if "qx" in lin_dict and len(player_names) > 4:  # True if LIN file is from a multi-board match
             if ["South", "West", "North", "East"] == player_names[4:8]:
                 player_names = player_names[0:4]
-            elif lin_dict["qx"][0].startswith("o"):
+            elif lin_dict["qx"][0].startswith("o"):  # Open and Closed rooms start with o or c
                 player_names = player_names[0:4]
             else:
                 player_names = player_names[4:8]
@@ -155,6 +156,14 @@ def _parse_player_names(lin_dict: Dict) -> Dict[Direction, str]:
     return name_dict
 
 
+def _parse_board_name(lin_dict: Dict) -> Optional[str]:
+    if "ah" in lin_dict:
+        return lin_dict["ah"][0]
+    if "qx" in lin_dict:
+        return lin_dict["qx"][0]
+    return None
+
+
 def _parse_board_record(lin_dict: Dict, deal: Deal) -> BoardRecord:
     """
     Construct a BoardRecord object from the parsed lin_dict and deal
@@ -165,6 +174,7 @@ def _parse_board_record(lin_dict: Dict, deal: Deal) -> BoardRecord:
     play_record = [Card.from_str(cs) for cs in lin_dict["pc"]]
     declarer = _determine_declarer(play_record, bidding_record, deal)
     tricks = _parse_tricks(lin_dict, declarer, contract, play_record)
+    board_name = _parse_board_name(lin_dict)
 
     return BoardRecord(
         bidding_record=bidding_record,
@@ -180,6 +190,7 @@ def _parse_board_record(lin_dict: Dict, deal: Deal) -> BoardRecord:
         event=None,
         bidding_metadata=bidding_metadata,
         commentary=lin_dict.get("nt"),
+        board_name=board_name,
     )
 
 
@@ -222,7 +233,16 @@ def _build_play_str(board_record: BoardRecord) -> str:
     return play_str
 
 
-def combine_header(file) -> str:
+def _build_board_name(board_name: Optional[str]) -> str:
+    if board_name is None:
+        return ""
+    match = re.search(r"\d+", board_name)
+    if match:
+        return f"ah|Board {match.group(0)}|"
+    return ""
+
+
+def _combine_header(file) -> str:
     combined = ""
     line = file.readline()
     while line:
@@ -257,18 +277,18 @@ def parse_multi_lin(file_path: Path) -> List[DealRecord]:
     :return: A list of parsed DealRecords corresponding to the session in the LIN file
     """
     with open(file_path) as lin_file:
-        header = combine_header(lin_file)
+        header = _combine_header(lin_file)
         parsed_header = _parse_lin_string(header)
         board_strings = []
-        current_board = ""
+        board_index = -1
         for line in lin_file:
+            if line.isspace() or line == "":
+                continue
             # Boards are split with a qx node
-            if line.startswith("qx") or line == "":
-                if current_board != "":
-                    board_strings.append(current_board)
-                current_board = ""
-            current_board = current_board + line
-
+            if line.startswith("qx"):
+                board_index += 1
+                board_strings.append("")
+            board_strings[board_index] += line
         # Create single-line LIN for each record
         board_single_strings = [board_string.replace("\n", "") for board_string in board_strings]
         # Maintain a mapping from deal to board records to create a single deal record per deal
@@ -315,11 +335,13 @@ def build_lin_str(deal: Deal, board_record: BoardRecord) -> str:
 
     bidding_str = _build_bidding_str(board_record)
     play_str = _build_play_str(board_record)
+    lin_board_name = _build_board_name(board_record.board_name)
     names = board_record.names
 
     lin_str = ""
     lin_str += f"pn|{names[Direction.SOUTH]},{names[Direction.WEST]},{names[Direction.NORTH]},{names[Direction.EAST]}|"
     lin_str += f"st||md|{lin_dealer}{','.join(player_holding_strings)}|"
+    lin_str += lin_board_name
     lin_str += f"sv|{vuln_str}|"
     lin_str += bidding_str
     lin_str += play_str

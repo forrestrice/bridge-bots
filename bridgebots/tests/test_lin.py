@@ -1,3 +1,4 @@
+import dataclasses
 import unittest
 from pathlib import Path
 
@@ -17,6 +18,7 @@ from bridgebots import (
     parse_single_lin,
 )
 from bridgebots.lin import (
+    _build_board_name,
     _determine_declarer,
     _parse_bidding_record,
     _parse_board_record,
@@ -200,6 +202,7 @@ class TestParseLin(unittest.TestCase):
                 BidMetadata(bid_index=2, bid="2NT", alerted=False, explanation="Unusual No Trump: 2 5card minors")
             ],
             commentary=None,
+            board_name="Board 15",
         )
         self.assertEqual(expected_record, _parse_board_record(lin_dict, deal))
 
@@ -207,7 +210,7 @@ class TestParseLin(unittest.TestCase):
         lin_path = Path(__file__).parent / "resources" / "usbf_sf_14502.lin"
         deal_records = parse_multi_lin(lin_path)
         self.assertEqual(15, len(deal_records))
-        self.assertEqual(2, len(deal_records[0].board_records))
+        self.assertEqual(30, sum(len(deal_record.board_records) for deal_record in deal_records))
         self.assertEqual(
             Commentary(bid_index=1, play_index=None, comment="caitlin: Hi all"),
             deal_records[0].board_records[0].commentary[0],
@@ -221,32 +224,58 @@ class TestParseLin(unittest.TestCase):
 class TestBuildLin(unittest.TestCase):
     deal_records = parse_single_lin(Path(__file__).parent / "resources" / "sample.lin")
 
+    def test_board_name(self):
+        self.assertEqual("ah|Board 2|", _build_board_name("Board 2"))
+        self.assertEqual("ah|Board 16|", _build_board_name("o16"))
+        self.assertEqual("", _build_board_name("nonsense"))
+        self.assertEqual("", _build_board_name(None))
+
     def test_build_lin_str(self):
         expected_lin_str = (
             "pn|PrinceBen,Forrest_,smalark,granola357|st||md|1SQ982HQ82DKQ763CT,SJ643HKJ7653DCAQ4,SK5HADAJT52CJ9762,"
-            "SAT7HT94D984CK853|sv|n|mb|p|mb|1H|mb|2N|an|Unusual No Trump: 2 5card minors|mb|p|mb|3N|mb|p|mb|p|mb|p|pg||"
-            "pc|H4|pc|H2|pc|HJ|pc|HA|pg||pc|DA|pc|D4|pc|D3|pc|S3|pg||pc|DJ|pc|D8|pc|D6|pc|S4|pg||pc|DT|pc|D9|pc|D7|pc"
-            "|S6|pg||pc|D2|pc|C3|pc|DK|pc|SJ|pg||pc|DQ|pc|C4|pc|D5|pc|S7|pg||pc|S2|pc|H3|pc|SK|pc|SA|pg||pc|HT|pc|HQ"
-            "|pc|HK|pc|C2|pg||pc|H5|pc|S5|pc|H9|pc|H8|pg||pc|C5|pc|CT|pc|CA|pc|C6|pg||pc|H7|pc|C7|pc|ST|pc|S8|pg||"
-            "pc|H6|pc|C9|pc|C8|pc|S9|pg||pc|CQ|pc|CJ|pc|CK|pc|SQ|pg||pg||"
+            "SAT7HT94D984CK853|ah|Board 15|sv|n|mb|p|mb|1H|mb|2N|an|Unusual No Trump: 2 5card minors|mb|p|mb|3N|mb|p|mb"
+            "|p|mb|p|pg||pc|H4|pc|H2|pc|HJ|pc|HA|pg||pc|DA|pc|D4|pc|D3|pc|S3|pg||pc|DJ|pc|D8|pc|D6|pc|S4|pg||pc|DT|pc"
+            "|D9|pc|D7|pc|S6|pg||pc|D2|pc|C3|pc|DK|pc|SJ|pg||pc|DQ|pc|C4|pc|D5|pc|S7|pg||pc|S2|pc|H3|pc|SK|pc|SA|pg||pc"
+            "|HT|pc|HQ|pc|HK|pc|C2|pg||pc|H5|pc|S5|pc|H9|pc|H8|pg||pc|C5|pc|CT|pc|CA|pc|C6|pg||pc|H7|pc|C7|pc|ST|pc"
+            "|S8|pg||pc|H6|pc|C9|pc|C8|pc|S9|pg||pc|CQ|pc|CJ|pc|CK|pc|SQ|pg||pg||"
         )
         self.assertEqual(
             expected_lin_str, build_lin_str(self.deal_records[0].deal, self.deal_records[0].board_records[0])
         )
 
     def test_build_lin_url(self):
+        deal = self.deal_records[0].deal
+        board_record = self.deal_records[0].board_records[0]
         expected_lin_url = (
             "https://www.bridgebase.com/tools/handviewer.html?lin=pn%7CPrinceBen%2CForrest_%2Csmalark%2Cgranola357%7Cst"
-            "%7C%7Cmd%7C1SQ982HQ82DKQ763CT%2CSJ643HKJ7653DCAQ4%2CSK5HADAJT52CJ9762%2CSAT7HT94D984CK853%7Csv%7Cn%7Cmb%"
-            "7Cp%7Cmb%7C1H%7Cmb%7C2N%7Can%7CUnusual+No+Trump%3A+2+5card+minors%7Cmb%7Cp%7Cmb%7C3N%7Cmb%7Cp%7Cmb%7Cp%7C"
-            "mb%7Cp%7Cpg%7C%7Cpc%7CH4%7Cpc%7CH2%7Cpc%7CHJ%7Cpc%7CHA%7Cpg%7C%7Cpc%7CDA%7Cpc%7CD4%7Cpc%7CD3%7Cpc%7CS3%7C"
-            "pg%7C%7Cpc%7CDJ%7Cpc%7CD8%7Cpc%7CD6%7Cpc%7CS4%7Cpg%7C%7Cpc%7CDT%7Cpc%7CD9%7Cpc%7CD7%7Cpc%7CS6%7Cpg%7C%7C"
-            "pc%7CD2%7Cpc%7CC3%7Cpc%7CDK%7Cpc%7CSJ%7Cpg%7C%7Cpc%7CDQ%7Cpc%7CC4%7Cpc%7CD5%7Cpc%7CS7%7Cpg%7C%7Cpc%7CS2%7C"
-            "pc%7CH3%7Cpc%7CSK%7Cpc%7CSA%7Cpg%7C%7Cpc%7CHT%7Cpc%7CHQ%7Cpc%7CHK%7Cpc%7CC2%7Cpg%7C%7Cpc%7CH5%7Cpc%7CS5%7C"
-            "pc%7CH9%7Cpc%7CH8%7Cpg%7C%7Cpc%7CC5%7Cpc%7CCT%7Cpc%7CCA%7Cpc%7CC6%7Cpg%7C%7Cpc%7CH7%7Cpc%7CC7%7Cpc%7CST%7C"
-            "pc%7CS8%7Cpg%7C%7Cpc%7CH6%7Cpc%7CC9%7Cpc%7CC8%7Cpc%7CS9%7Cpg%7C%7Cpc%7CCQ%7Cpc%7CCJ%7Cpc%7CCK%7Cpc%7CSQ%7C"
-            "pg%7C%7Cpg%7C%7C"
+            "%7C%7Cmd%7C1SQ982HQ82DKQ763CT%2CSJ643HKJ7653DCAQ4%2CSK5HADAJT52CJ9762%2CSAT7HT94D984CK853%7Cah%7CBoard+15%"
+            "7Csv%7Cn%7Cmb%7Cp%7Cmb%7C1H%7Cmb%7C2N%7Can%7CUnusual+No+Trump%3A+2+5card+minors%7Cmb%7Cp%7Cmb%7C3N%7Cmb%7C"
+            "p%7Cmb%7Cp%7Cmb%7Cp%7Cpg%7C%7Cpc%7CH4%7Cpc%7CH2%7Cpc%7CHJ%7Cpc%7CHA%7Cpg%7C%7Cpc%7CDA%7Cpc%7CD4%7Cpc%7CD3%"
+            "7Cpc%7CS3%7Cpg%7C%7Cpc%7CDJ%7Cpc%7CD8%7Cpc%7CD6%7Cpc%7CS4%7Cpg%7C%7Cpc%7CDT%7Cpc%7CD9%7Cpc%7CD7%7Cpc%7CS6%"
+            "7Cpg%7C%7Cpc%7CD2%7Cpc%7CC3%7Cpc%7CDK%7Cpc%7CSJ%7Cpg%7C%7Cpc%7CDQ%7Cpc%7CC4%7Cpc%7CD5%7Cpc%7CS7%7Cpg%7C%7C"
+            "pc%7CS2%7Cpc%7CH3%7Cpc%7CSK%7Cpc%7CSA%7Cpg%7C%7Cpc%7CHT%7Cpc%7CHQ%7Cpc%7CHK%7Cpc%7CC2%7Cpg%7C%7Cpc%7CH5%7C"
+            "pc%7CS5%7Cpc%7CH9%7Cpc%7CH8%7Cpg%7C%7Cpc%7CC5%7Cpc%7CCT%7Cpc%7CCA%7Cpc%7CC6%7Cpg%7C%7Cpc%7CH7%7Cpc%7CC7%7C"
+            "pc%7CST%7Cpc%7CS8%7Cpg%7C%7Cpc%7CH6%7Cpc%7CC9%7Cpc%7CC8%7Cpc%7CS9%7Cpg%7C%7Cpc%7CCQ%7Cpc%7CCJ%7Cpc%7CCK%7C"
+            "pc%7CSQ%7Cpg%7C%7Cpg%7C%7C"
         )
-        self.assertEqual(
-            expected_lin_url, build_lin_url(self.deal_records[0].deal, self.deal_records[0].board_records[0])
+        self.assertEqual(expected_lin_url, build_lin_url(deal, board_record))
+        board_with_no_name = dataclasses.replace(
+            board_record,
+            board_name=None,
+            score=board_record.score,
+            declarer_vulnerable=deal.is_vulnerable(board_record.declarer),
         )
+        boardless_lin_url = build_lin_url(deal, board_with_no_name)
+        expected_boardless_lin_url = (
+            "https://www.bridgebase.com/tools/handviewer.html?lin=pn%7CPrinceBen%2CForrest_%2Csmalark%2Cgranola357%7Cst"
+            "%7C%7Cmd%7C1SQ982HQ82DKQ763CT%2CSJ643HKJ7653DCAQ4%2CSK5HADAJT52CJ9762%2CSAT7HT94D984CK853%7Csv%7Cn%7Cmb%7C"
+            "p%7Cmb%7C1H%7Cmb%7C2N%7Can%7CUnusual+No+Trump%3A+2+5card+minors%7Cmb%7Cp%7Cmb%7C3N%7Cmb%7Cp%7Cmb%7Cp%7Cmb%"
+            "7Cp%7Cpg%7C%7Cpc%7CH4%7Cpc%7CH2%7Cpc%7CHJ%7Cpc%7CHA%7Cpg%7C%7Cpc%7CDA%7Cpc%7CD4%7Cpc%7CD3%7Cpc%7CS3%7Cpg%7"
+            "C%7Cpc%7CDJ%7Cpc%7CD8%7Cpc%7CD6%7Cpc%7CS4%7Cpg%7C%7Cpc%7CDT%7Cpc%7CD9%7Cpc%7CD7%7Cpc%7CS6%7Cpg%7C%7Cpc%7CD"
+            "2%7Cpc%7CC3%7Cpc%7CDK%7Cpc%7CSJ%7Cpg%7C%7Cpc%7CDQ%7Cpc%7CC4%7Cpc%7CD5%7Cpc%7CS7%7Cpg%7C%7Cpc%7CS2%7Cpc%7CH"
+            "3%7Cpc%7CSK%7Cpc%7CSA%7Cpg%7C%7Cpc%7CHT%7Cpc%7CHQ%7Cpc%7CHK%7Cpc%7CC2%7Cpg%7C%7Cpc%7CH5%7Cpc%7CS5%7Cpc%7CH"
+            "9%7Cpc%7CH8%7Cpg%7C%7Cpc%7CC5%7Cpc%7CCT%7Cpc%7CCA%7Cpc%7CC6%7Cpg%7C%7Cpc%7CH7%7Cpc%7CC7%7Cpc%7CST%7Cpc%7CS"
+            "8%7Cpg%7C%7Cpc%7CH6%7Cpc%7CC9%7Cpc%7CC8%7Cpc%7CS9%7Cpg%7C%7Cpc%7CCQ%7Cpc%7CCJ%7Cpc%7CCK%7Cpc%7CSQ%7Cpg%7C%"
+            "7Cpg%7C%7C"
+        )
+        self.assertEqual(expected_boardless_lin_url, boardless_lin_url)
