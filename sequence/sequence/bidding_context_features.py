@@ -19,8 +19,15 @@ class ContextFeature(ABC):
     def schema(self):
         raise NotImplementedError
 
+    @abstractmethod
+    def shape(self):
+        raise NotImplementedError
+
 
 class TargetHcp(ContextFeature):
+    def shape(self):
+        return 4
+
     def schema(self):
         return tf.io.FixedLenFeature([4], dtype=tf.int64)
 

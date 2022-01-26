@@ -6,7 +6,7 @@ authors = ["Forrest Rice <forrest.d.rice@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.11"
+python = ">=3.7,<3.11"
 tensorflow = "^2.7.0"
 bridgebots = "^0.0.9"
 

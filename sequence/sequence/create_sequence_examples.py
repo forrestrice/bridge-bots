@@ -81,7 +81,7 @@ if __name__ == "__main__":
     # TODO train/test/validation loop
     create_examples(
         Path("/Users/frice/bridge/bid_learn/deals/train.pickle"),
-        Path("/Users/frice/bridge/bid_learn/deals/toy/train.tfrecord"),
+        Path("/Users/frice/bridge/bid_learn/deals/train.tfrecord"),
         context_features,
         sequence_features,
         max_records=20
