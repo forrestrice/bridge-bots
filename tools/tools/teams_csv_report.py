@@ -181,8 +181,11 @@ def write_results(csv_path: Path, csv_dicts: List[Dict]):
 def report(format: str, verbose: bool, quiet: bool, lin_path: Path, csv_path: Path):
     if verbose:
         logging.basicConfig(level=logging.DEBUG)
-    elif not quiet:
+    elif quiet:
+        logging.basicConfig(level=logging.CRITICAL)
+    else:
         logging.basicConfig(level=logging.INFO)
+
     lin_file_paths = []
     if lin_path.is_file():
         lin_file_paths.append(lin_path)
@@ -196,7 +199,7 @@ def report(format: str, verbose: bool, quiet: bool, lin_path: Path, csv_path: Pa
         logging.debug(f"Found {len(deal_records)} deals in {lin_file_path}")
         for deal_record in deal_records:
             try:
-                open_dict, closed_dict = extract_team_dicts(deal_record, lin_path)
+                open_dict, closed_dict = extract_team_dicts(deal_record, lin_file_path)
                 prefix_dict = {f"o_{key}": value for key, value in open_dict.items()}
                 prefix_dict.update({f"c_{key}": value for key, value in closed_dict.items()})
                 csv_dicts.append(prefix_dict)
