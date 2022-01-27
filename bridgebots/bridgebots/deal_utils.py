@@ -166,3 +166,17 @@ def from_lin_deal(lin_dealer_str: str, vulnerability_str: str, holdings_str: str
 def count_hcp(cards: List[Card]) -> int:
     """:return Goren High Card Points for a list of cards"""
     return sum((_RANK_HCP.get(c.rank, 0) for c in cards))
+
+
+def calculate_shape(cards: List[Card], sort=False) -> Tuple[int, ...]:
+    """
+    :return: The hand-shape of a list of cards. If sort=False, return in descending suit order. If sort=True, return in
+    descending shape order
+    """
+    shape_count = [0] * 4
+    for card in cards:
+        shape_count[card.suit.value] += 1
+    shape_count.reverse()
+    if sort:
+        return tuple(sorted(shape_count, reverse=True))
+    return tuple(shape_count)
