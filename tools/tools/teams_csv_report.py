@@ -30,6 +30,8 @@ CSV_HEADERS = [
     "contested",
     "declarer",
     "contract",
+    "lead",
+    "result",
     "tricks",
     "score",
     "link",
@@ -41,6 +43,9 @@ PREFIX_CSV_HEADERS = [f"o_{header}" for header in CSV_HEADERS] + [f"c_{header}" 
 def calculate_opener_data(
     deal: Deal, board_record: BoardRecord
 ) -> Tuple[Optional[int], Optional[str], Optional[int], Optional[str]]:
+    """
+    :return: the seat which opened, the opening bid, opener's high card points, and opener's shape
+    """
     opener = None
     seat = None
     opening_bid = None
@@ -62,6 +67,11 @@ def calculate_opener_data(
 def calculate_overcaller_data(
     deal, board_record
 ) -> Tuple[Optional[str], Optional[str], Optional[int], Optional[str], Optional[bool]]:
+    """
+    :return: the overcall type (direct, balance, or sandwich) the overcall bid, overcallers's high card points,
+    overcaller's shape, and a contested boolean. The boolean will be true if someone overcalled or if one of players on
+    the non-opening team eventually made any bid other than PASS.
+    """
     opener = None
     open_index = None
     for i in range(4):
@@ -104,6 +114,9 @@ def calculate_overcaller_data(
 
 
 def calculate_vulnerable(deal: Deal) -> str:
+    """
+    :return: which seats were vulnerable (1-indexed)
+    """
     dealer_vuln = deal.is_vulnerable(deal.dealer)
     opp_vuln = deal.is_vulnerable(deal.dealer.next())
     if dealer_vuln and opp_vuln:
@@ -116,7 +129,10 @@ def calculate_vulnerable(deal: Deal) -> str:
         return "none"
 
 
-def create_bidding_entry(board_record: BoardRecord):
+def create_bidding_entry(board_record: BoardRecord) -> str:
+    """
+    :return: A string representing the bids, the alerts, and the announcements
+    """
     bidding_copy = board_record.bidding_record.copy()
     for bid_metadata in board_record.bidding_metadata:
         if bid_metadata.alerted:
@@ -126,7 +142,24 @@ def create_bidding_entry(board_record: BoardRecord):
     return "|".join(bidding_copy)
 
 
+def build_contract_result(board_record: BoardRecord) -> str:
+    if board_record.contract.level == 0:
+        return "PASS"
+    trick_delta = board_record.tricks - (board_record.contract.level + 6)
+    if trick_delta > 0:
+        trick_delta_str = f"+{trick_delta}"
+    elif trick_delta == 0:
+        trick_delta_str = "="
+    else:
+        trick_delta_str = str(trick_delta)
+    return str(board_record.contract) + trick_delta_str
+
+
+
 def extract_board_data(deal: Deal, board_record: BoardRecord, lin_path: Path) -> Dict:
+    """
+    :return: A dictionary of csv keys to data values for use in a csv.DictWriter
+    """
     board_dict = {}
     board_dict["board_id"] = board_record.board_name
     board_dict["file"] = lin_path.name
@@ -149,6 +182,8 @@ def extract_board_data(deal: Deal, board_record: BoardRecord, lin_path: Path) ->
     board_dict["contested"] = contested
     board_dict["declarer"] = board_record.declarer.name.lower()
     board_dict["contract"] = str(board_record.contract)
+    board_dict["lead"] = board_record.play_record[0] if len(board_record.play_record) > 0 else None
+    board_dict["result"] = build_contract_result(board_record)
     board_dict["tricks"] = board_record.tricks
     board_dict["score"] = board_record.score
     board_dict["link"] = build_lin_url(deal, board_record)
@@ -156,6 +191,11 @@ def extract_board_data(deal: Deal, board_record: BoardRecord, lin_path: Path) ->
 
 
 def extract_team_dicts(deal_record: DealRecord, lin_path: Path) -> Tuple[Dict, Dict]:
+    """
+    :param deal_record: a deal record with exactly two BoardRecords
+    :param lin_path: the path to the original lin file
+    :return: A pair of open/closed room dictionaries for csv writing
+    """
     if len(deal_record.board_records) != 2:
         raise ValueError(f"Invalid number of board records for a teams match: {len(deal_record.board_records)}")
     open_board, closed_board = deal_record.board_records[0], deal_record.board_records[1]
@@ -165,6 +205,9 @@ def extract_team_dicts(deal_record: DealRecord, lin_path: Path) -> Tuple[Dict, D
 
 
 def write_results(csv_path: Path, csv_dicts: List[Dict]):
+    """
+    Write csv_dicts to csv_path using PREFIX_CSV_HEADERS
+    """
     with open(csv_path, "w") as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=PREFIX_CSV_HEADERS)
         writer.writeheader()
