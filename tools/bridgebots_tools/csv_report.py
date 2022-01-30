@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Tuple
 
 import click
 
-from bridgebots import BoardRecord, Deal, DealRecord, Direction, build_lin_url, parse_multi_lin
+from bridgebots import BoardRecord, Deal, DealRecord, Direction, build_lin_url, parse_multi_lin, parse_pbn
 from bridgebots.deal_utils import calculate_shape, count_hcp
 
 # This list can be reordered or items can be removed to modify the output columns
@@ -155,14 +155,13 @@ def build_contract_result(board_record: BoardRecord) -> str:
     return str(board_record.contract) + trick_delta_str
 
 
-
-def extract_board_data(deal: Deal, board_record: BoardRecord, lin_path: Path) -> Dict:
+def extract_board_data(deal: Deal, board_record: BoardRecord, results_path: Path) -> Dict:
     """
     :return: A dictionary of csv keys to data values for use in a csv.DictWriter
     """
     board_dict = {}
     board_dict["board_id"] = board_record.board_name
-    board_dict["file"] = lin_path.name
+    board_dict["file"] = results_path.name
     board_dict.update({direction.name.lower(): board_record.names[direction] for direction in Direction})
     board_dict["dealer"] = deal.dealer.name.lower()
     board_dict["vulnerable"] = calculate_vulnerable(deal)
@@ -190,66 +189,86 @@ def extract_board_data(deal: Deal, board_record: BoardRecord, lin_path: Path) ->
     return board_dict
 
 
-def extract_team_dicts(deal_record: DealRecord, lin_path: Path) -> Tuple[Dict, Dict]:
+def extract_team_dicts(deal_record: DealRecord, results_path: Path) -> Tuple[Dict, Dict]:
     """
     :param deal_record: a deal record with exactly two BoardRecords
-    :param lin_path: the path to the original lin file
+    :param results_path: the path to the original lin/pbn file
     :return: A pair of open/closed room dictionaries for csv writing
     """
     if len(deal_record.board_records) != 2:
         raise ValueError(f"Invalid number of board records for a teams match: {len(deal_record.board_records)}")
     open_board, closed_board = deal_record.board_records[0], deal_record.board_records[1]
-    return extract_board_data(deal_record.deal, open_board, lin_path), extract_board_data(
-        deal_record.deal, closed_board, lin_path
+    return extract_board_data(deal_record.deal, open_board, results_path), extract_board_data(
+        deal_record.deal, closed_board, results_path
     )
 
 
-def write_results(csv_path: Path, csv_dicts: List[Dict]):
+def write_results(csv_path: Path, csv_dicts: List[Dict], output_format: str):
     """
     Write csv_dicts to csv_path using PREFIX_CSV_HEADERS
     """
+    headers = PREFIX_CSV_HEADERS if output_format == "team" else CSV_HEADERS
     with open(csv_path, "w") as csv_file:
-        writer = csv.DictWriter(csv_file, fieldnames=PREFIX_CSV_HEADERS)
+        writer = csv.DictWriter(csv_file, fieldnames=headers)
         writer.writeheader()
         for csv_dict in csv_dicts:
             writer.writerow(csv_dict)
 
 
 @click.command()
-@click.option("--format", type=click.Choice(["team", "individual"], case_sensitive=False), default="team")
-@click.option("--verbose/--normal", "-v/", default=False)
-@click.option("--quiet/--loud", "-q/", default=False)
-@click.argument("lin_path", type=click.Path(exists=True, file_okay=True, dir_okay=True, path_type=Path))
-@click.argument("csv_path", type=click.Path(exists=False, file_okay=True, dir_okay=False, path_type=Path))
-def report(format: str, verbose: bool, quiet: bool, lin_path: Path, csv_path: Path):
-    if verbose:
+@click.option("--input_format", type=click.Choice(["lin", "pbn"], case_sensitive=False), default="lin")
+@click.option("--output_format", type=click.Choice(["team", "individual"], case_sensitive=False), default="team")
+@click.option("--verbose", "log_level", "-v", flag_value="verbose")
+@click.option("--info", "log_level", flag_value="info", default=True)
+@click.option("--quiet", "log_level", "-q", flag_value="quiet")
+@click.argument("input_path", type=click.Path(exists=True, file_okay=True, dir_okay=True, path_type=Path))
+@click.argument(
+    "output_path", type=click.Path(exists=False, file_okay=True, dir_okay=False, path_type=Path), required=False
+)
+def report(input_format: str, output_format: str, log_level: str, input_path: Path, output_path: Path):
+    if log_level == "verbose":
         logging.basicConfig(level=logging.DEBUG)
-    elif quiet:
+    elif log_level == "quiet":
         logging.basicConfig(level=logging.CRITICAL)
     else:
         logging.basicConfig(level=logging.INFO)
 
-    lin_file_paths = []
-    if lin_path.is_file():
-        lin_file_paths.append(lin_path)
-    elif lin_path.is_dir():
-        lin_file_paths.extend(lin_path.rglob("*.lin"))
-    logging.debug(f"Found {len(lin_file_paths)} LIN files to read.")
+    if output_path is None:
+        output_path = Path.cwd() / "bridge_report.csv"
+        logging.info(f"No output path was supplied. Using default in current directory: {output_path}.")
+
+    results_file_paths = []
+    if input_path.is_file():
+        results_file_paths.append(input_path)
+    elif input_path.is_dir():
+        results_file_paths.extend(input_path.rglob(f"*.{input_format}"))
+    logging.debug(f"Found {len(results_file_paths)} {input_format} files to read.")
     csv_dicts = []
-    for lin_file_path in lin_file_paths:
-        logging.debug(f"Processing {lin_file_path}")
-        deal_records = parse_multi_lin(lin_file_path)
-        logging.debug(f"Found {len(deal_records)} deals in {lin_file_path}")
+    for results_file_path in results_file_paths:
+        logging.debug(f"Processing {results_file_path}")
+        if input_format == "lin":
+            deal_records = parse_multi_lin(results_file_path)
+        else:
+            deal_records = parse_pbn(results_file_path)
+        logging.debug(f"Found {len(deal_records)} deals in {results_file_path}")
         for deal_record in deal_records:
             try:
-                open_dict, closed_dict = extract_team_dicts(deal_record, lin_file_path)
-                prefix_dict = {f"o_{key}": value for key, value in open_dict.items()}
-                prefix_dict.update({f"c_{key}": value for key, value in closed_dict.items()})
-                csv_dicts.append(prefix_dict)
-            except ValueError as e:
+                if output_format == "team":
+                    open_dict, closed_dict = extract_team_dicts(deal_record, results_file_path)
+                    prefix_dict = {f"o_{key}": value for key, value in open_dict.items()}
+                    prefix_dict.update({f"c_{key}": value for key, value in closed_dict.items()})
+                    csv_dicts.append(prefix_dict)
+                else:
+                    csv_dicts.extend(
+                        [
+                            extract_board_data(deal_record.deal, board_record, results_file_path)
+                            for board_record in deal_record.board_records
+                        ]
+                    )
+            except (ValueError, IndexError) as e:
                 logging.warning(f"Error processing deal:{deal_record}. Error:{e}")
-    logging.debug(f"Writing {len(csv_dicts)} deals to {csv_path}")
-    write_results(csv_path, csv_dicts)
+    logging.debug(f"Writing {len(csv_dicts)} deals to {output_path}")
+    write_results(output_path, csv_dicts, output_format)
 
 
 if __name__ == "__main__":
