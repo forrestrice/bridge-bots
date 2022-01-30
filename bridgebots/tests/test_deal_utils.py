@@ -2,7 +2,7 @@ import json
 import unittest
 
 from bridgebots import Deal, Direction, PlayerHand, Suit, deal_utils, from_acbl_dict
-from bridgebots.deal_utils import _parse_lin_holding
+from bridgebots.deal_utils import _parse_lin_holding, calculate_shape, count_hcp
 
 
 class TestAcblDeal(unittest.TestCase):
@@ -98,3 +98,14 @@ class TestLinDeal(unittest.TestCase):
         self.assertEqual(
             [["A", "K", "7"], ["J", "6", "5", "4"], [], ["Q", "9", "8", "6", "5", "4"]], _parse_lin_holding(holding)
         )
+
+
+class TestHelpers(unittest.TestCase):
+    hand = PlayerHand.from_string_lists(["K", "8", "4"], ["J", "5", "2"], ["A", "9", "4"], ["A", "K", "Q", "5"])
+
+    def test_hcp(self):
+        self.assertEqual(17, count_hcp(self.hand.cards))
+
+    def test_shape(self):
+        self.assertEqual((3, 3, 3, 4), calculate_shape(self.hand.cards))
+        self.assertEqual((4, 3, 3, 3), calculate_shape(self.hand.cards, sort=True))

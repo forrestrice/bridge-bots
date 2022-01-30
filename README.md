@@ -12,8 +12,11 @@ A basic ACBL API client (unfortunately the API documenation and registration see
 
 Web scrapers used to download data from my club's website and from BBO.
 
+## Tools
+Tools which build on the core module to process data. See the [Readme](tools/README.md).
+
 ## Train
-Initial forey into creating training data for Machine Learning projects.
+Initial foray into creating training data for Machine Learning projects.
 
 ## Sequence
 Training sequence based models to predict bidding and cardplay.

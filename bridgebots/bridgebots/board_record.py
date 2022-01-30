@@ -89,7 +89,8 @@ class BoardRecord:
     bidding_metadata: Optional[List[BidMetadata]]
     commentary: Optional[List[Commentary]]
     declarer_vulnerable: InitVar[bool] = None
-    score: int = None
+    score: Optional[int] = None
+    board_name: Optional[str] = None
 
     def __post_init__(self, declarer_vulnerable: bool):
         if self.score is None and declarer_vulnerable is None:
@@ -116,11 +117,12 @@ class BoardRecord:
                 tuple(self.bidding_record) if self.bidding_record else None,
                 tuple(self.commentary) if self.commentary else None,
                 self.score,
+                self.board_name,
             )
         )
 
 
-@dataclass
+@dataclass(frozen=True)
 class DealRecord:
     """
     Wrapper class for a deal and all the board records associated with the deal

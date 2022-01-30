@@ -7,4 +7,4 @@ bbo_password.txt
 train/data
 .DS_Store
 dist/
-bridgebots/poetry.lock
+*/poetry.lock

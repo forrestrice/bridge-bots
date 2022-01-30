@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.10] - 2022-1-29
+### Added
+- `board_name` is now an optional parameter of board_record. Added board name parsing to the lin module.
+### Changed
+- `DealRecord` is now a frozen dataclass like other record classes.
+- Fixed a bug where the last record in a multi-board LIN file would sometimes be ignored.
+
 ## [0.0.9] - 2022-1-16
 ### Added
 - `parse_pbn` now handles files which used shared deals for multiple board records.
