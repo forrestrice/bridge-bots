@@ -45,7 +45,38 @@ Options:
     
 - `INPUT_PATH` path to a bridge file or directory containing bridge files. If a directory is used, it will be searched recursively.
 
-- `OUTPUT_PATH` path to output csv file. If not supplied, a file named `    bridge_report.csv` will be created in the execution directory.
+- `OUTPUT_PATH` path to output csv file. If not supplied, the csv will be written to stdout.
+
+### Output Fields
+| Name      | Value |
+| :---:        |    :----:  |
+|board_id| Board name|
+|file| Originating file|
+|north| Player name|
+|south|Player name|
+|east|Player name|
+|west|Player name|
+|dealer|Direction|
+|vulnerable|Which seats are vulnerable. One of: `all`, `none`, `1-3` (declarer r/w), `2-4`(declarer w/r)|
+|bidding|The bids, alerts, and announcements from the auction|
+|opener|Which seat opened (1-indexed)|
+|opening|Bid|
+|opener_hcp|Opener's Goren high card points|
+|opener_shape|Opener's shape in descending suit order|
+|overcall_type|One of `None`, `Direct`, `Sandwich`, or `Balance`|
+|overcall|Bid|
+|overcaller_hcp|Overcallers's Goren high card points|
+|overcaller_shape|Overcaller's shape in descending suit order|
+|contested|True if the team that didn't open made any action other than PASS|
+|declarer|Direction|
+|contract|Final Contract|
+|lead|Card led|
+|result|Outcome (e.g. 2H-2)|
+|tricks|Number of tricks taken by declarer|
+|score_ns|Score for north-south|
+|score_ew|Score for east-west|
+|link|BBO link to board_record|
+
 
 ### Examples
 Run the report on a single LIN file and output in team format:

@@ -1,5 +1,6 @@
 import csv
 import logging
+import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -9,7 +10,7 @@ from bridgebots import BoardRecord, Deal, DealRecord, Direction, build_lin_url, 
 from bridgebots.deal_utils import calculate_shape, count_hcp
 
 # This list can be reordered or items can be removed to modify the output columns
-CSV_HEADERS = [
+_CSV_HEADERS = [
     "board_id",
     "file",
     "north",
@@ -33,14 +34,15 @@ CSV_HEADERS = [
     "lead",
     "result",
     "tricks",
-    "score",
+    "score_ns",
+    "score_ew",
     "link",
 ]
 
-PREFIX_CSV_HEADERS = [f"o_{header}" for header in CSV_HEADERS] + [f"c_{header}" for header in CSV_HEADERS]
+_PREFIX_CSV_HEADERS = [f"o_{header}" for header in _CSV_HEADERS] + [f"c_{header}" for header in _CSV_HEADERS]
 
 
-def calculate_opener_data(
+def _calculate_opener_data(
     deal: Deal, board_record: BoardRecord
 ) -> Tuple[Optional[int], Optional[str], Optional[int], Optional[str]]:
     """
@@ -64,7 +66,7 @@ def calculate_opener_data(
     return seat, opening_bid, opener_hcp, opener_shape_str
 
 
-def calculate_overcaller_data(
+def _calculate_overcaller_data(
     deal, board_record
 ) -> Tuple[Optional[str], Optional[str], Optional[int], Optional[str], Optional[bool]]:
     """
@@ -113,7 +115,7 @@ def calculate_overcaller_data(
     return overcall_type, overcall, overcaller_hcp, overcaller_shape_str, contested
 
 
-def calculate_vulnerable(deal: Deal) -> str:
+def _calculate_vulnerable(deal: Deal) -> str:
     """
     :return: which seats were vulnerable (1-indexed)
     """
@@ -129,7 +131,7 @@ def calculate_vulnerable(deal: Deal) -> str:
         return "none"
 
 
-def create_bidding_entry(board_record: BoardRecord) -> str:
+def _create_bidding_entry(board_record: BoardRecord) -> str:
     """
     :return: A string representing the bids, the alerts, and the announcements
     """
@@ -142,7 +144,7 @@ def create_bidding_entry(board_record: BoardRecord) -> str:
     return "|".join(bidding_copy)
 
 
-def build_contract_result(board_record: BoardRecord) -> str:
+def _create_contract_result(board_record: BoardRecord) -> str:
     if board_record.contract.level == 0:
         return "PASS"
     trick_delta = board_record.tricks - (board_record.contract.level + 6)
@@ -155,7 +157,17 @@ def build_contract_result(board_record: BoardRecord) -> str:
     return str(board_record.contract) + trick_delta_str
 
 
-def extract_board_data(deal: Deal, board_record: BoardRecord, results_path: Path) -> Dict:
+def _calculate_direction_scores(board_record: BoardRecord) -> Tuple[int, int]:
+    """
+    :return: A tuple of north-south and east-west scores. Useful to have both for team comparisons.
+    """
+    ns_score = (
+        board_record.score if board_record.declarer in [Direction.NORTH, Direction.SOUTH] else -1 * board_record.score
+    )
+    return ns_score, ns_score * -1
+
+
+def _extract_board_data(deal: Deal, board_record: BoardRecord, results_path: Path) -> Dict:
     """
     :return: A dictionary of csv keys to data values for use in a csv.DictWriter
     """
@@ -164,14 +176,14 @@ def extract_board_data(deal: Deal, board_record: BoardRecord, results_path: Path
     board_dict["file"] = results_path.name
     board_dict.update({direction.name.lower(): board_record.names[direction] for direction in Direction})
     board_dict["dealer"] = deal.dealer.name.lower()
-    board_dict["vulnerable"] = calculate_vulnerable(deal)
-    board_dict["bidding"] = create_bidding_entry(board_record)
-    opener_seat, opening_bid, opener_hcp, opener_shape_str = calculate_opener_data(deal, board_record)
+    board_dict["vulnerable"] = _calculate_vulnerable(deal)
+    board_dict["bidding"] = _create_bidding_entry(board_record)
+    opener_seat, opening_bid, opener_hcp, opener_shape_str = _calculate_opener_data(deal, board_record)
     board_dict["opener"] = opener_seat
     board_dict["opening"] = opening_bid
     board_dict["opener_hcp"] = opener_hcp
     board_dict["opener_shape"] = opener_shape_str
-    overcall_type, overcall, overcaller_hcp, overcaller_shape_str, contested = calculate_overcaller_data(
+    overcall_type, overcall, overcaller_hcp, overcaller_shape_str, contested = _calculate_overcaller_data(
         deal, board_record
     )
     board_dict["overcall_type"] = overcall_type
@@ -182,14 +194,14 @@ def extract_board_data(deal: Deal, board_record: BoardRecord, results_path: Path
     board_dict["declarer"] = board_record.declarer.name.lower()
     board_dict["contract"] = str(board_record.contract)
     board_dict["lead"] = board_record.play_record[0] if len(board_record.play_record) > 0 else None
-    board_dict["result"] = build_contract_result(board_record)
+    board_dict["result"] = _create_contract_result(board_record)
     board_dict["tricks"] = board_record.tricks
-    board_dict["score"] = board_record.score
+    board_dict["score_ns"], board_dict["score_ew"] = _calculate_direction_scores(board_record)
     board_dict["link"] = build_lin_url(deal, board_record)
     return board_dict
 
 
-def extract_team_dicts(deal_record: DealRecord, results_path: Path) -> Tuple[Dict, Dict]:
+def _extract_team_dicts(deal_record: DealRecord, results_path: Path) -> Tuple[Dict, Dict]:
     """
     :param deal_record: a deal record with exactly two BoardRecords
     :param results_path: the path to the original lin/pbn file
@@ -198,21 +210,25 @@ def extract_team_dicts(deal_record: DealRecord, results_path: Path) -> Tuple[Dic
     if len(deal_record.board_records) != 2:
         raise ValueError(f"Invalid number of board records for a teams match: {len(deal_record.board_records)}")
     open_board, closed_board = deal_record.board_records[0], deal_record.board_records[1]
-    return extract_board_data(deal_record.deal, open_board, results_path), extract_board_data(
+    return _extract_board_data(deal_record.deal, open_board, results_path), _extract_board_data(
         deal_record.deal, closed_board, results_path
     )
 
 
-def write_results(csv_path: Path, csv_dicts: List[Dict], output_format: str):
+def _write_results(csv_path: Path, csv_dicts: List[Dict], output_format: str):
     """
     Write csv_dicts to csv_path using PREFIX_CSV_HEADERS
     """
-    headers = PREFIX_CSV_HEADERS if output_format == "team" else CSV_HEADERS
-    with open(csv_path, "w") as csv_file:
-        writer = csv.DictWriter(csv_file, fieldnames=headers)
+    headers = _PREFIX_CSV_HEADERS if output_format == "team" else _CSV_HEADERS
+    output_handle = open(csv_path, "w") if csv_path else sys.stdout
+    try:
+        writer = csv.DictWriter(output_handle, fieldnames=headers)
         writer.writeheader()
         for csv_dict in csv_dicts:
             writer.writerow(csv_dict)
+    finally:
+        if csv_path:
+            output_handle.close()
 
 
 @click.command()
@@ -233,10 +249,6 @@ def report(input_format: str, output_format: str, log_level: str, input_path: Pa
     else:
         logging.basicConfig(level=logging.INFO)
 
-    if output_path is None:
-        output_path = Path.cwd() / "bridge_report.csv"
-        logging.info(f"No output path was supplied. Using default in current directory: {output_path}.")
-
     results_file_paths = []
     if input_path.is_file():
         results_file_paths.append(input_path)
@@ -254,21 +266,21 @@ def report(input_format: str, output_format: str, log_level: str, input_path: Pa
         for deal_record in deal_records:
             try:
                 if output_format == "team":
-                    open_dict, closed_dict = extract_team_dicts(deal_record, results_file_path)
+                    open_dict, closed_dict = _extract_team_dicts(deal_record, results_file_path)
                     prefix_dict = {f"o_{key}": value for key, value in open_dict.items()}
                     prefix_dict.update({f"c_{key}": value for key, value in closed_dict.items()})
                     csv_dicts.append(prefix_dict)
                 else:
                     csv_dicts.extend(
                         [
-                            extract_board_data(deal_record.deal, board_record, results_file_path)
+                            _extract_board_data(deal_record.deal, board_record, results_file_path)
                             for board_record in deal_record.board_records
                         ]
                     )
             except (ValueError, IndexError) as e:
                 logging.warning(f"Error processing deal:{deal_record}. Error:{e}")
     logging.debug(f"Writing {len(csv_dicts)} deals to {output_path}")
-    write_results(output_path, csv_dicts, output_format)
+    _write_results(output_path, csv_dicts, output_format)
 
 
 if __name__ == "__main__":
