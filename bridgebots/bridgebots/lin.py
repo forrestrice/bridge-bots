@@ -234,6 +234,9 @@ def _build_play_str(board_record: BoardRecord) -> str:
 
 
 def _build_board_name(board_name: Optional[str]) -> str:
+    """
+    :return: A LIN node representing the board number. Uses the first numeric sequence of characters in the board_name.
+    """
     if board_name is None:
         return ""
     match = re.search(r"\d+", board_name)
@@ -243,6 +246,9 @@ def _build_board_name(board_name: Optional[str]) -> str:
 
 
 def _combine_header(file) -> str:
+    """
+    :returns: The combined header lines of a multi-board LIN.
+    """
     combined = ""
     line = file.readline()
     while line:

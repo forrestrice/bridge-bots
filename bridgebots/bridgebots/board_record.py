@@ -117,7 +117,7 @@ class BoardRecord:
                 tuple(self.bidding_record) if self.bidding_record else None,
                 tuple(self.commentary) if self.commentary else None,
                 self.score,
-                self.board_name
+                self.board_name,
             )
         )
 
