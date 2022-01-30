@@ -49,7 +49,7 @@ Options:
 
 ### Output Fields
 | Name      | Value |
-| :---:        |    :----:  |
+| :---:        |    :----  |
 |board_id| Board name|
 |file| Originating file|
 |north| Player name|
