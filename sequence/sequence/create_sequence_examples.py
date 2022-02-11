@@ -7,7 +7,7 @@ import tensorflow as tf
 from tensorflow.python.lib.io.tf_record import TFRecordCompressionType
 
 from bridgebots import DealRecord
-from sequence.bidding_context_features import ContextFeature, TargetHcp
+from sequence.bidding_context_features import ContextFeature, TargetHcp, Vulnerability
 from sequence.bidding_sequence_features import (
     BiddingSequenceExampleData,
     BiddingSequenceFeature,
@@ -77,11 +77,11 @@ def create_examples(
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     sequence_features = [BiddingSequenceFeature(), HoldingSequenceFeature(), PlayerPositionSequenceFeature()]
-    context_features = [TargetHcp()]
+    context_features = [TargetHcp(), Vulnerability()]
     # TODO train/test/validation loop
     create_examples(
-        Path("/Users/frice/bridge/bid_learn/deals/train.pickle"),
-        Path("/Users/frice/bridge/bid_learn/deals/train.tfrecord"),
+        Path("/Users/frice/bridge/bid_learn/deals/toy/train.pickle"),
+        Path("/Users/frice/bridge/bid_learn/deals/toy/train.tfrecord"),
         context_features,
         sequence_features,
         max_records=20

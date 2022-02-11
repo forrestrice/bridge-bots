@@ -12,6 +12,7 @@ def create_data_splits(
     save_dir: Path,
     splits: Tuple[Tuple[str, float]] = (("train", 0.8), ("validation", 0.1), ("test", 0.1)),
     shuffle: bool = True,
+    max_records: int = None,
 ):
     """
     Splits DealRecord data for model training and evaluation
@@ -34,9 +35,11 @@ def create_data_splits(
         split_records.append((split, []))
         weights.append(weight)
 
-    for deal_record in deal_records:
+    for i, deal_record in enumerate(deal_records):
         split_name, split_record_list = random.choices(split_records, weights)[0]
         split_record_list.append(deal_record)
+        if max_records and i > max_records:
+            break
 
     for split_name, split_record_list in split_records:
         # Chunk writes to make pickle happy with large batches of records
@@ -50,5 +53,7 @@ def create_data_splits(
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     create_data_splits(
-        Path("/Users/frice/bridge/vugraph_project/all_deals.pickle"), Path("/Users/frice/bridge/bid_learn/deals/")
+        Path("/Users/frice/bridge/vugraph_project/all_deals.pickle"),
+        Path("/Users/frice/bridge/bid_learn/deals/toy/"),
+        max_records=100,
     )
