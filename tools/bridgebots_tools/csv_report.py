@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Tuple
 
 import click
 
-from bridgebots import BoardRecord, Deal, DealRecord, Direction, build_lin_url, parse_multi_lin, parse_pbn
+from bridgebots import BoardRecord, Card, Deal, DealRecord, Direction, build_lin_url, parse_multi_lin, parse_pbn
 from bridgebots.deal_utils import calculate_shape, count_hcp
 
 # This list can be reordered or items can be removed to modify the output columns
@@ -36,10 +36,25 @@ _CSV_HEADERS = [
     "tricks",
     "score_ns",
     "score_ew",
+    "score_declarer",
+    "score_defender",
     "link",
+    "declarer_shape",
+    "dummy_shape",
+    "lho_shape",
+    "rho_shape",
+    "declarer_hcp",
+    "dummy_hcp",
+    "lho_hcp",
+    "rho_hcp",
 ]
 
 _PREFIX_CSV_HEADERS = [f"o_{header}" for header in _CSV_HEADERS] + [f"c_{header}" for header in _CSV_HEADERS]
+
+
+def _calculate_shape_str(cards: List[Card]) -> str:
+    """Calculate a shape tuple like (5,3,3,2) and convert it to a shape_str like 5332"""
+    return "".join(str(s) for s in calculate_shape(cards))
 
 
 def _calculate_opener_data(
@@ -61,8 +76,7 @@ def _calculate_opener_data(
         return None, None, None, None
     opener_cards = deal.player_cards[opener]
     opener_hcp = count_hcp(opener_cards)
-    opener_shape = calculate_shape(opener_cards)
-    opener_shape_str = "".join(str(s) for s in opener_shape)
+    opener_shape_str = _calculate_shape_str(opener_cards)
     return seat, opening_bid, opener_hcp, opener_shape_str
 
 
@@ -103,8 +117,7 @@ def _calculate_overcaller_data(
     if overcaller:
         overcaller_cards = deal.player_cards[overcaller]
         overcaller_hcp = count_hcp(overcaller_cards)
-        overcaller_shape = calculate_shape(overcaller_cards)
-        overcaller_shape_str = "".join(str(s) for s in overcaller_shape)
+        overcaller_shape_str = _calculate_shape_str(overcaller_cards)
 
     contested = False
     for i, bid in enumerate(board_record.bidding_record[open_index:]):
@@ -178,11 +191,13 @@ def _extract_board_data(deal: Deal, board_record: BoardRecord, results_path: Pat
     board_dict["dealer"] = deal.dealer.name.lower()
     board_dict["vulnerable"] = _calculate_vulnerable(deal)
     board_dict["bidding"] = _create_bidding_entry(board_record)
+
     opener_seat, opening_bid, opener_hcp, opener_shape_str = _calculate_opener_data(deal, board_record)
     board_dict["opener"] = opener_seat
     board_dict["opening"] = opening_bid
     board_dict["opener_hcp"] = opener_hcp
     board_dict["opener_shape"] = opener_shape_str
+
     overcall_type, overcall, overcaller_hcp, overcaller_shape_str, contested = _calculate_overcaller_data(
         deal, board_record
     )
@@ -191,13 +206,26 @@ def _extract_board_data(deal: Deal, board_record: BoardRecord, results_path: Pat
     board_dict["overcaller_hcp"] = overcaller_hcp
     board_dict["overcaller_shape"] = overcaller_shape_str
     board_dict["contested"] = contested
+
     board_dict["declarer"] = board_record.declarer.name.lower()
     board_dict["contract"] = str(board_record.contract)
     board_dict["lead"] = board_record.play_record[0] if len(board_record.play_record) > 0 else None
     board_dict["result"] = _create_contract_result(board_record)
     board_dict["tricks"] = board_record.tricks
     board_dict["score_ns"], board_dict["score_ew"] = _calculate_direction_scores(board_record)
+    board_dict["score_declarer"], board_dict["score_defender"] = board_record.score, board_record.score * -1
     board_dict["link"] = build_lin_url(deal, board_record)
+
+    board_dict["declarer_shape"] = _calculate_shape_str(deal.player_cards[board_record.declarer])
+    board_dict["dummy_shape"] = _calculate_shape_str(deal.player_cards[board_record.declarer.partner()])
+    board_dict["lho_shape"] = _calculate_shape_str(deal.player_cards[board_record.declarer.offset(1)])
+    board_dict["rho_shape"] = _calculate_shape_str(deal.player_cards[board_record.declarer.offset(3)])
+
+    board_dict["declarer_hcp"] = count_hcp(deal.player_cards[board_record.declarer])
+    board_dict["dummy_hcp"] = count_hcp(deal.player_cards[board_record.declarer.partner()])
+    board_dict["lho_hcp"] = count_hcp(deal.player_cards[board_record.declarer.offset(1)])
+    board_dict["rho_hcp"] = count_hcp(deal.player_cards[board_record.declarer.offset(3)])
+
     return board_dict
 
 
@@ -222,7 +250,7 @@ def _write_results(csv_path: Path, csv_dicts: List[Dict], output_format: str):
     headers = _PREFIX_CSV_HEADERS if output_format == "team" else _CSV_HEADERS
     output_handle = open(csv_path, "w") if csv_path else sys.stdout
     try:
-        writer = csv.DictWriter(output_handle, fieldnames=headers)
+        writer = csv.DictWriter(output_handle, fieldnames=headers, extrasaction="ignore")
         writer.writeheader()
         for csv_dict in csv_dicts:
             writer.writerow(csv_dict)
