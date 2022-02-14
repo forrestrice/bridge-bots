@@ -8,3 +8,5 @@ train/data
 .DS_Store
 dist/
 */poetry.lock
+**/logs
+**/checkpoints

@@ -35,7 +35,7 @@ class OneHandSequenceExampleGenerator:
             # Holdings and context features do not change across board records so may be calculated once per deal
             player_holdings = {dealer.offset(i): holding(dealer.offset(i), deal_record) for i in range(4)}
             calculated_context_features = {
-                context_feature.name(): context_feature.calculate(deal_record)
+                context_feature.name: context_feature.calculate(deal_record)
                 for context_feature in self.context_features
             }
             for board_record in deal_record.board_records:
@@ -47,7 +47,7 @@ class OneHandSequenceExampleGenerator:
     ):
         context = tf.train.Features(feature=calculated_context_features)
         calculated_sequence_features = {
-            feature.name(): feature.calculate(bidding_data) for feature in self.sequence_features
+            feature.name: feature.calculate(bidding_data) for feature in self.sequence_features
         }
         feature_lists = tf.train.FeatureLists(feature_list=calculated_sequence_features)
         return tf.train.SequenceExample(context=context, feature_lists=feature_lists)
@@ -80,9 +80,9 @@ if __name__ == "__main__":
     context_features = [TargetHcp(), Vulnerability()]
     # TODO train/test/validation loop
     create_examples(
-        Path("/Users/frice/bridge/bid_learn/deals/toy/train.pickle"),
-        Path("/Users/frice/bridge/bid_learn/deals/toy/train.tfrecord"),
+        Path("/Users/frice/bridge/bid_learn/deals/train.pickle"),
+        Path("/Users/frice/bridge/bid_learn/deals/train.tfrecord"),
         context_features,
         sequence_features,
-        max_records=20
+        #max_records=20
     )
