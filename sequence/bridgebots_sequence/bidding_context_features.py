@@ -9,24 +9,24 @@ from bridgebots.deal_utils import count_hcp
 class ContextFeature(ABC):
     @abstractmethod
     def calculate(self, deal_record: DealRecord) -> tf.train.Feature:
-        raise NotImplementedError
+        pass
 
     @property
     @abstractmethod
     def name(self):
-        raise NotImplementedError
+        pass
 
     @abstractmethod
     def schema(self):
-        raise NotImplementedError
+        pass
 
     @abstractmethod
     def shape(self):
-        raise NotImplementedError
+        pass
 
     @tf.function
     def prepare_dataset(self, contexts, sequences, batch_size, time_steps):
-        raise NotImplementedError
+        pass
 
 
 class TargetHcp(ContextFeature):

@@ -3,19 +3,18 @@ from pathlib import Path
 from typing import List
 
 import tensorflow as tf
-import tensorflow.keras.backend as K
 from keras.layers import Dense, LSTM
 from tensorflow.keras import Input, Model, layers
 
-from sequence.bidding_context_features import ContextFeature, TargetHcp, Vulnerability
-from sequence.bidding_sequence_features import (
+from bridgebots_sequence.bidding_context_features import ContextFeature, TargetHcp, Vulnerability
+from bridgebots_sequence.bidding_sequence_features import (
     BiddingSequenceFeature,
     HoldingSequenceFeature,
     PlayerPositionSequenceFeature,
     SequenceFeature,
 )
-from sequence.feature_utils import BIDDING_VOCAB_SIZE
-from sequence.streamlined_dataset_pipeline import build_dataset
+from bridgebots_sequence.dataset_pipeline import build_tfrecord_dataset
+from bridgebots_sequence.feature_utils import BIDDING_VOCAB_SIZE
 
 
 def build_lstm(target: ContextFeature, sequence_features: List[SequenceFeature], lstm_units=128):
@@ -24,10 +23,12 @@ def build_lstm(target: ContextFeature, sequence_features: List[SequenceFeature],
     player_position = Input(shape=(None, 4), name="one_hot_player_position")
     holding = Input(shape=(None, 52), name="holding")
     sequence_vulnerability = Input(shape=(None, 2), name="sequence_vulnerability")
-    #vulnerability = K.expand_dims(Input(shape=2, name="vulnerability"), axis=2)
+    # vulnerability = K.expand_dims(Input(shape=2, name="vulnerability"), axis=2)
     vulnerability = Input(shape=2, name="vulnerability")
-    vulnerability_initial_state = tf.keras.layers.Reshape((2,1))(vulnerability)
-    vulnerability_initial_state = tf.keras.layers.ZeroPadding1D(padding=(0, lstm_units - 2), name="padded_vulnerability")(vulnerability_initial_state)
+    vulnerability_initial_state = tf.keras.layers.Reshape((2, 1))(vulnerability)
+    vulnerability_initial_state = tf.keras.layers.ZeroPadding1D(
+        padding=(0, lstm_units - 2), name="padded_vulnerability"
+    )(vulnerability_initial_state)
     vulnerability_initial_state = tf.keras.layers.Reshape((lstm_units,))(vulnerability_initial_state)
     vulnerability_initial_state = [vulnerability_initial_state, vulnerability_initial_state]
 
@@ -56,10 +57,10 @@ def prepare_targets(target: ContextFeature, contexts, sequences):
 if __name__ == "__main__":
     sequence_features = [BiddingSequenceFeature(), HoldingSequenceFeature(), PlayerPositionSequenceFeature()]
     context_features = [TargetHcp(), Vulnerability()]
-    bidding_dataset = build_dataset(
+    bidding_dataset = build_tfrecord_dataset(
         Path("/Users/frice/bridge/bid_learn/deals/toy/train.tfrecord"), context_features, sequence_features
     )
-    validation_dataset = build_dataset(
+    validation_dataset = build_tfrecord_dataset(
         Path("/Users/frice/bridge/bid_learn/deals/toy/validation.tfrecord"), context_features, sequence_features
     )
 
