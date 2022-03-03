@@ -692,12 +692,12 @@ docs = ["sphinx", "jaraco.packaging (>=8.2)", "rst.linker (>=1.9)"]
 testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-cov", "pytest-enabler (>=1.0.1)", "jaraco.itertools", "func-timeout", "pytest-black (>=0.3.7)", "pytest-mypy"]
 
 [extras]
-tensorflow = ["tensorflow"]
+tf = ["tensorflow"]
 
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7,<3.11"
-content-hash = "10927e28e21006969340e05511bce946b7b76b51c834037009f230f35727ff99"
+content-hash = "f6a7924ea54a79e09d3a9c0f5924517666b2bc00ded8c1f01aaf32b183899c7d"
 
 [metadata.files]
 absl-py = [

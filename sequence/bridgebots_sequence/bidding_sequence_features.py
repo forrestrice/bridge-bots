@@ -101,7 +101,7 @@ class PlayerPositionSequenceFeature(CategoricalSequenceFeature):
     @tf.function
     def prepare_dataset(self, sequences):
         sequences = sequences.copy()
-        sequences["one_hot_player_position"] = tf.one_hot(tf.squeeze(sequences[self.name]), depth=self.num_tokens())
+        sequences["one_hot_player_position"] = tf.one_hot(tf.squeeze(sequences[self.name], axis=2), depth=self.num_tokens())
         return sequences
 
 
@@ -144,9 +144,9 @@ class BiddingSequenceFeature(CategoricalSequenceFeature):
     @tf.function
     def prepare_dataset(self, sequences):
         sequences = sequences.copy()
-        sequences["bidding_mask"] = tf.not_equal(tf.squeeze(sequences[self.vectorized_name]), 0)
+        sequences["bidding_mask"] = tf.not_equal(tf.squeeze(sequences[self.vectorized_name], axis=2), 0)
         sequences["one_hot_bidding"] = tf.one_hot(
-            tf.squeeze(sequences[self.vectorized_name]), BIDDING_VOCAB_SIZE, dtype=tf.int64
+            tf.squeeze(sequences[self.vectorized_name], axis=2), BIDDING_VOCAB_SIZE, dtype=tf.int64
         )
         return sequences
 
@@ -191,7 +191,7 @@ class TargetBiddingSequence(CategoricalSequenceFeature):
     def prepare_dataset(self, sequences):
         sequences = sequences.copy()
         sequences["one_hot_target_bidding"] = tf.one_hot(
-            tf.squeeze(sequences[self.vectorized_name]), BIDDING_VOCAB_SIZE, dtype=tf.int64
+            tf.squeeze(sequences[self.vectorized_name], axis=2), BIDDING_VOCAB_SIZE, dtype=tf.int64
         )
         return sequences
 

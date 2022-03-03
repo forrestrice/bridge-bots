@@ -3,8 +3,10 @@ from pathlib import Path
 from typing import List
 
 import tensorflow as tf
+from tensorflow.keras.models import Model
 
 from bridgebots import BoardRecord, Deal, DealRecord, parse_multi_lin
+from bridgebots.deal_utils import count_hcp
 from bridgebots_sequence.bidding_context_features import ContextFeature, TargetHcp, Vulnerability
 from bridgebots_sequence.bidding_sequence_features import (
     BidAlertedSequenceFeature,
@@ -16,6 +18,7 @@ from bridgebots_sequence.bidding_sequence_features import (
     TargetBiddingSequence,
 )
 from bridgebots_sequence.create_sequence_examples import OneHandSequenceExampleGenerator
+from bridgebots_sequence.dataset_pipeline import build_inference_dataset
 
 
 def create_evaluation_records(deal: Deal, board_record: BoardRecord) -> DealRecord:
@@ -66,10 +69,20 @@ if __name__ == "__main__":
         PlayerPositionSequenceFeature(),
         BidAlertedSequenceFeature(),
         BidExplainedSequenceFeature(),
-        TargetBiddingSequence(),
     ]
     context_features = [TargetHcp(), Vulnerability()]
     evaluation_dataset = create_evaluation_dataset([evaluation_records], context_features, sequence_features)
     for example in evaluation_dataset:
         print(example)
         break
+    inference_dataset = build_inference_dataset(evaluation_dataset, context_features, sequence_features)
+
+    loaded_model: Model = tf.keras.models.load_model('/Users/frice/Downloads/hcp_sos_1')
+    for i, single_item_batch in enumerate(inference_dataset):
+        print("INFERENCE")
+        player = evaluation_records.deal.dealer.offset(i)
+        player_cards = evaluation_records.deal.player_cards[player]
+        print(player_cards, count_hcp(player_cards))
+        print(evaluation_records.board_records[i].bidding_record)
+        #print(single_item_batch)
+        print(loaded_model.predict(single_item_batch)[0][-1])

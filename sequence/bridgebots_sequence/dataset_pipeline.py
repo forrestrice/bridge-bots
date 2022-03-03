@@ -24,9 +24,17 @@ def decode_example(context_features, sequence_features, record_bytes):
     )
 
 
+'''
+def prepare_inference_lstm_dataset(context_features: List[ContextFeature], sequence_features: List[SequenceFeature], contexts, sequences):
+    for sequence_feature in sequence_features:
+        sequences = sequence_feature.prepare_dataset(sequences)
+    return contexts, sequences
+'''
+
+
 @tf.function
-def prepare_lstm_dataset_smart(
-    context_features: List[ContextFeature], sequence_features: List[SequenceFeature], contexts, sequences
+def prepare_lstm_dataset(
+        context_features: List[ContextFeature], sequence_features: List[SequenceFeature], contexts, sequences
 ):
     for sequence_feature in sequence_features:
         sequences = sequence_feature.prepare_dataset(sequences)
@@ -38,28 +46,15 @@ def prepare_lstm_dataset_smart(
     return contexts, sequences
 
 
-def build_inference_dataset():
-    pass
-
-
+@tf.function
 def build_tfrecord_dataset(
-    data_source_path: Path, context_features: List[ContextFeature], sequence_features: List[SequenceFeature]
+        data_source_path: Path, context_features: List[ContextFeature], sequence_features: List[SequenceFeature]
 ) -> tf.data.Dataset:
     tf_record_dataset = tf.data.TFRecordDataset([str(data_source_path)])
-    return _build_dataset(tf_record_dataset, context_features, sequence_features)
-
-
-def _build_dataset(
-    protobuff_dataset: Dataset, context_features: List[ContextFeature], sequence_features: List[SequenceFeature]
-):
-    context_features_schema = {context_feature.name: context_feature.schema() for context_feature in context_features}
-    sequence_features_schema = {
-        sequence_feature.name: sequence_feature.schema() for sequence_feature in sequence_features
-    }
-    decoded_dataset = protobuff_dataset.map(
+    context_features_schema, sequence_features_schema = _build_schema(context_features, sequence_features)
+    decoded_dataset = tf_record_dataset.map(
         partial(decode_example, context_features_schema, sequence_features_schema), num_parallel_calls=tf.data.AUTOTUNE
     )
-
     bidding_feature = next((sf for sf in sequence_features if isinstance(sf, BiddingSequenceFeature)), None)
     if bidding_feature:
         bidding_dataset = decoded_dataset.map(bidding_feature.vectorize, num_parallel_calls=tf.data.AUTOTUNE)
@@ -70,11 +65,6 @@ def _build_dataset(
     if target_bidding_feature:
         bidding_dataset = bidding_dataset.map(target_bidding_feature.vectorize, num_parallel_calls=tf.data.AUTOTUNE)
 
-    # TODO remove
-    #for example in bidding_dataset:
-    #    print(example)
-    #    break
-
     bucketed_dataset = bidding_dataset.bucket_by_sequence_length(
         element_length_func=lambda context, sequence: tf.shape(sequence[bidding_feature.vectorized_name])[0],
         bucket_boundaries=[9, 11, 15],  # Boundaries chosen to roughly split number of records evenly
@@ -82,9 +72,37 @@ def _build_dataset(
     )
 
     lstm_dataset = bucketed_dataset.map(
-        partial(prepare_lstm_dataset_smart, context_features, sequence_features), num_parallel_calls=tf.data.AUTOTUNE
+        partial(prepare_lstm_dataset, context_features, sequence_features), num_parallel_calls=tf.data.AUTOTUNE
     )
     return lstm_dataset
+
+
+def _build_schema(context_features: List[ContextFeature], sequence_features: List[SequenceFeature]):
+    context_features_schema = {context_feature.name: context_feature.schema() for context_feature in context_features}
+    sequence_features_schema = {
+        sequence_feature.name: sequence_feature.schema() for sequence_feature in sequence_features
+    }
+    return context_features_schema, sequence_features_schema
+
+
+def build_inference_dataset(
+        protobuff_dataset: tf.data.Dataset, context_features: List[ContextFeature],
+        sequence_features: List[SequenceFeature]
+):
+    context_features_schema, sequence_features_schema = _build_schema(context_features, sequence_features)
+    decoded_dataset = protobuff_dataset.map(
+        partial(decode_example, context_features_schema, sequence_features_schema), num_parallel_calls=tf.data.AUTOTUNE
+    )
+    bidding_feature = next((sf for sf in sequence_features if isinstance(sf, BiddingSequenceFeature)), None)
+    if bidding_feature:
+        bidding_dataset = decoded_dataset.map(bidding_feature.vectorize, num_parallel_calls=tf.data.AUTOTUNE)
+    else:
+        raise ValueError("No BiddingSequenceFeature detected. It is currently required by the data pipeline.")
+    batched_dataset = bidding_dataset.batch(1)
+    lstm_dataset = batched_dataset.map(
+        partial(prepare_lstm_dataset, context_features, sequence_features), num_parallel_calls=tf.data.AUTOTUNE
+    )
+    return lstm_dataset.map(lambda contexts, sequences: sequences)
 
 
 if __name__ == "__main__":
@@ -98,7 +116,7 @@ if __name__ == "__main__":
         TargetBiddingSequence(),
     ]
     context_features = [TargetHcp(), Vulnerability()]
-    dataset = _build_dataset(
+    dataset = build_tfrecord_dataset(
         Path("/Users/frice/bridge/bid_learn/deals/toy/train.tfrecord"), context_features, sequence_features
     )
     # prepared_dataset = dataset.cache().map(prepare_lstm_dataset, num_parallel_calls=tf.data.AUTOTUNE)

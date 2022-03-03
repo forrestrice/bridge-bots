@@ -3,8 +3,9 @@ from pathlib import Path
 from typing import List
 
 import tensorflow as tf
-from keras.layers import Dense, LSTM
-from tensorflow.keras import Input, Model, layers
+from tensorflow.keras import Input
+from tensorflow.keras.layers import Dense, LSTM, concatenate
+from tensorflow.keras.models import Model
 
 from bridgebots_sequence.bidding_context_features import ContextFeature, TargetHcp, Vulnerability
 from bridgebots_sequence.bidding_sequence_features import (
@@ -37,7 +38,7 @@ def build_lstm(target: ContextFeature, sequence_features: List[SequenceFeature],
         one_hot_bidding, mask=bidding_mask, initial_state=vulnerability_initial_state
     )
     # TODO consider adding stace_c
-    x = layers.concatenate([lstm_outputs, player_position, holding, sequence_vulnerability])
+    x = concatenate([lstm_outputs, player_position, holding, sequence_vulnerability])
     x = Dense(64, "selu")(x)
     x = Dense(16, "selu")(x)
     x = Dense(8, "selu")(x)
