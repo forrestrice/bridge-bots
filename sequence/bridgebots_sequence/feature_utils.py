@@ -10,8 +10,12 @@ TARGET_BIDDING_VOCAB = LEGAL_BIDS.copy() + ["EOS"]
 BIDDING_VOCAB_SIZE = len(BIDDING_VOCAB) + 1  # +1 for padding
 
 
-def holding(direction: Direction, deal_record: DealRecord) -> List:
+def holding_from_deal(direction: Direction, deal_record: DealRecord) -> List[int]:
+    return holding_from_cards(deal_record.deal.hands[direction].cards)
+
+
+def holding_from_cards(cards: List[Card]) -> List[int]:
     bit_holding = [0] * 52
-    for card in deal_record.deal.hands[direction].cards:
+    for card in cards:
         bit_holding[SORTED_CARD_INDEX[card]] = 1
     return bit_holding

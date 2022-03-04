@@ -1,14 +1,31 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import Optional
 
 import tensorflow as tf
 
-from bridgebots import DealRecord
+from bridgebots import Deal
 from bridgebots.deal_utils import count_hcp
+
+
+@dataclass
+class BiddingContextExampleData:
+    dealer_vulnerable: bool
+    dealer_opp_vulnerable: bool
+    deal: Optional[Deal]  # Only present when creating training data
+
+    @staticmethod
+    def from_deal(deal: Deal) -> BiddingContextExampleData:
+        dealer_vuln = deal.is_vulnerable(deal.dealer)
+        dealer_opp_vuln = deal.is_vulnerable(deal.dealer.next())
+        return BiddingContextExampleData(dealer_vuln, dealer_opp_vuln, deal)
 
 
 class ContextFeature(ABC):
     @abstractmethod
-    def calculate(self, deal_record: DealRecord) -> tf.train.Feature:
+    def calculate(self, context_data: BiddingContextExampleData) -> tf.train.Feature:
         pass
 
     @property
@@ -40,9 +57,9 @@ class TargetHcp(ContextFeature):
     def name(self):
         return "target_hcp"
 
-    def calculate(self, deal_record: DealRecord) -> tf.train.Feature:
-        dealer = deal_record.deal.dealer
-        hcps = [count_hcp(deal_record.deal.hands[dealer.offset(i)].cards) for i in range(4)]
+    def calculate(self, context_data: BiddingContextExampleData) -> tf.train.Feature:
+        dealer = context_data.deal.dealer
+        hcps = [count_hcp(context_data.deal.hands[dealer.offset(i)].cards) for i in range(4)]
         return tf.train.Feature(int64_list=tf.train.Int64List(value=hcps))
 
     @tf.function
@@ -57,10 +74,10 @@ class TargetHcp(ContextFeature):
 
 
 class Vulnerability(ContextFeature):
-    def calculate(self, deal_record: DealRecord) -> tf.train.Feature:
-        dealer_vuln = deal_record.deal.is_vulnerable(deal_record.deal.dealer)
-        dealer_opp_vuln = deal_record.deal.is_vulnerable(deal_record.deal.dealer.next())
-        return tf.train.Feature(int64_list=tf.train.Int64List(value=[dealer_vuln, dealer_opp_vuln]))
+    def calculate(self, context_data: BiddingContextExampleData) -> tf.train.Feature:
+        return tf.train.Feature(
+            int64_list=tf.train.Int64List(value=[context_data.dealer_vulnerable, context_data.dealer_opp_vulnerable])
+        )
 
     @property
     def name(self):
@@ -82,4 +99,3 @@ class Vulnerability(ContextFeature):
         sequences["sequence_" + self.name] = sequence_feature
         sequences[self.name] = feature
         return contexts, sequences
-

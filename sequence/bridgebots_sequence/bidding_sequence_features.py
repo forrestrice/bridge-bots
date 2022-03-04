@@ -4,15 +4,16 @@ from typing import Dict, List
 
 import tensorflow as tf
 
-from bridgebots import BoardRecord, DealRecord, Direction
+from bridgebots import BidMetadata, Direction
 from bridgebots_sequence.feature_utils import BIDDING_VOCAB, BIDDING_VOCAB_SIZE, TARGET_BIDDING_VOCAB
 
 
 @dataclass
 class BiddingSequenceExampleData:
-    deal_record: DealRecord
-    board_record: BoardRecord
-    holdings: Dict[Direction, List]
+    dealer: Direction
+    bidding_record: List[str]
+    bidding_metadata: List[BidMetadata]
+    holdings: Dict[Direction, List[int]]
 
 
 class SequenceFeature(ABC):
@@ -25,16 +26,8 @@ class SequenceFeature(ABC):
     def name(self):
         pass
 
-    @abstractmethod
-    def schema(self):
-        pass
-
-    @abstractmethod
-    def shape(self):
-        pass
-
     def prepared_name(self):
-        return self.name()
+        return self.name
 
     @abstractmethod
     @tf.function
@@ -52,9 +45,6 @@ class CategoricalSequenceFeature(SequenceFeature, ABC):
 
 
 class HoldingSequenceFeature(SequenceFeature):
-    def shape(self):
-        return 52
-
     def schema(self):
         return tf.io.FixedLenSequenceFeature([52], dtype=tf.int64)
 
@@ -63,10 +53,9 @@ class HoldingSequenceFeature(SequenceFeature):
         return "holding"
 
     def calculate(self, bidding_data: BiddingSequenceExampleData) -> tf.train.FeatureList:
-        dealer = bidding_data.deal_record.deal.dealer
         sequence_feature = []
-        for i in range(len(bidding_data.board_record.bidding_record) + 1):  # +1 to account for SOS token
-            player = dealer.offset(i)
+        for i in range(len(bidding_data.bidding_record) + 1):  # +1 to account for SOS token
+            player = bidding_data.dealer.offset(i)
             holding = bidding_data.holdings[player]
             feature = tf.train.Feature(int64_list=tf.train.Int64List(value=holding))
             sequence_feature.append(feature)
@@ -81,9 +70,6 @@ class PlayerPositionSequenceFeature(CategoricalSequenceFeature):
     def num_tokens(self):
         return 4
 
-    def shape(self):
-        return 1
-
     def schema(self):
         return tf.io.FixedLenSequenceFeature([1], dtype=tf.int64)
 
@@ -93,7 +79,7 @@ class PlayerPositionSequenceFeature(CategoricalSequenceFeature):
 
     def calculate(self, bidding_data: BiddingSequenceExampleData) -> tf.train.FeatureList:
         sequence_feature = []
-        for i in range(len(bidding_data.board_record.bidding_record) + 1):  # +1 to account for SOS token
+        for i in range(len(bidding_data.bidding_record) + 1):  # +1 to account for SOS token
             feature = tf.train.Feature(int64_list=tf.train.Int64List(value=[i % 4]))
             sequence_feature.append(feature)
         return tf.train.FeatureList(feature=sequence_feature)
@@ -101,7 +87,9 @@ class PlayerPositionSequenceFeature(CategoricalSequenceFeature):
     @tf.function
     def prepare_dataset(self, sequences):
         sequences = sequences.copy()
-        sequences["one_hot_player_position"] = tf.one_hot(tf.squeeze(sequences[self.name], axis=2), depth=self.num_tokens())
+        sequences["one_hot_player_position"] = tf.one_hot(
+            tf.squeeze(sequences[self.name], axis=2), depth=self.num_tokens()
+        )
         return sequences
 
 
@@ -113,9 +101,6 @@ class BiddingSequenceFeature(CategoricalSequenceFeature):
 
     def num_tokens(self):
         return BIDDING_VOCAB_SIZE
-
-    def shape(self):
-        return None
 
     def schema(self):
         return tf.io.FixedLenSequenceFeature([1], dtype=tf.string)
@@ -129,7 +114,7 @@ class BiddingSequenceFeature(CategoricalSequenceFeature):
         return "vectorized_bidding"
 
     def calculate(self, bidding_data: BiddingSequenceExampleData) -> tf.train.FeatureList:
-        bidding_with_sos = ["SOS"] + bidding_data.board_record.bidding_record
+        bidding_with_sos = ["SOS"] + bidding_data.bidding_record
         bidding_feature = [
             tf.train.Feature(bytes_list=tf.train.BytesList(value=[str.encode(bid)])) for bid in bidding_with_sos
         ]
@@ -160,9 +145,6 @@ class TargetBiddingSequence(CategoricalSequenceFeature):
     def num_tokens(self):
         return BIDDING_VOCAB_SIZE
 
-    def shape(self):
-        return None
-
     def schema(self):
         return tf.io.FixedLenSequenceFeature([1], dtype=tf.string)
 
@@ -175,7 +157,7 @@ class TargetBiddingSequence(CategoricalSequenceFeature):
         return "target_vectorized_bidding"
 
     def calculate(self, bidding_data: BiddingSequenceExampleData) -> tf.train.FeatureList:
-        bidding_with_eos = bidding_data.board_record.bidding_record + ["EOS"]
+        bidding_with_eos = bidding_data.bidding_record + ["EOS"]
         bidding_feature = [
             tf.train.Feature(bytes_list=tf.train.BytesList(value=[str.encode(bid)])) for bid in bidding_with_eos
         ]
@@ -197,9 +179,6 @@ class TargetBiddingSequence(CategoricalSequenceFeature):
 
 
 class BidAlertedSequenceFeature(SequenceFeature):
-    def shape(self):
-        return 1
-
     def schema(self):
         return tf.io.FixedLenSequenceFeature([1], dtype=tf.int64)
 
@@ -208,8 +187,8 @@ class BidAlertedSequenceFeature(SequenceFeature):
         return "alerted"
 
     def calculate(self, bidding_data: BiddingSequenceExampleData) -> tf.train.FeatureList:
-        alerted_vector = [0] * (len(bidding_data.board_record.bidding_record) + 1)  # +1 to account for SOS token
-        for bid_metadata in bidding_data.board_record.bidding_metadata:
+        alerted_vector = [0] * (len(bidding_data.bidding_record) + 1)  # +1 to account for SOS token
+        for bid_metadata in bidding_data.bidding_metadata:
             if bid_metadata.alerted:
                 alerted_vector[bid_metadata.bid_index + 1] = 1
         alerted_feature = [
@@ -223,9 +202,6 @@ class BidAlertedSequenceFeature(SequenceFeature):
 
 
 class BidExplainedSequenceFeature(SequenceFeature):
-    def shape(self):
-        return 1
-
     def schema(self):
         return tf.io.FixedLenSequenceFeature([1], dtype=tf.int64)
 
@@ -234,8 +210,8 @@ class BidExplainedSequenceFeature(SequenceFeature):
         return "explained"
 
     def calculate(self, bidding_data: BiddingSequenceExampleData) -> tf.train.FeatureList:
-        explained_vector = [0] * (len(bidding_data.board_record.bidding_record) + 1)  # +1 to account for SOS token
-        for bid_metadata in bidding_data.board_record.bidding_metadata:
+        explained_vector = [0] * (len(bidding_data.bidding_record) + 1)  # +1 to account for SOS token
+        for bid_metadata in bidding_data.bidding_metadata:
             if bid_metadata.explanation:
                 explained_vector[bid_metadata.bid_index + 1] = 1
         explained_feature = [

@@ -7,7 +7,8 @@ import tensorflow as tf
 from tensorflow.python.lib.io.tf_record import TFRecordCompressionType
 
 from bridgebots import DealRecord
-from bridgebots_sequence.bidding_context_features import ContextFeature, TargetHcp, Vulnerability
+from bridgebots_sequence.bidding_context_features import BiddingContextExampleData, ContextFeature, TargetHcp, \
+    Vulnerability
 from bridgebots_sequence.bidding_sequence_features import (
     BidAlertedSequenceFeature,
     BidExplainedSequenceFeature,
@@ -18,7 +19,7 @@ from bridgebots_sequence.bidding_sequence_features import (
     SequenceFeature,
     TargetBiddingSequence,
 )
-from bridgebots_sequence.feature_utils import holding
+from bridgebots_sequence.feature_utils import holding_from_deal
 
 
 class OneHandSequenceExampleGenerator:
@@ -36,13 +37,15 @@ class OneHandSequenceExampleGenerator:
         for deal_record in self.deal_records:
             dealer = deal_record.deal.dealer
             # Holdings and context features do not change across board records so may be calculated once per deal
-            player_holdings = {dealer.offset(i): holding(dealer.offset(i), deal_record) for i in range(4)}
+            player_holdings = {dealer.offset(i): holding_from_deal(dealer.offset(i), deal_record) for i in range(4)}
             calculated_context_features = {
-                context_feature.name: context_feature.calculate(deal_record)
+                context_feature.name: context_feature.calculate(BiddingContextExampleData.from_deal(deal_record.deal))
                 for context_feature in self.context_features
             }
             for board_record in deal_record.board_records:
-                bidding_data = BiddingSequenceExampleData(deal_record, board_record, player_holdings)
+                bidding_data = BiddingSequenceExampleData(
+                    deal_record.deal.dealer, board_record.bidding_record, board_record.bidding_metadata, player_holdings
+                )
                 yield self.build_sequence_example(bidding_data, calculated_context_features)
 
     def build_sequence_example(
