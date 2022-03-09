@@ -5,7 +5,7 @@ from typing import List
 import tensorflow as tf
 from tensorflow.python.data import Dataset
 
-from bridgebots_sequence.bidding_context_features import ContextFeature, TargetHcp, Vulnerability
+from bridgebots_sequence.bidding_context_features import ContextFeature, TargetHcp, TargetShape, Vulnerability
 from bridgebots_sequence.bidding_sequence_features import (
     BidAlertedSequenceFeature,
     BidExplainedSequenceFeature,
@@ -22,14 +22,6 @@ def decode_example(context_features, sequence_features, record_bytes):
     return tf.io.parse_single_sequence_example(
         record_bytes, context_features=context_features, sequence_features=sequence_features
     )
-
-
-'''
-def prepare_inference_lstm_dataset(context_features: List[ContextFeature], sequence_features: List[SequenceFeature], contexts, sequences):
-    for sequence_feature in sequence_features:
-        sequences = sequence_feature.prepare_dataset(sequences)
-    return contexts, sequences
-'''
 
 
 @tf.function
@@ -115,13 +107,13 @@ if __name__ == "__main__":
         BidExplainedSequenceFeature(),
         TargetBiddingSequence(),
     ]
-    context_features = [TargetHcp(), Vulnerability()]
+    context_features = [TargetHcp(), Vulnerability(), TargetShape()]
     dataset = build_tfrecord_dataset(
         Path("/Users/frice/bridge/bid_learn/deals/toy/train.tfrecord"), context_features, sequence_features
     )
     # prepared_dataset = dataset.cache().map(prepare_lstm_dataset, num_parallel_calls=tf.data.AUTOTUNE)
     for i, example in enumerate(dataset):
         print("EXAMPLE")
-        print(example, type(example), len(example), type(example[0]), type(example[1]))
-        if i > -1:
+        print(example)
+        if i > 3:
             break

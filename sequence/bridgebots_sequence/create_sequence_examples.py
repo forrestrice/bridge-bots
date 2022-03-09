@@ -8,7 +8,7 @@ from tensorflow.python.lib.io.tf_record import TFRecordCompressionType
 
 from bridgebots import DealRecord
 from bridgebots_sequence.bidding_context_features import BiddingContextExampleData, ContextFeature, TargetHcp, \
-    Vulnerability
+    TargetShape, Vulnerability
 from bridgebots_sequence.bidding_sequence_features import (
     BidAlertedSequenceFeature,
     BidExplainedSequenceFeature,
@@ -90,7 +90,7 @@ if __name__ == "__main__":
         BidExplainedSequenceFeature(),
         TargetBiddingSequence(),
     ]
-    context_features = [TargetHcp(), Vulnerability()]
+    context_features = [TargetHcp(), Vulnerability(), TargetShape()]
     # TODO train/test/validation loop
     create_examples(
         Path("/Users/frice/bridge/bid_learn/deals/toy/train.pickle"),

@@ -82,6 +82,26 @@ class BiddingInferenceEngine:
 
 
 if __name__ == "__main__":
+    tf.config.run_functions_eagerly(True)
+    engine = BiddingInferenceEngine(
+        context_features=[Vulnerability()],
+        sequence_features=[
+            BiddingSequenceFeature(),
+            HoldingSequenceFeature(),
+            PlayerPositionSequenceFeature(),
+            BidAlertedSequenceFeature(),
+            BidExplainedSequenceFeature(),
+        ],
+        model_path=Path("/Users/frice/bridge/bid_learn/models/release/toy/target_bidding_1")
+    )
+    dealer = Direction.WEST
+    dealer_vulnerable = False
+    dealer_opp_vulnerable = False
+    bidding_record = ["PASS", "PASS", "PASS", "1D", "1S", "1NT","3S","X","PASS"]
+    bidding_metadata = []
+    player_holding = [Card.from_str(s) for s in ["SA", "SK", "ST", "H7", "H6", "D7", "D6", "CQ", "CT", "C7", "C6", "C5", "C3"]]
+    print(engine.predict(dealer, dealer_vulnerable, dealer_opp_vulnerable, player_holding, bidding_record, bidding_metadata))
+    '''
     engine = BiddingInferenceEngine(
         context_features=[Vulnerability()],
         sequence_features=[
@@ -100,4 +120,5 @@ if __name__ == "__main__":
     bidding_metadata = []
     player_holding = [Card.from_str(s) for s in ["SA", "SK", "ST", "H7", "H6", "D7", "D6", "CQ", "CT", "C7", "C6", "C5", "C3"]]
     print(engine.predict(dealer, dealer_vulnerable, dealer_opp_vulnerable, player_holding, bidding_record, bidding_metadata))
+    '''
 # def build_inference_input(context_features: List[ContextFeature], sequence_features: List[SequenceFeature])

@@ -7,7 +7,7 @@ from typing import Optional
 import tensorflow as tf
 
 from bridgebots import Deal
-from bridgebots.deal_utils import count_hcp
+from bridgebots.deal_utils import calculate_shape, count_hcp
 
 
 @dataclass
@@ -44,6 +44,14 @@ class ContextFeature(ABC):
     @tf.function
     def prepare_dataset(self, contexts, sequences, batch_size, time_steps):
         pass
+
+    # Currently, features do not have any internal state - they are just collections of functions, so we can compare
+    # equality and hash by class
+    def __eq__(self, other):
+        return self.__class__ == other.__class__
+
+    def __hash__(self):
+        return hash(self.__class__)
 
 
 class TargetHcp(ContextFeature):
@@ -98,4 +106,32 @@ class Vulnerability(ContextFeature):
         sequences = sequences.copy()
         sequences["sequence_" + self.name] = sequence_feature
         sequences[self.name] = feature
+        return contexts, sequences
+
+
+class TargetShape(ContextFeature):
+    def shape(self):
+        return 16
+
+    def schema(self):
+        return tf.io.FixedLenFeature([16], dtype=tf.int64)
+
+    @property
+    def name(self):
+        return "target_shape"
+
+    def calculate(self, context_data: BiddingContextExampleData) -> tf.train.Feature:
+        dealer = context_data.deal.dealer
+        shapes = [calculate_shape(context_data.deal.hands[dealer.offset(i)].cards) for i in range(4)]
+        shape_feature = [s for shape in shapes for s in shape]
+        return tf.train.Feature(int64_list=tf.train.Int64List(value=shape_feature))
+
+    @tf.function
+    def prepare_dataset(self, contexts, sequences, batch_size, time_steps):
+        target = contexts[self.name]
+        sequence_targets = tf.reshape(
+            tf.repeat(target, repeats=time_steps, axis=0), shape=[batch_size, time_steps, self.shape()]
+        )
+        sequences = sequences.copy()
+        sequences["sequence_" + self.name] = sequence_targets
         return contexts, sequences

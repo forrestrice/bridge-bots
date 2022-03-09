@@ -26,6 +26,7 @@ class SequenceFeature(ABC):
     def name(self):
         pass
 
+    @property
     def prepared_name(self):
         return self.name
 
@@ -34,6 +35,14 @@ class SequenceFeature(ABC):
     def prepare_dataset(self, sequences):
         pass
 
+    # Currently, features do not have any internal state - they are just collections of functions, so we can compare
+    # equality and hash by class
+    def __eq__(self, other):
+        return self.__class__ == other.__class__
+
+    def __hash__(self):
+        return hash(self.__class__)
+
 
 class CategoricalSequenceFeature(SequenceFeature, ABC):
     @abstractmethod
@@ -41,7 +50,7 @@ class CategoricalSequenceFeature(SequenceFeature, ABC):
         pass
 
     def prepared_name(self):
-        return "one_hot_" + self.name()
+        return "one_hot_" + self.name
 
 
 class HoldingSequenceFeature(SequenceFeature):
@@ -95,9 +104,7 @@ class PlayerPositionSequenceFeature(CategoricalSequenceFeature):
 
 class BiddingSequenceFeature(CategoricalSequenceFeature):
     # Disable standardization - bids have already been standardized by bridgebots
-    bid_vectorization_layer = tf.keras.layers.experimental.preprocessing.TextVectorization(
-        standardize=None, vocabulary=BIDDING_VOCAB
-    )
+    bid_vectorization_layer = tf.keras.layers.StringLookup(num_oov_indices=1, vocabulary=BIDDING_VOCAB)
 
     def num_tokens(self):
         return BIDDING_VOCAB_SIZE
@@ -138,9 +145,7 @@ class BiddingSequenceFeature(CategoricalSequenceFeature):
 
 class TargetBiddingSequence(CategoricalSequenceFeature):
     # Disable standardization - bids have already been standardized by bridgebots
-    bid_vectorization_layer = tf.keras.layers.experimental.preprocessing.TextVectorization(
-        standardize=None, vocabulary=TARGET_BIDDING_VOCAB
-    )
+    bid_vectorization_layer = tf.keras.layers.StringLookup(num_oov_indices=1, vocabulary=TARGET_BIDDING_VOCAB)
 
     def num_tokens(self):
         return BIDDING_VOCAB_SIZE
