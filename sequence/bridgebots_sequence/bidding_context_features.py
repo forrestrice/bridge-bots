@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Tuple
 
 import tensorflow as tf
 
@@ -24,25 +24,32 @@ class BiddingContextExampleData:
 
 
 class ContextFeature(ABC):
+    @property
     @abstractmethod
-    def calculate(self, context_data: BiddingContextExampleData) -> tf.train.Feature:
+    def name(self) -> str:
         pass
 
     @property
     @abstractmethod
-    def name(self):
+    def schema(self) -> tf.io.FixedLenFeature:
         pass
 
+    @property
     @abstractmethod
-    def schema(self):
+    def shape(self) -> int:
         pass
 
+    @property
+    def sequence_name(self) -> str:
+        return "sequence_" + self.name
+
     @abstractmethod
-    def shape(self):
+    def calculate(self, context_data: BiddingContextExampleData) -> tf.train.Feature:
         pass
 
     @tf.function
-    def prepare_dataset(self, contexts, sequences, batch_size, time_steps):
+    @abstractmethod
+    def prepare_dataset(self, contexts: dict, sequences: dict, batch_size: int, time_steps: int) -> Tuple[dict, dict]:
         pass
 
     # Currently, features do not have any internal state - they are just collections of functions, so we can compare
@@ -55,15 +62,17 @@ class ContextFeature(ABC):
 
 
 class TargetHcp(ContextFeature):
-    def shape(self):
-        return 4
+    @property
+    def name(self) -> str:
+        return "target_hcp"
 
-    def schema(self):
+    @property
+    def schema(self) -> tf.io.FixedLenFeature:
         return tf.io.FixedLenFeature([4], dtype=tf.int64)
 
     @property
-    def name(self):
-        return "target_hcp"
+    def shape(self) -> int:
+        return 4
 
     def calculate(self, context_data: BiddingContextExampleData) -> tf.train.Feature:
         dealer = context_data.deal.dealer
@@ -71,13 +80,13 @@ class TargetHcp(ContextFeature):
         return tf.train.Feature(int64_list=tf.train.Int64List(value=hcps))
 
     @tf.function
-    def prepare_dataset(self, contexts, sequences, batch_size, time_steps):
+    def prepare_dataset(self, contexts: dict, sequences: dict, batch_size: int, time_steps: int) -> Tuple[dict, dict]:
         target = contexts[self.name]
         sequence_targets = tf.reshape(
-            tf.repeat(target, repeats=time_steps, axis=0), shape=[batch_size, time_steps, self.shape()]
+            tf.repeat(target, repeats=time_steps, axis=0), shape=[batch_size, time_steps, self.shape]
         )
         sequences = sequences.copy()
-        sequences["sequence_" + self.name] = sequence_targets
+        sequences[self.sequence_name] = sequence_targets
         return contexts, sequences
 
 
@@ -88,37 +97,41 @@ class Vulnerability(ContextFeature):
         )
 
     @property
-    def name(self):
+    def name(self) -> str:
         return "vulnerability"
 
-    def schema(self):
+    @property
+    def schema(self) -> tf.io.FixedLenFeature:
         return tf.io.FixedLenFeature([2], dtype=tf.int64)
 
-    def shape(self):
+    @property
+    def shape(self) -> int:
         return 2
 
     @tf.function
-    def prepare_dataset(self, contexts, sequences, batch_size, time_steps):
+    def prepare_dataset(self, contexts: dict, sequences: dict, batch_size: int, time_steps: int) -> Tuple[dict, dict]:
         feature = contexts[self.name]
         sequence_feature = tf.reshape(
-            tf.repeat(feature, repeats=time_steps, axis=0), shape=[batch_size, time_steps, self.shape()]
+            tf.repeat(feature, repeats=time_steps, axis=0), shape=[batch_size, time_steps, self.shape]
         )
         sequences = sequences.copy()
-        sequences["sequence_" + self.name] = sequence_feature
+        sequences[self.sequence_name] = sequence_feature
         sequences[self.name] = feature
         return contexts, sequences
 
 
 class TargetShape(ContextFeature):
-    def shape(self):
-        return 16
+    @property
+    def name(self) -> str:
+        return "target_shape"
 
-    def schema(self):
+    @property
+    def schema(self) -> tf.io.FixedLenFeature:
         return tf.io.FixedLenFeature([16], dtype=tf.int64)
 
     @property
-    def name(self):
-        return "target_shape"
+    def shape(self) -> int:
+        return 16
 
     def calculate(self, context_data: BiddingContextExampleData) -> tf.train.Feature:
         dealer = context_data.deal.dealer
@@ -127,11 +140,11 @@ class TargetShape(ContextFeature):
         return tf.train.Feature(int64_list=tf.train.Int64List(value=shape_feature))
 
     @tf.function
-    def prepare_dataset(self, contexts, sequences, batch_size, time_steps):
+    def prepare_dataset(self, contexts: dict, sequences: dict, batch_size: int, time_steps: int) -> Tuple[dict, dict]:
         target = contexts[self.name]
         sequence_targets = tf.reshape(
-            tf.repeat(target, repeats=time_steps, axis=0), shape=[batch_size, time_steps, self.shape()]
+            tf.repeat(target, repeats=time_steps, axis=0), shape=[batch_size, time_steps, self.shape]
         )
         sequences = sequences.copy()
-        sequences["sequence_" + self.name] = sequence_targets
+        sequences[self.sequence_name] = sequence_targets
         return contexts, sequences
