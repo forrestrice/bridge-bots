@@ -4,7 +4,7 @@ from typing import Dict, List, Union
 
 from bridgebots_sequence.bidding_context_features import ContextFeature
 from bridgebots_sequence.bidding_sequence_features import CategoricalSequenceFeature, SequenceFeature
-from bridgebots_sequence.inference import ModelInterpreter
+from bridgebots_sequence.interpreter import ModelInterpreter
 
 
 @dataclass(frozen=True)
