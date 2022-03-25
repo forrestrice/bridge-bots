@@ -120,7 +120,6 @@ class BidExplainedSequenceFeature(SequenceFeature):
     def prepare_dataset(self, sequences: dict) -> dict:
         return sequences
 
-
 class CategoricalSequenceFeature(SequenceFeature, ABC):
     @property
     @abstractmethod
@@ -173,7 +172,7 @@ class StringCategoricalSequenceFeature(CategoricalSequenceFeature, ABC):
         return context, sequence_copy
 
     @abstractmethod
-    def _vectorize(self, string_feature : tf.Tensor) -> tf.Tensor:
+    def _vectorize(self, string_feature: tf.Tensor) -> tf.Tensor:
         pass
 
 
@@ -192,7 +191,7 @@ class BiddingSequenceFeature(StringCategoricalSequenceFeature):
     def schema(self) -> tf.io.FixedLenSequenceFeature:
         return tf.io.FixedLenSequenceFeature([1], dtype=tf.string)
 
-    def _vectorize(self, string_feature : tf.Tensor) -> tf.Tensor:
+    def _vectorize(self, string_feature: tf.Tensor) -> tf.Tensor:
         return self.bid_vectorization_layer(string_feature)
 
     def calculate(self, bidding_data: BiddingSequenceExampleData) -> tf.train.FeatureList:
@@ -227,7 +226,7 @@ class TargetBiddingSequence(StringCategoricalSequenceFeature):
     def schema(self) -> tf.io.FixedLenSequenceFeature:
         return tf.io.FixedLenSequenceFeature([1], dtype=tf.string)
 
-    def _vectorize(self, string_feature : tf.Tensor) -> tf.Tensor:
+    def _vectorize(self, string_feature: tf.Tensor) -> tf.Tensor:
         return self.bid_vectorization_layer(string_feature)
 
     def calculate(self, bidding_data: BiddingSequenceExampleData) -> tf.train.FeatureList:

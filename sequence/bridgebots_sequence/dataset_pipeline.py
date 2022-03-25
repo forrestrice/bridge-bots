@@ -1,6 +1,6 @@
 from functools import partial
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
 import tensorflow as tf
 
@@ -14,6 +14,7 @@ from bridgebots_sequence.bidding_sequence_features import (
     SequenceFeature,
     TargetBiddingSequence,
 )
+from bridgebots_sequence.feature_utils import BiddingSampleWeightsCalculator, SampleWeightsCalculator
 
 
 @tf.function
@@ -25,11 +26,16 @@ def decode_example(context_features, sequence_features, record_bytes):
 
 @tf.function
 def prepare_lstm_dataset(
-    context_features: List[ContextFeature], sequence_features: List[SequenceFeature], contexts, sequences
+    context_features: List[ContextFeature],
+    sequence_features: List[SequenceFeature],
+    sample_weights_calculator: SampleWeightsCalculator,
+    contexts,
+    sequences,
 ):
     for sequence_feature in sequence_features:
         sequences = sequence_feature.prepare_dataset(sequences)
-
+    if sample_weights_calculator:
+        sequences = sample_weights_calculator.prepare_dataset(sequences)
     bidding_shape = tf.shape(sequences["bidding"])
     batch_size, time_steps = bidding_shape[0], bidding_shape[1]
     for context_feature in context_features:
@@ -39,7 +45,12 @@ def prepare_lstm_dataset(
 
 @tf.function
 def build_tfrecord_dataset(
-    data_source_path: Path, context_features: List[ContextFeature], sequence_features: List[SequenceFeature]
+    data_source_path: Path,
+    context_features: List[ContextFeature],
+    sequence_features: List[SequenceFeature],
+    sample_weights_calculator: SampleWeightsCalculator = None,
+    bucket_boundaries: Tuple[int] = (9, 11, 15),
+    bucket_batch_sizes: Tuple[int] = (64, 48, 32, 16),
 ) -> tf.data.Dataset:
     tf_record_dataset = tf.data.TFRecordDataset([str(data_source_path)])
     context_features_schema, sequence_features_schema = _build_schema(context_features, sequence_features)
@@ -56,14 +67,18 @@ def build_tfrecord_dataset(
     if target_bidding_feature:
         bidding_dataset = bidding_dataset.map(target_bidding_feature.vectorize, num_parallel_calls=tf.data.AUTOTUNE)
 
-    bucketed_dataset = bidding_dataset.bucket_by_sequence_length(
-        element_length_func=lambda context, sequence: tf.shape(sequence[bidding_feature.vectorized_name])[0],
-        bucket_boundaries=[9, 11, 15],  # Boundaries chosen to roughly split number of records evenly
-        bucket_batch_sizes=[64, 48, 32, 16],  # TODO experiment
-    )
+    if bucket_batch_sizes and bucket_boundaries:
+        batched_dataset = bidding_dataset.bucket_by_sequence_length(
+            element_length_func=lambda context, sequence: tf.shape(sequence[bidding_feature.vectorized_name])[0],
+            bucket_boundaries=list(bucket_boundaries),  # Boundaries chosen to roughly split number of records evenly
+            bucket_batch_sizes=list(bucket_batch_sizes),  # TODO experiment
+        )
+    else:
+        batched_dataset = bidding_dataset.batch(1)
 
-    lstm_dataset = bucketed_dataset.map(
-        partial(prepare_lstm_dataset, context_features, sequence_features), num_parallel_calls=tf.data.AUTOTUNE
+    lstm_dataset = batched_dataset.map(
+        partial(prepare_lstm_dataset, context_features, sequence_features, sample_weights_calculator),
+        num_parallel_calls=tf.data.AUTOTUNE,
     )
     return lstm_dataset
 
@@ -106,8 +121,14 @@ if __name__ == "__main__":
         TargetBiddingSequence(),
     ]
     context_features = [TargetHcp(), Vulnerability(), TargetShape()]
+    sample_weights_calculator = BiddingSampleWeightsCalculator()
     dataset = build_tfrecord_dataset(
-        Path("/Users/frice/bridge/bid_learn/deals/toy/train.tfrecord"), context_features, sequence_features
+        Path("/Users/frice/bridge/bid_learn/deals/toy/train.tfrecord"),
+        context_features,
+        sequence_features,
+        sample_weights_calculator,
+        bucket_boundaries=None,
+        bucket_batch_sizes=None
     )
     # prepared_dataset = dataset.cache().map(prepare_lstm_dataset, num_parallel_calls=tf.data.AUTOTUNE)
     for i, example in enumerate(dataset):

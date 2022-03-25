@@ -1,7 +1,7 @@
 import logging
 from functools import partial
 from pathlib import Path
-from typing import List, Union
+from typing import List, Optional, Tuple, Union
 
 import tensorflow as tf
 from tensorflow.keras import Input
@@ -16,40 +16,78 @@ from bridgebots_sequence.bidding_sequence_features import (
     HoldingSequenceFeature,
     PlayerPositionSequenceFeature,
     SequenceFeature,
+    TargetBiddingSequence,
 )
 from bridgebots_sequence.dataset_pipeline import build_tfrecord_dataset
-from bridgebots_sequence.feature_utils import BIDDING_VOCAB_SIZE
-from bridgebots_sequence.interpreter import BiddingPredictionModelInterpreter, ModelInterpreter
+from bridgebots_sequence.feature_utils import (
+    BIDDING_VOCAB_SIZE,
+    BiddingSampleWeightsCalculator,
+    SampleWeightsCalculator,
+)
+from bridgebots_sequence.interpreter import (
+    BiddingLogitsModelInterpreter,
+    BiddingPredictionModelInterpreter,
+    HcpModelInterpreter,
+    ModelInterpreter,
+)
 from bridgebots_sequence.model_metadata import ModelMetadata
 from bridgebots_sequence.sequence_schemas import ModelMetadataSchema
-from bridgebots_sequence.training_utils import build_training_metrics, get_target_shape, prepare_targets
+from bridgebots_sequence.training_utils import build_training_metrics, prepare_targets
 
 
 def build_datasets(
     training_data_path: Path,
-    validation_data_path: Path,
+    validation_data_path: Optional[Path],
     context_features: List[ContextFeature],
     sequence_features: List[SequenceFeature],
     target: Union[ContextFeature, SequenceFeature],
-    shuffle_size: int = 1_000,
+    shuffle_size: Optional[int] = 1_000,
+    sample_weights_calculator: SampleWeightsCalculator = None,
+    bucket_boundaries: Optional[Tuple[int, ...]] = None,
+    bucket_batch_sizes: Optional[Tuple[int, ...]] = None,
 ):
-    bidding_dataset = build_tfrecord_dataset(training_data_path, context_features, sequence_features)
-    validation_dataset = build_tfrecord_dataset(validation_data_path, context_features, sequence_features)
+    bidding_dataset = build_tfrecord_dataset(
+        training_data_path,
+        context_features,
+        sequence_features,
+        sample_weights_calculator,
+        bucket_boundaries,
+        bucket_batch_sizes,
+    )
 
     # Create X,y tuples for submission to model
     target_name = target.sequence_name if isinstance(target, ContextFeature) else target.prepared_name
+    sample_weights_name = sample_weights_calculator.name if sample_weights_calculator else None
 
     targeted_dataset = bidding_dataset.map(
-        partial(prepare_targets, target_name), num_parallel_calls=tf.data.AUTOTUNE
-    ).cache()
-
-    targeted_validation_dataset = validation_dataset.map(
-        partial(prepare_targets, target_name), num_parallel_calls=tf.data.AUTOTUNE
+        partial(prepare_targets, target_name, sample_weights_name), num_parallel_calls=tf.data.AUTOTUNE
     ).cache()
 
     if shuffle_size:
         targeted_dataset = targeted_dataset.shuffle(shuffle_size, reshuffle_each_iteration=True)
-    return targeted_dataset.prefetch(tf.data.AUTOTUNE), targeted_validation_dataset.prefetch(tf.data.AUTOTUNE)
+
+    targeted_dataset = targeted_dataset.prefetch(tf.data.AUTOTUNE)
+
+    targeted_validation_dataset = None
+    if validation_data_path:
+        validation_dataset = build_tfrecord_dataset(
+            validation_data_path,
+            context_features,
+            sequence_features,
+            sample_weights_calculator,
+            bucket_boundaries,
+            bucket_batch_sizes,
+        )
+
+        targeted_validation_dataset = (
+            validation_dataset.map(
+                partial(prepare_targets, target_name, sample_weights_name), num_parallel_calls=tf.data.AUTOTUNE
+            )
+            .cache()
+            .prefetch(tf.data.AUTOTUNE)
+        )
+
+    return targeted_dataset, targeted_validation_dataset
 
 
 def build_lstm(
@@ -108,7 +146,7 @@ def build_lstm(
 
 def save_model(
     training_data_path: Path,
-    validation_data_path: Path,
+    validation_data_path: Optional[Path],
     context_features: List[ContextFeature],
     sequence_features: List[SequenceFeature],
     target: Union[ContextFeature, SequenceFeature],
@@ -135,37 +173,58 @@ def save_model(
 
 
 if __name__ == "__main__":
+    tf.config.run_functions_eagerly(True)
     sequence_features = [
         BiddingSequenceFeature(),
         HoldingSequenceFeature(),
         PlayerPositionSequenceFeature(),
     ]
-    target = TargetHcp()
-    context_features = [Vulnerability(), target]
-    run_directory = target.name
+    context_features = [Vulnerability()]
+
+    target: Union[CategoricalSequenceFeature, ContextFeature] = TargetBiddingSequence()
+    if isinstance(target, SequenceFeature):
+        sequence_features.append(target)
+    else:
+        context_features.append(target)
+    sample_weights_calculator = BiddingSampleWeightsCalculator()
+    run_directory = target.name + "_toy"
     run_number = 1
 
-    training_data_path = Path("/Users/frice/bridge/bid_learn/deals/toy/train.tfrecord")
-    validation_data_path = Path("/Users/frice/bridge/bid_learn/deals/toy/validation.tfrecord")
+    training_data_path = Path("/Users/frice/bridge/bid_learn/deals/no_duplicates_train.tfrecord")
+    validation_data_path = None  # Path("/Users/frice/bridge/bid_learn/deals/toy/validation.tfrecord")
 
-    regularizer = tf.keras.regularizers.L2(0.01)
+    regularizer = None  # tf.keras.regularizers.L2(0.01)
     lstm_units = 128
-    lstm_layers = 2
-    recurrent_dropout = 0.1
+    lstm_layers = 1
+    recurrent_dropout = 0  # 0.1
     dense_layers = [
         Dense(128, "selu", kernel_regularizer=regularizer),
         Dense(96, "selu", kernel_regularizer=regularizer),
         Dense(64, "selu", kernel_regularizer=regularizer),
     ]
-    final_layer = Dense(get_target_shape(target), activation="softmax")
 
     optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
+
     if isinstance(target, CategoricalSequenceFeature):
-        loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
-        metrics = [tf.keras.metrics.CategoricalCrossentropy(from_logits=True), "CategoricalAccuracy"]
+        from_logits = False
+        loss = tf.keras.losses.CategoricalCrossentropy(from_logits=from_logits)
+        metrics = [tf.keras.metrics.CategoricalCrossentropy(from_logits=from_logits), "CategoricalAccuracy"]
+        activation = "linear" if from_logits else "softmax"
+        final_layer = Dense(target.num_tokens, activation=activation)
+        model_interpreter = BiddingLogitsModelInterpreter() if from_logits else BiddingPredictionModelInterpreter()
     else:
         loss = tf.keras.losses.MeanSquaredError()
         metrics = ["mae", "mse"]
+        final_layer = Dense(target.shape, activation="linear")
+        if target == TargetHcp():
+            model_interpreter = HcpModelInterpreter()
+        else:
+            model_interpreter = None  # TODO other interpreters
+
+    weighted_metrics = None
+    if sample_weights_calculator:
+        weighted_metrics = metrics
+        metrics = None
 
     model = build_lstm(
         lstm_units,
@@ -176,30 +235,44 @@ if __name__ == "__main__":
         recurrent_dropout,
         include_metadata_features=False,
     )
-    model.compile(
-        optimizer=optimizer,
-        loss=loss,
-        metrics=metrics,
+    model.compile(optimizer=optimizer, loss=loss, metrics=metrics, weighted_metrics=weighted_metrics)
+
+    bucket_boundaries = (9, 11, 15)
+    bucket_batch_sizes = (64, 48, 32, 16)
+    training_dataset, validation_dataset = build_datasets(
+        training_data_path,
+        validation_data_path,
+        context_features,
+        sequence_features,
+        target,
+        #shuffle_size=None,
+        sample_weights_calculator=sample_weights_calculator,
+        bucket_boundaries=bucket_boundaries,
+        bucket_batch_sizes=bucket_batch_sizes,
     )
 
-    training_dataset, validation_dataset = build_datasets(
-        training_data_path, validation_data_path, context_features, sequence_features, target
-    )
+    training_dataset = training_dataset.take(50).cache()
+
+    for entry in training_dataset:
+        print(entry)
+        break
 
     callbacks = [
         tf.keras.callbacks.TensorBoard(log_dir=f"./logs/{run_directory}/run_{run_number}"),
-        tf.keras.callbacks.EarlyStopping(patience=10),
+        #tf.keras.callbacks.EarlyStopping(patience=100),
+        #tf.keras.callbacks.ModelCheckpoint(
+        #    filepath=f"drive/MyDrive/bid_learn/models/{run_directory}/run_{run_number}_checkpoints", save_best_only=True
+        #),
     ]
 
     logging.info(model.summary())
     history = model.fit(
         training_dataset,
-        epochs=3,
+        epochs=200,
         validation_data=validation_dataset,
         callbacks=callbacks,
     )
 
-    model_interpreter = BiddingPredictionModelInterpreter()
     description = (
         "Predict the bid of the next player to act. Uses the bidding so far, the holding of the player, and the "
         "vulnerability of each side as features."

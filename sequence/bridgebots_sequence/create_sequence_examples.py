@@ -66,10 +66,13 @@ def create_examples(
     sequence_features: List[SequenceFeature],
     compression_type: TFRecordCompressionType = TFRecordCompressionType.NONE,
     max_records: int = None,
+    allow_duplicate_deals = True
 ):
 
     with open(source_pickle, "rb") as pickle_file:
         deal_records: List[DealRecord] = pickle.load(pickle_file)
+    if not allow_duplicate_deals:
+        deal_records = [DealRecord(deal_record.deal, deal_record.board_records[0:1]) for deal_record in deal_records]
     example_gen = iter(OneHandSequenceExampleGenerator(deal_records, context_features, sequence_features))
     with tf.io.TFRecordWriter(str(save_path), compression_type) as file_writer:
         for i, example in enumerate(example_gen):
@@ -93,9 +96,10 @@ if __name__ == "__main__":
     context_features = [TargetHcp(), Vulnerability(), TargetShape()]
     # TODO train/test/validation loop
     create_examples(
-        Path("/Users/frice/bridge/bid_learn/deals/toy/train.pickle"),
-        Path("/Users/frice/bridge/bid_learn/deals/toy/train.tfrecord"),
+        Path("/Users/frice/bridge/bid_learn/deals/train.pickle"),
+        Path("/Users/frice/bridge/bid_learn/deals/no_duplicates_train.tfrecord"),
         context_features,
         sequence_features,
+        allow_duplicate_deals=False
         # max_records=20
     )

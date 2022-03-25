@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 
 import numpy as np
 import tensorflow as tf
@@ -9,8 +9,10 @@ from bridgebots_sequence.bidding_sequence_features import CategoricalSequenceFea
 
 
 @tf.function
-def prepare_targets(target: str, contexts, sequences):
+def prepare_targets(target: str, sample_weights_name: Optional[str], contexts, sequences):
     targets = sequences[target]
+    if sample_weights_name:
+        return sequences, targets, sequences[sample_weights_name]
     return sequences, targets
 
 
@@ -19,5 +21,6 @@ def get_target_shape(target: Union[ContextFeature, CategoricalSequenceFeature]):
 
 
 def build_training_metrics(history: History) -> Dict[str, float]:
-    best_epoch = np.argmin(history.history["val_loss"])
+    evaluation_metric = "val_loss" if "val_loss" in history.history else "loss"
+    best_epoch = np.argmin(history.history[evaluation_metric])
     return {metric_name: metric[best_epoch] for metric_name, metric in history.history.items()}
