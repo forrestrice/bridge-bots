@@ -195,7 +195,7 @@ if __name__ == "__main__":
 
     regularizer = None  # tf.keras.regularizers.L2(0.01)
     lstm_units = 128
-    lstm_layers = 1
+    lstm_layers = 3
     recurrent_dropout = 0  # 0.1
     dense_layers = [
         Dense(128, "selu", kernel_regularizer=regularizer),
@@ -250,8 +250,8 @@ if __name__ == "__main__":
         bucket_boundaries=bucket_boundaries,
         bucket_batch_sizes=bucket_batch_sizes,
     )
-
-    training_dataset = training_dataset.take(50).cache()
+    batches=100
+    training_dataset = training_dataset.take(batches).shuffle(batches).cache()
 
     for entry in training_dataset:
         print(entry)
