@@ -2,6 +2,7 @@ import logging
 import re
 import urllib.parse
 from collections import defaultdict
+from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -312,7 +313,12 @@ def parse_multi_lin(file_path: Path) -> List[DealRecord]:
         return [DealRecord(deal, board_records) for deal, board_records in records.items()]
 
 
-def build_lin_str(deal: Deal, board_record: BoardRecord) -> str:
+class LinType(Enum):
+    SINGLE = 0
+    MULTI = 1
+
+
+def build_lin_str(deal: Deal, board_record: BoardRecord, lin_type: LinType = LinType.SINGLE) -> str:
     """
     Convert a Deal and a BoardRecord to a LIN format representation
     """
@@ -344,8 +350,14 @@ def build_lin_str(deal: Deal, board_record: BoardRecord) -> str:
     lin_board_name = _build_board_name(board_record.board_name)
     names = board_record.names
 
-    lin_str = ""
-    lin_str += f"pn|{names[Direction.SOUTH]},{names[Direction.WEST]},{names[Direction.NORTH]},{names[Direction.EAST]}|"
+    if lin_type == LinType.SINGLE:
+        lin_str = ""
+        lin_str += (
+            f"pn|{names[Direction.SOUTH]},{names[Direction.WEST]},{names[Direction.NORTH]},{names[Direction.EAST]}|"
+        )
+    else:
+        lin_str = "qx"
+        lin_str += f"|{board_record.board_name}|"
     lin_str += f"st||md|{lin_dealer}{','.join(player_holding_strings)}|"
     lin_str += lin_board_name
     lin_str += f"sv|{vuln_str}|"

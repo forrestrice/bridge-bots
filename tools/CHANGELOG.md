@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3] - 2022-4-03
+### Added
+- New tool `compare_contracts_csv_report` for comparing sets of contracts' performance.
+- New tool `practice_deals` for creating sets of practice deals as a LIN file with accompanying links to see how it was played by others. 
+- New fields in csv output. `deal_hash` uniquely identifies a deal, `trump_fit` and `trump_hcp` provide information about trump strength.
+### Changed
+- Refactored much of the logic in `csv_report` to be shared with `compare_contracts_csv_report`
+
 ## [0.0.2] - 2022-2-10
 ### Added
 - Scores for declarer and defender. HCP and Shape for declarer, dummy, lho, and rho.
