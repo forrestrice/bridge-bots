@@ -48,35 +48,48 @@ Options:
 - `OUTPUT_PATH` path to output csv file. If not supplied, the csv will be written to stdout.
 
 ### Output Fields
-| Name      | Value |
-| :---:        |    :----  |
-|board_id| Board name|
-|file| Originating file|
-|north| Player name|
-|south|Player name|
-|east|Player name|
-|west|Player name|
-|dealer|Direction|
-|vulnerable|Which seats are vulnerable. One of: `all`, `none`, `1-3` (declarer r/w), `2-4`(declarer w/r)|
-|bidding|The bids, alerts, and announcements from the auction|
-|opener|Which seat opened (1-indexed)|
-|opening|Bid|
-|opener_hcp|Opener's Goren high card points|
-|opener_shape|Opener's shape in descending suit order|
-|overcall_type|One of `None`, `Direct`, `Sandwich`, or `Balance`|
-|overcall|Bid|
-|overcaller_hcp|Overcallers's Goren high card points|
-|overcaller_shape|Overcaller's shape in descending suit order|
-|contested|True if the team that didn't open made any action other than PASS|
-|declarer|Direction|
-|contract|Final Contract|
-|lead|Card led|
-|result|Outcome (e.g. 2H-2)|
-|tricks|Number of tricks taken by declarer|
-|score_ns|Score for north-south|
-|score_ew|Score for east-west|
-|link|BBO link to board_record|
-
+|       Name       | Value                                                                                        |
+|:----------------:|:---------------------------------------------------------------------------------------------|
+|     board_id     | Board name                                                                                   |
+|       file       | Originating file                                                                             |
+|    deal_hash     | A unique identifier of the deal, dealer, and vulnerability                                   |
+|      north       | Player name                                                                                  |
+|      south       | Player name                                                                                  |
+|       east       | Player name                                                                                  |
+|       west       | Player name                                                                                  |
+|      dealer      | Direction                                                                                    |
+|    vulnerable    | Which seats are vulnerable. One of: `all`, `none`, `1-3` (declarer r/w), `2-4`(declarer w/r) |
+|     bidding      | The bids, alerts, and announcements from the auction                                         |
+|      opener      | Which seat opened (1-indexed)                                                                |
+|     opening      | Bid                                                                                          |
+|    opener_hcp    | Opener's Goren high card points                                                              |
+|   opener_shape   | Opener's shape in descending suit order                                                      |
+|  overcall_type   | One of `None`, `Direct`, `Sandwich`, or `Balance`                                            |
+|     overcall     | Bid                                                                                          |
+|  overcaller_hcp  | Overcallers's Goren high card points                                                         |
+| overcaller_shape | Overcaller's shape in descending suit order                                                  |
+|    contested     | True if the team that didn't open made any action other than PASS                            |
+|   competitive    | True if each team made at least two bids                                                     |
+|     declarer     | Direction                                                                                    |
+|     contract     | Final Contract                                                                               |
+|       lead       | Card led                                                                                     |
+|      result      | Outcome (e.g. 2H-2)                                                                          |
+|      tricks      | Number of tricks taken by declarer                                                           |
+|     score_ns     | Score for north-south                                                                        |
+|     score_ew     | Score for east-west                                                                          |
+|  score_declarer  | Score for declarer's team                                                                    |
+|  score_defender  | Score for defenders' team                                                                    |
+|       link       | BBO link to board_record                                                                     |
+|  declarer_shape  | Declarer's shape in suit order                                                               |
+|   dummy_shape    | Dummy's shape in suit order                                                                  |
+|    lho_shape     | Declarer's left-hand opponent shape in suit order                                            |
+|    rho_shape     | Declarer's right-hand opponent shape suit order                                              |
+|   declarer_hcp   | Declarer's high card points                                                                  |
+|    dummy_hcp     | Dummy's high card points                                                                     |
+|     lho_hcp      | Declarer's left-hand opponent high card points                                               |
+|     rho_hcp      | Declarer's right-hand opponent high card points                                              |
+|    trump_fit     | Number of trumps held by declarer + dummy                                                    |
+|    trump_hcp     | Number of high card points held by declarer + dummy in the trump suit                        |
 
 ### Examples
 Run the report on a single LIN file and output in team format:
@@ -99,5 +112,121 @@ $ head -n 3 tools_example/usbc.csv
 board_id,file,north,south,east,west,dealer,vulnerable,bidding,opener,opening,opener_hcp,opener_shape,overcall_type,overcall,overcaller_hcp,overcaller_shape,contested,declarer,contract,lead,result,tricks,score,link
 ,usbc_2011.pbn,Moss,Gitelman,Bathurst,Zagorin,north,none,1D|PASS|1NT|PASS|3NT|PASS|PASS|PASS,1,1D,16,2263,,,,,False,south,3NT,S5,3NT-4,5,-200,https://www.bridgebase.com/tools/handviewer.html?lin=pn%7CGitelman%2CZagorin%2CMoss%2CBathurst%7Cst%7C%7Cmd%7C3SQ6HQT7DJ98CJ8742%2CSK9853HA84D43CAT3%2CSJ7HK6DAKQ765CK96%2CSAT42HJ9532DT2CQ5%7Csv%7Co%7Cmb%7C1D%7Cmb%7Cp%7Cmb%7C1N%7Cmb%7Cp%7Cmb%7C3N%7Cmb%7Cp%7Cmb%7Cp%7Cmb%7Cp%7Cpg%7C%7Cpc%7CS5%7Cpc%7CS7%7Cpc%7CSA%7Cpc%7CS6%7Cpg%7C%7Cpc%7CS2%7Cpc%7CSQ%7Cpc%7CSK%7Cpc%7CSJ%7Cpg%7C%7Cpc%7CS9%7Cpc%7CC6%7Cpc%7CST%7Cpc%7CC7%7Cpg%7C%7Cpc%7CS4%7Cpc%7CC4%7Cpc%7CS8%7Cpc%7CD5%7Cpg%7C%7Cpc%7CS3%7Cpc%7CH6%7Cpc%7CH2%7Cpc%7CH7%7Cpg%7C%7Cpc%7CC3%7Cpc%7CC9%7Cpc%7CCQ%7Cpc%7CC2%7Cpg%7C%7Cpc%7CC5%7Cpc%7CC8%7Cpc%7CCA%7Cpc%7CCK%7Cpg%7C%7Cpc%7CHA%7Cpc%7CHK%7Cpc%7CH3%7Cpc%7CHT%7Cpg%7C%7Cmc%7C5%7Cpg%7C%7C
 ,usbc_2011.pbn,Grue,Lall,Greco,Hampson,north,none,1C|PASS|1D|1S|X|3H|PASS|3S|PASS|PASS|PASS,1,1C,16,2263,sandwich,1S,11,5323,True,west,3S,DK,3S-1,8,-50,https://www.bridgebase.com/tools/handviewer.html?lin=pn%7CLall%2CHampson%2CGrue%2CGreco%7Cst%7C%7Cmd%7C3SQ6HQT7DJ98CJ8742%2CSK9853HA84D43CAT3%2CSJ7HK6DAKQ765CK96%2CSAT42HJ9532DT2CQ5%7Csv%7Co%7Cmb%7C1C%7Cmb%7Cp%7Cmb%7C1D%7Cmb%7C1S%7Cmb%7CX%7Cmb%7C3H%7Cmb%7Cp%7Cmb%7C3S%7Cmb%7Cp%7Cmb%7Cp%7Cmb%7Cp%7Cpg%7C%7Cpc%7CDK%7Cpc%7CD2%7Cpc%7CD8%7Cpc%7CD3%7Cpg%7C%7Cpc%7CDA%7Cpc%7CDT%7Cpc%7CD9%7Cpc%7CD4%7Cpg%7C%7Cpc%7CHK%7Cpc%7CH2%7Cpc%7CH7%7Cpc%7CHA%7Cpg%7C%7Cpc%7CS3%7Cpc%7CS7%7Cpc%7CSA%7Cpc%7CS6%7Cpg%7C%7Cpc%7CS2%7Cpc%7CSQ%7Cpc%7CSK%7Cpc%7CSJ%7Cpg%7C%7Cpc%7CH4%7Cpc%7CH6%7Cpc%7CHJ%7Cpc%7CHQ%7Cpg%7C%7Cpc%7CC2%7Cpc%7CCA%7Cpc%7CC6%7Cpc%7CC5%7Cpg%7C%7Cmc%7C8%7Cpg%7C%7C
+
+```
+
+## Compare Contracts Report
+This is an analysis tool for investigating how one set of contracts compares with another in your bridge data. It will allow you to find deals where a contract from set A was played at one table, but a contract from set B was played at another. This could be used to evaluate choice of games/slams or competitive decisions like 5H over 4S.
+
+### Running
+The compare contracts report function can be run as a python script:
+`python compare_contracts_csv_report.py`
+
+Or as a module:
+`python -m bridgebots_tools.compare_contracts_csv_report`
+
+### Arguments
+List all arguments by running with `--help`
+```shell script
+python -m bridgebots_tools.compare_contracts_csv_report --help
+Usage: python -m bridgebots_tools.compare_contracts_csv_report 
+           [OPTIONS] CONTRACT_SETS... INPUT_PATH [OUTPUT_PATH]
+
+Options:
+  --input_format [lin|pbn]
+  --deal_comparison_type [same_deal|any]
+  --direction_comparison_type [same_direction|opposite_direction|any]
+  --lax_doubles / --strict_doubles
+  -v, --verbose
+  --info
+  -q, --quiet
+  --help                          Show this message and exit.
+```
+- `input_format`: the type of files to read (pbn or lin). Default is lin.
+
+- `deal_comparison_type`: In `same_deal` mode the tool will only find comparisons where a contract from each contract set occurred in the same deal. In `any` mode all boards that played in a contract in either contract set will be included.
+
+- `direction_comparison_type`: In `same_direction` mode, the contracts must have been played by the same pair (e.g. North-South). This is useful for comparing a choice of contracts (e.g. 3NT vs 4H,4S). In `opposite_direction` mode, the contracts must have been played by opposite pairs. This is useful for comparing decisions to compete (e.g. 5H vs 4S). In `any` mode, all boards will be included.
+
+- Doubles Flags:
+  - `lax_doubles`: Consider undoubled, doubled, and redoubled contracts to be equivalent.
+  - `strict_doubles`: Consider undoubled, doubled, and redoubled contracts to be distinct. Doubled and redoubled contracts can be included in contract sets (e.g. 2CX).
+
+- Log Level Flags :
+    - `verbose/-v` output debugging information such as files processed and number of deals found. 
+    - `--info` Default log level. Includes warnings about malformed records.
+    - `--quiet/-q` No output
+
+- `CONTRACT_SETS`: Two arguments. Each is a comma separated list of contracts to be compared with the other set. For example, you might provide the arguments `3NT` and `4H,4S` to compare major suit games with 3NT.    
+
+- `INPUT_PATH` path to a bridge file or directory containing bridge files. If a directory is used, it will be searched recursively.
+
+- `OUTPUT_PATH` path to output csv file. If not supplied, the csv will be written to stdout.
+### Output Fields
+See the csv_report output fields above. 
+
+### Examples
+
+```shell script
+python -m bridgebots_tools.compare_contracts_csv_report 3NT 4H,4S .
+```
+```text
+board_id,file,deal_hash,north,south,east,west,dealer,vulnerable,bidding,opener,opening,opener_hcp,opener_shape,overcall_type,overcall,overcaller_hcp,overcaller_shape,contested,competitive,declarer,contract,lead,result,tricks,score_ns,score_ew,score_declarer,score_defender,link,declarer_shape,dummy_shape,lho_shape,rho_shape,declarer_hcp,dummy_hcp,lho_hcp,rho_hcp,trump_fit,trump_hcp
+c7,sfa1.lin,-6400932905757015746,Balicki,Zmudzinski,Helness,Helgemo,south,all,PASS|PASS|PASS|1NT|PASS|2H!|PASS|2S|PASS|3NT|PASS|PASS|PASS,4,1NT,17,3343,,,,,False,False,east,3NT,D4,3NT+1,10,-630,630,630,-630,https://www.bridgebase.com/tools/handviewer.html?lin=pn%7CZmudzinski%2CHelgemo%2CBalicki%2CHelness%7Cst%7C%7Cmd%7C1S54HK32DQ954CA974%2CSAKJ72HJ75D832CT8%2CST83HT964DA6CJ532%2CSQ96HAQ8DKJT7CKQ6%7Cah%7CBoard+7%7Csv%7Cb%7Cmb%7Cp%7Cmb%7Cp%7Cmb%7Cp%7Cmb%7C1N%7Cmb%7Cp%7Cmb%7C2H%21%7Cmb%7Cp%7Cmb%7C2S%7Cmb%7Cp%7Cmb%7C3N%7Cmb%7Cp%7Cmb%7Cp%7Cmb%7Cp%7Cpg%7C%7Cpc%7CD4%7Cpc%7CD2%7Cpc%7CDA%7Cpc%7CD7%7Cpg%7C%7Cpc%7CCJ%7Cpc%7CCK%7Cpc%7CCA%7Cpc%7CC8%7Cpg%7C%7Cpc%7CC4%7Cpc%7CCT%7Cpc%7CC2%7Cpc%7CC6%7Cpg%7C%7Cpc%7CD3%7Cpc%7CD6%7Cpc%7CDJ%7Cpc%7CDQ%7Cpg%7C%7Cmc%7C10%7Cpg%7C%7C,3343,5332,2344,3424,17,9,9,5,,
+o7,sfa1.lin,-6400932905757015746,Fantoni,Nunes,Lynch,Passell,south,all,PASS|PASS|PASS|1NT|PASS|2C|PASS|2D|PASS|2S|PASS|4S|PASS|PASS|PASS,4,1NT,17,3343,,,,,False,False,west,4S,DA,4S-1,9,100,-100,-100,100,https://www.bridgebase.com/tools/handviewer.html?lin=pn%7CNunes%2CPassell%2CFantoni%2CLynch%7Cst%7C%7Cmd%7C1S54HK32DQ954CA974%2CSAKJ72HJ75D832CT8%2CST83HT964DA6CJ532%2CSQ96HAQ8DKJT7CKQ6%7Cah%7CBoard+7%7Csv%7Cb%7Cmb%7Cp%7Cmb%7Cp%7Cmb%7Cp%7Cmb%7C1N%7Cmb%7Cp%7Cmb%7C2C%7Cmb%7Cp%7Cmb%7C2D%7Cmb%7Cp%7Cmb%7C2S%7Cmb%7Cp%7Cmb%7C4S%7Cmb%7Cp%7Cmb%7Cp%7Cmb%7Cp%7Cpg%7C%7Cpc%7CDA%7Cpc%7CD7%7Cpc%7CD4%7Cpc%7CD8%7Cpg%7C%7Cpc%7CD6%7Cpc%7CDK%7Cpc%7CD5%7Cpc%7CD3%7Cpg%7C%7Cpc%7CSQ%7Cpc%7CS5%7Cpc%7CS2%7Cpc%7CS3%7Cpg%7C%7Cpc%7CS6%7Cpc%7CS4%7Cpc%7CSK%7Cpc%7CS8%7Cpg%7C%7Cpc%7CSA%7Cpc%7CST%7Cpc%7CS9%7Cpc%7CC4%7Cpg%7C%7Cpc%7CC8%7Cpc%7CC2%7Cpc%7CCK%7Cpc%7CCA%7Cpg%7C%7Cpc%7CDQ%7Cpc%7CD2%7Cpc%7CH6%7Cpc%7CDT%7Cpg%7C%7Cpc%7CD9%7Cpc%7CH5%7Cpc%7CH4%7Cpc%7CDJ%7Cpg%7C%7Cpc%7CCQ%7Cpc%7CC7%7Cpc%7CCT%7Cpc%7CC3%7Cpg%7C%7Cpc%7CC6%7Cpc%7CC9%7Cpc%7CS7%7Cpc%7CC5%7Cpg%7C%7Cmc%7C9%7Cpg%7C%7C,5332,3343,3424,2344,9,17,5,9,8,10
+```
+
+
+## Practice Deals Builder
+This tool is designed for building sets of practice deals for use on BBO. A user can supply a specific lin file and board number and the tool will create (or append) a LIN and CSV containing the deal and links to the actual bidding and play of the hand from a tournament.
+
+### Running
+The practice deals tool can be run as a python script:
+`python practice_deals.py`
+
+Or as a module:
+`python -m bridgebots_tools.practice_deals`
+
+### Arguments
+List all arguments by running with `--help`
+```shell script
+python -m bridgebots_tools.practice_deals --help
+Usage: python -m bridgebots_tools.practice_deals [OPTIONS] INPUT_DIR FILE_NAME
+                                                 BOARD [OUTPUT_LIN]
+                                                 [OUTPUT_CSV]
+
+Options:
+  --input_format [lin|pbn]
+  -v, --verbose
+  --info
+  -q, --quiet
+  --help                    Show this message and exit.
+```
+- `input_format`: the type of files to read (pbn or lin). Default is lin.
+
+- Log Level Flags :
+    - `verbose/-v` Output debugging information.
+    - `--info` Default log level. Includes warnings about malformed records.
+    - `--quiet/-q` No output
+    
+- `INPUT_DIR` path to a directory containing bridge files. Will be searched recursively for `FILE_NAME`
+
+- `FILE_NAME` Name of the target file to extract a board from.
+
+- `BOARD` The board number to extract.
+
+- `OUTPUT_LIN` path to output LIN file to create or append. If not supplied, the LIN will be written to stdout.
+
+- `OUTPUT_CSV` path to output CSV file to create or append. If not supplied, the CSV will be written to stdout.
+
+### Examples
+Extract board 7 from file `23971.lin` located in the current working directory.
+```shell script
+python -m bridgebots_tools.practice_deals . 23971.lin 7 
+```
+```text
+qx|o7|st||md|1S654HK643DK9862C8,SQT973HT9DQTCKT93,SKJHA852DAJ7543CQ,SA82HQJ7DCAJ76542|ah|Board 7|sv|b|mb|p|mb|p|mb|1D|mb|2C|mb|2D|mb|3C|mb|3D|mb|X!|mb|p|mb|4S|mb|p|mb|p|mb|p|pg||pc|DA|pc|S2|pc|D8|pc|DT|pg||pc|S8|pc|S4|pc|S3|pc|SJ|pg||pc|D3|pc|SA|pc|D2|pc|DQ|pg||pc|C2|pc|C8|pc|CK|pc|CQ|pg||pc|SQ|pc|SK|pc|C4|pc|S5|pg||pc|HA|pc|H7|pc|H3|pc|H9|pg||pc|H2|pc|HQ|pc|HK|pc|HT|pg||mc|9|pg||
+board_id,file,o_link,c_link
+7,23971.lin,https://www.bridgebase.com/tools/handviewer.html?lin=pn%7CLaura+Dekkers%2CSylvie+Willard%2CMarion+Michielsen%2CBenedicte+Cronier%7Cst%7C%7Cmd%7C1S654HK643DK9862C8%2CSQT973HT9DQTCKT93%2CSKJHA852DAJ7543CQ%2CSA82HQJ7DCAJ76542%7Cah%7CBoard+7%7Csv%7Cb%7Cmb%7Cp%7Cmb%7Cp%7Cmb%7C1D%7Cmb%7C2C%7Cmb%7C2D%7Cmb%7C3C%7Cmb%7C3D%7Cmb%7CX%21%7Cmb%7Cp%7Cmb%7C4S%7Cmb%7Cp%7Cmb%7Cp%7Cmb%7Cp%7Cpg%7C%7Cpc%7CDA%7Cpc%7CS2%7Cpc%7CD8%7Cpc%7CDT%7Cpg%7C%7Cpc%7CS8%7Cpc%7CS4%7Cpc%7CS3%7Cpc%7CSJ%7Cpg%7C%7Cpc%7CD3%7Cpc%7CSA%7Cpc%7CD2%7Cpc%7CDQ%7Cpg%7C%7Cpc%7CC2%7Cpc%7CC8%7Cpc%7CCK%7Cpc%7CCQ%7Cpg%7C%7Cpc%7CSQ%7Cpc%7CSK%7Cpc%7CC4%7Cpc%7CS5%7Cpg%7C%7Cpc%7CHA%7Cpc%7CH7%7Cpc%7CH3%7Cpc%7CH9%7Cpg%7C%7Cpc%7CH2%7Cpc%7CHQ%7Cpc%7CHK%7Cpc%7CHT%7Cpg%7C%7Cmc%7C9%7Cpg%7C%7C,https://www.bridgebase.com/tools/handviewer.html?lin=pn%7CDaniele+Gaviard%2CVan+Zwol+W%2CVanessa+Reess%2CCarla+Arnolds%7Cst%7C%7Cmd%7C1S654HK643DK9862C8%2CSQT973HT9DQTCKT93%2CSKJHA852DAJ7543CQ%2CSA82HQJ7DCAJ76542%7Cah%7CBoard+7%7Csv%7Cb%7Cmb%7Cp%7Cmb%7Cp%7Cmb%7C1D%7Cmb%7C2C%7Cmb%7C2D%7Cmb%7C3C%7Cmb%7C3H%7Cmb%7C4C%7Cmb%7C4H%7Cmb%7C4S%7Cmb%7C5D%7Cmb%7CX%7Cmb%7Cp%7Cmb%7Cp%7Cmb%7Cp%7Cpg%7C%7Cpc%7CCA%7Cpc%7CC8%7Cpc%7CC9%7Cpc%7CCQ%7Cpg%7C%7Cpc%7CSA%7Cpc%7CS4%7Cpc%7CS9%7Cpc%7CSJ%7Cpg%7C%7Cpc%7CS8%7Cpc%7CS5%7Cpc%7CS7%7Cpc%7CSK%7Cpg%7C%7Cpc%7CDA%7Cpc%7CC2%7Cpc%7CD2%7Cpc%7CDT%7Cpg%7C%7Cpc%7CD3%7Cpc%7CC4%7Cpc%7CDK%7Cpc%7CDQ%7Cpg%7C%7Cpc%7CS6%7Cpc%7CST%7Cpc%7CD4%7Cpc%7CS2%7Cpg%7C%7Cpc%7CH2%7Cpc%7CH7%7Cpc%7CH3%7Cpc%7CHT%7Cpg%7C%7Cpc%7CCK%7Cmc%7C10%7Cpg%7C%7C
 
 ```
