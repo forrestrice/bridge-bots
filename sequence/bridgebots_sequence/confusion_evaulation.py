@@ -125,5 +125,7 @@ if __name__ == "__main__":
     deal_records = load_deals(
         Path("/Users/frice/bridge/bid_learn/deals/validation.pickle"), allow_duplicate_deals=False
     )
-    engine = BiddingInferenceEngine(model_path=Path("/Users/frice/Downloads/no_duplicates_target_bidding_run_4"))
+    engine = BiddingInferenceEngine(
+        model_path=Path("/Users/frice/Downloads/target_bidding_sample_weights_lstm_inputs_run_7")
+    )
     confusion_evaluation(deal_records, engine)

@@ -98,6 +98,7 @@ def build_lstm(
     regularizer: tf.keras.regularizers.Regularizer,
     recurrent_dropout: float,
     include_metadata_features: bool,
+    include_lstm_input_features: bool
 ):
     one_hot_bidding = Input(shape=(None, BIDDING_VOCAB_SIZE), name="one_hot_bidding")
     bidding_mask = Input(shape=(None,), name="bidding_mask", dtype=tf.bool)
@@ -116,7 +117,10 @@ def build_lstm(
     vulnerability_initial_state = [vulnerability_initial_state, vulnerability_initial_state]
 
     # TODO and dropout/regularization
-    lstm_inputs = one_hot_bidding
+    if include_lstm_input_features:
+        lstm_inputs = concatenate([one_hot_bidding, player_position, sequence_vulnerability])
+    else:
+        lstm_inputs = one_hot_bidding
     lstm_outputs = None
     for i in range(lstm_layers):
         lstm_outputs, state_h, state_c = LSTM(
@@ -126,7 +130,10 @@ def build_lstm(
             kernel_regularizer=regularizer,
             recurrent_dropout=recurrent_dropout,
         )(lstm_inputs, mask=bidding_mask, initial_state=vulnerability_initial_state)
-        lstm_inputs = lstm_outputs
+        if include_lstm_input_features:
+            lstm_inputs = concatenate([lstm_outputs, player_position, sequence_vulnerability])
+        else:
+            lstm_inputs = lstm_outputs
     # TODO consider adding stace_c
     features = [lstm_outputs, player_position, holding, sequence_vulnerability]
     if include_metadata_features:
@@ -234,6 +241,7 @@ if __name__ == "__main__":
         regularizer,
         recurrent_dropout,
         include_metadata_features=False,
+        include_lstm_input_features=True
     )
     model.compile(optimizer=optimizer, loss=loss, metrics=metrics, weighted_metrics=weighted_metrics)
 

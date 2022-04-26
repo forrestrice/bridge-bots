@@ -68,8 +68,12 @@ class BiddingInferenceEngine:
         string_dataset = tf.data.Dataset.from_generator(
             string_gen, output_signature=tf.TensorSpec(shape=(), dtype=tf.string)
         )
+        # TODO bundle sample weights in metadata
         return build_inference_dataset(
-            string_dataset, self.model_metadata.context_features, self.model_metadata.sequence_features
+            string_dataset,
+            self.model_metadata.context_features,
+            self.model_metadata.sequence_features,
+            None,  # BiddingSmapleWeightsCalculator(),
         )
 
     def _predict(

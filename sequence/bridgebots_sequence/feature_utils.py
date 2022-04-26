@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Tuple
 
 import tensorflow as tf
 
@@ -42,23 +42,32 @@ class SampleWeightsCalculator(ABC):
 
 
 class BiddingSampleWeightsCalculator(SampleWeightsCalculator):
+    def __init__(self, bid_weights: List[Tuple[str, float]], default_weight: float = 0):
+        bid_keys = [k for k, v in bid_weights]
+        bid_values = [v for k, v in bid_weights]
+        init = tf.lookup.KeyValueTensorInitializer(
+            keys=tf.constant(bid_keys), values=tf.constant(bid_values, dtype=tf.float64)
+        )
+        self.vocab_table = tf.lookup.StaticHashTable(init, default_value=default_weight)
+
+    @property
+    def name(self) -> str:
+        return "target_bidding_sample_weight"
+
+    @property
+    def input_name(self) -> str:
+        return "target_bidding"
+
+    @tf.function
+    def prepare_dataset(self, sequences: dict) -> dict:
+        sequences = sequences.copy()
+        sequences[self.name] = tf.squeeze(self.vocab_table.lookup(sequences[self.input_name]), axis=2)
+        return sequences
+
+
+class ObservedBiddingSampleWeightsCalculator(BiddingSampleWeightsCalculator):
     # fmt: off
-    bid_weights_gut = [
-        ("PASS", 0.5),
-        ("1C", 1), ("1D", 1), ("1H", 1), ("1S", 1), ("1NT", 1),
-        ("2C", 1.5), ("2D", 1.5), ("2H", 1.5), ("2S", 1.5), ("2NT", 1.5),
-        ("3C", 1.75), ("3D", 1.75), ("3H", 1.75), ("3S", 1.75),
-        ("3NT", 2),
-        ("4C", 2), ("4D", 2), ("4H", 2), ("4S", 2), ("4NT", 2),
-        ("5C", 3), ("5D", 3), ("5H", 3), ("5S", 3), ("5NT", 3),
-        ("6C", 4), ("6D", 4), ("6H", 4), ("6S", 4), ("6NT", 4),
-        ("7C", 5), ("7D", 5), ("7H", 5), ("7S", 5), ("7NT", 5),
-        ("X", 1.5), ("XX", 4),
-        ("EOS", 0.1),
-    ]
-    # fmt: on
-    # fmt: off
-    bid_weights_observed = [
+    bid_weights = [
         ("PASS", 1.9),
         ("1C", 50), ("1D", 50), ("1H", 40), ("1S", 40), ("1NT", 40),
         ("2C", 50), ("2D", 50), ("2H", 50), ("2S", 50), ("2NT", 50),
@@ -76,23 +85,47 @@ class BiddingSampleWeightsCalculator(SampleWeightsCalculator):
     ]
     # fmt: on
 
-    bid_keys = [k for k, v in bid_weights_observed]
-    bid_values = [v for k, v in bid_weights_observed]
-    init = tf.lookup.KeyValueTensorInitializer(
-        keys=tf.constant(bid_keys), values=tf.constant(bid_values, dtype=tf.float64)
-    )
-    vocab_table = tf.lookup.StaticHashTable(init, default_value=0)
+    def __init__(self):
+        super().__init__(self.bid_weights)
 
-    @property
-    def name(self) -> str:
-        return "target_bidding_sample_weight"
 
-    @property
-    def input_name(self) -> str:
-        return "target_bidding"
+class SimpleBiddingSampleWeightsCalculator(BiddingSampleWeightsCalculator):
+    # fmt: off
+    bid_weights = [
+        ("PASS", 0.25),
+        ("1C", 1), ("1D", 1), ("1H", 1), ("1S", 1), ("1NT", 1),
+        ("2C", 1.5), ("2D", 1.5), ("2H", 1.5), ("2S", 1.5), ("2NT", 1.5),
+        ("3C", 1.75), ("3D", 1.75), ("3H", 1.75), ("3S", 1.75),
+        ("3NT", 2),
+        ("4C", 2), ("4D", 2), ("4H", 2), ("4S", 2), ("4NT", 2),
+        ("5C", 3), ("5D", 3), ("5H", 3), ("5S", 3), ("5NT", 3),
+        ("6C", 6), ("6D", 6), ("6H", 6), ("6S", 6), ("6NT", 6),
+        ("7C", 10), ("7D", 10), ("7H", 10), ("7S", 10), ("7NT", 10),
+        ("X", 1.5), ("XX", 4),
+        ("EOS", 0.1),
+    ]
+    # fmt: on
 
-    @tf.function
-    def prepare_dataset(self, sequences: dict) -> dict:
-        sequences = sequences.copy()
-        sequences[self.name] = tf.squeeze(self.vocab_table.lookup(sequences[self.input_name]), axis=2)
-        return sequences
+    def __init__(self):
+        super().__init__(self.bid_weights)
+
+
+class OnesBiddingSampleWeightsCalculator(BiddingSampleWeightsCalculator):
+    # fmt: off
+    bid_weights = [
+        ("PASS", 1),
+        ("1C", 1), ("1D", 1), ("1H", 1), ("1S", 1), ("1NT", 1),
+        ("2C", 1), ("2D", 1), ("2H", 1), ("2S", 1), ("2NT", 1),
+        ("3C", 1), ("3D", 1), ("3H", 1), ("3S", 1),
+        ("3NT", 1),
+        ("4C", 1), ("4D", 1), ("4H", 1), ("4S", 1), ("4NT", 1),
+        ("5C", 1), ("5D", 1), ("5H", 1), ("5S", 1), ("5NT", 1),
+        ("6C", 1), ("6D", 1), ("6H", 1), ("6S", 1), ("6NT", 1),
+        ("7C", 1), ("7D", 1), ("7H", 1), ("7S", 1), ("7NT", 1),
+        ("X", 1), ("XX", 1),
+        ("EOS", 1),
+    ]
+    # fmt: on
+
+    def __init__(self):
+        super().__init__(self.bid_weights, default_weight=1)

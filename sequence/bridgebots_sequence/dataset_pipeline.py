@@ -92,7 +92,10 @@ def _build_schema(context_features: List[ContextFeature], sequence_features: Lis
 
 
 def build_inference_dataset(
-    protobuff_dataset: tf.data.Dataset, context_features: List[ContextFeature], sequence_features: List[SequenceFeature]
+    protobuff_dataset: tf.data.Dataset,
+    context_features: List[ContextFeature],
+    sequence_features: List[SequenceFeature],
+    sample_weights_calculator: SampleWeightsCalculator,
 ):
     context_features_schema, sequence_features_schema = _build_schema(context_features, sequence_features)
     decoded_dataset = protobuff_dataset.map(
@@ -105,7 +108,8 @@ def build_inference_dataset(
         raise ValueError("No BiddingSequenceFeature detected. It is currently required by the data pipeline.")
     batched_dataset = bidding_dataset.batch(1)
     lstm_dataset = batched_dataset.map(
-        partial(prepare_lstm_dataset, context_features, sequence_features), num_parallel_calls=tf.data.AUTOTUNE
+        partial(prepare_lstm_dataset, context_features, sequence_features, sample_weights_calculator),
+        num_parallel_calls=tf.data.AUTOTUNE,
     )
     return lstm_dataset.map(lambda contexts, sequences: sequences)
 
@@ -128,7 +132,7 @@ if __name__ == "__main__":
         sequence_features,
         sample_weights_calculator,
         bucket_boundaries=None,
-        bucket_batch_sizes=None
+        bucket_batch_sizes=None,
     )
     # prepared_dataset = dataset.cache().map(prepare_lstm_dataset, num_parallel_calls=tf.data.AUTOTUNE)
     for i, example in enumerate(dataset):
