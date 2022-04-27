@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bridgebots_tools"
-version = "0.0.3"
+version = "0.0.4.dev0"
 description = "Tools which utilize the Bridgebots package to process data"
 authors = ["Forrest Rice <forrest.d.rice@gmail.com>"]
 license = "MIT"

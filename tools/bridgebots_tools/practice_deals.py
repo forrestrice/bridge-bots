@@ -2,9 +2,6 @@ import csv
 import sys
 from pathlib import Path
 
-import sys
-from pathlib import Path
-
 import click
 
 from bridgebots import build_lin_str, build_lin_url
