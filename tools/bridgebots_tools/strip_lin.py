@@ -4,6 +4,7 @@ from pathlib import Path
 import click
 
 from bridgebots import build_lin_str, parse_multi_lin
+from bridgebots.lin import LinType
 
 
 @click.command()
@@ -19,7 +20,7 @@ def strip_lin(input_file: Path, output_file: Path):
     try:
         for deal_record in deal_records:
             for board_record in deal_record.board_records:
-                output_handle.write(build_lin_str(deal_record.deal, board_record))
+                output_handle.write(build_lin_str(deal_record.deal, board_record, LinType.MULTI))
                 output_handle.write("\n")
     finally:
         if output_file:
