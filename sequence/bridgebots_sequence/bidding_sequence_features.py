@@ -6,6 +6,11 @@ import tensorflow as tf
 
 from bridgebots import BidMetadata, Direction
 from bridgebots_sequence.feature_utils import BIDDING_VOCAB, BIDDING_VOCAB_SIZE, TARGET_BIDDING_VOCAB
+from bridgebots_sequence.interpreter import (
+    BiddingLogitsModelInterpreter,
+    BiddingPredictionModelInterpreter,
+    ModelInterpreterMixin,
+)
 
 
 @dataclass
@@ -120,6 +125,7 @@ class BidExplainedSequenceFeature(SequenceFeature):
     def prepare_dataset(self, sequences: dict) -> dict:
         return sequences
 
+
 class CategoricalSequenceFeature(SequenceFeature, ABC):
     @property
     @abstractmethod
@@ -211,8 +217,10 @@ class BiddingSequenceFeature(StringCategoricalSequenceFeature):
         return sequences
 
 
-class TargetBiddingSequence(StringCategoricalSequenceFeature):
+class TargetBiddingSequence(StringCategoricalSequenceFeature, ModelInterpreterMixin):
     bid_vectorization_layer = tf.keras.layers.StringLookup(num_oov_indices=1, vocabulary=TARGET_BIDDING_VOCAB)
+    interpreter = BiddingPredictionModelInterpreter()
+    logits_interpreter = BiddingLogitsModelInterpreter()
 
     @property
     def name(self) -> str:

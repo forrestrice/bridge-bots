@@ -110,6 +110,18 @@ class SimpleBiddingSampleWeightsCalculator(BiddingSampleWeightsCalculator):
         super().__init__(self.bid_weights)
 
 
+class VerySimpleBiddingSampleWeightsCalculator(BiddingSampleWeightsCalculator):
+    # fmt: off
+    bid_weights = [
+        ("PASS", 0.25),
+        ("EOS", 0.1),
+    ]
+    # fmt: on
+
+    def __init__(self):
+        super().__init__(self.bid_weights, default_weight=1)
+
+
 class OnesBiddingSampleWeightsCalculator(BiddingSampleWeightsCalculator):
     # fmt: off
     bid_weights = [

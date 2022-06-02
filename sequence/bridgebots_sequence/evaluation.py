@@ -15,7 +15,6 @@ from bridgebots_sequence.bidding_sequence_features import (
     HoldingSequenceFeature,
     PlayerPositionSequenceFeature,
     SequenceFeature,
-    TargetBiddingSequence,
 )
 from bridgebots_sequence.create_sequence_examples import OneHandSequenceExampleGenerator
 from bridgebots_sequence.dataset_pipeline import build_inference_dataset

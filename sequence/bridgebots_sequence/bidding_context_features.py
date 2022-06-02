@@ -8,6 +8,7 @@ import tensorflow as tf
 
 from bridgebots import Deal
 from bridgebots.deal_utils import calculate_shape, count_hcp
+from bridgebots_sequence.interpreter import HcpModelInterpreter, ModelInterpreterMixin, ShapeModelInterpreter
 
 
 @dataclass
@@ -62,6 +63,8 @@ class ContextFeature(ABC):
 
 
 class TargetHcp(ContextFeature):
+    interpreter = HcpModelInterpreter()
+
     @property
     def name(self) -> str:
         return "target_hcp"
@@ -120,7 +123,9 @@ class Vulnerability(ContextFeature):
         return contexts, sequences
 
 
-class TargetShape(ContextFeature):
+class TargetShape(ContextFeature, ModelInterpreterMixin):
+    interpreter = ShapeModelInterpreter()
+
     @property
     def name(self) -> str:
         return "target_shape"

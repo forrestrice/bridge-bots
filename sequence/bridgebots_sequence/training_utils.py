@@ -5,7 +5,7 @@ import tensorflow as tf
 from tensorflow.keras.callbacks import History
 
 from bridgebots_sequence.bidding_context_features import ContextFeature
-from bridgebots_sequence.bidding_sequence_features import CategoricalSequenceFeature, SequenceFeature
+from bridgebots_sequence.bidding_sequence_features import CategoricalSequenceFeature
 
 
 @tf.function

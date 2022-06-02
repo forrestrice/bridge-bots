@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-from abc import ABC, abstractmethod
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import numpy as np
 import tensorflow as tf
@@ -8,6 +7,11 @@ from numpy import ndarray
 
 from bridgebots import Direction
 from bridgebots_sequence.feature_utils import TARGET_BIDDING_VOCAB
+
+
+class ModelInterpreterMixin:
+    def model_interpreter(self, from_logits=False):
+        return self.logits_interpreter if from_logits else self.interpreter
 
 
 class ModelInterpreter(ABC):
@@ -26,6 +30,14 @@ class ModelInterpreter(ABC):
 
     def __hash__(self):
         return hash(self.__class__)
+
+
+class ShapeModelInterpreter(ModelInterpreter):
+    def interpret(self, prediction: ndarray, dealer: Direction) -> Dict[Direction, List[int]]:
+        return {dealer.offset(i): prediction[i * 4 : i * 4 + 4] for i in range(4)}
+
+    def interpret_proba(self, prediction: ndarray, sort: bool):
+        raise NotImplementedError
 
 
 class HcpModelInterpreter(ModelInterpreter):

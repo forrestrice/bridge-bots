@@ -9,7 +9,7 @@ from tensorflow.keras.callbacks import History
 from tensorflow.keras.layers import Dense, LSTM, concatenate
 from tensorflow.keras.models import Model
 
-from bridgebots_sequence.bidding_context_features import ContextFeature, TargetHcp, Vulnerability
+from bridgebots_sequence.bidding_context_features import ContextFeature, TargetShape, Vulnerability
 from bridgebots_sequence.bidding_sequence_features import (
     BiddingSequenceFeature,
     CategoricalSequenceFeature,
@@ -21,14 +21,11 @@ from bridgebots_sequence.bidding_sequence_features import (
 from bridgebots_sequence.dataset_pipeline import build_tfrecord_dataset
 from bridgebots_sequence.feature_utils import (
     BIDDING_VOCAB_SIZE,
-    BiddingSampleWeightsCalculator,
     SampleWeightsCalculator,
 )
 from bridgebots_sequence.interpreter import (
-    BiddingLogitsModelInterpreter,
-    BiddingPredictionModelInterpreter,
-    HcpModelInterpreter,
     ModelInterpreter,
+    ModelInterpreterMixin,
 )
 from bridgebots_sequence.model_metadata import ModelMetadata
 from bridgebots_sequence.sequence_schemas import ModelMetadataSchema
@@ -98,7 +95,7 @@ def build_lstm(
     regularizer: tf.keras.regularizers.Regularizer,
     recurrent_dropout: float,
     include_metadata_features: bool,
-    include_lstm_input_features: bool
+    include_lstm_input_features: bool,
 ):
     one_hot_bidding = Input(shape=(None, BIDDING_VOCAB_SIZE), name="one_hot_bidding")
     bidding_mask = Input(shape=(None,), name="bidding_mask", dtype=tf.bool)
@@ -188,21 +185,21 @@ if __name__ == "__main__":
     ]
     context_features = [Vulnerability()]
 
-    target: Union[CategoricalSequenceFeature, ContextFeature] = TargetBiddingSequence()
+    target: Union[CategoricalSequenceFeature, ContextFeature, ModelInterpreterMixin] = TargetShape()
     if isinstance(target, SequenceFeature):
         sequence_features.append(target)
     else:
         context_features.append(target)
-    sample_weights_calculator = BiddingSampleWeightsCalculator()
+    sample_weights_calculator = None
     run_directory = target.name + "_toy"
     run_number = 1
 
-    training_data_path = Path("/Users/frice/bridge/bid_learn/deals/no_duplicates_train.tfrecord")
+    training_data_path = Path("/Users/frice/bridge/bid_learn/deals/toy/no_duplicates_train.tfrecord")
     validation_data_path = None  # Path("/Users/frice/bridge/bid_learn/deals/toy/validation.tfrecord")
 
     regularizer = None  # tf.keras.regularizers.L2(0.01)
     lstm_units = 128
-    lstm_layers = 3
+    lstm_layers = 1
     recurrent_dropout = 0  # 0.1
     dense_layers = [
         Dense(128, "selu", kernel_regularizer=regularizer),
@@ -212,21 +209,18 @@ if __name__ == "__main__":
 
     optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
 
-    if isinstance(target, CategoricalSequenceFeature):
+    if isinstance(target, TargetBiddingSequence):
         from_logits = False
         loss = tf.keras.losses.CategoricalCrossentropy(from_logits=from_logits)
         metrics = [tf.keras.metrics.CategoricalCrossentropy(from_logits=from_logits), "CategoricalAccuracy"]
         activation = "linear" if from_logits else "softmax"
         final_layer = Dense(target.num_tokens, activation=activation)
-        model_interpreter = BiddingLogitsModelInterpreter() if from_logits else BiddingPredictionModelInterpreter()
+        model_interpreter = target.model_interpreter(from_logits)
     else:
         loss = tf.keras.losses.MeanSquaredError()
         metrics = ["mae", "mse"]
         final_layer = Dense(target.shape, activation="linear")
-        if target == TargetHcp():
-            model_interpreter = HcpModelInterpreter()
-        else:
-            model_interpreter = None  # TODO other interpreters
+        model_interpreter = target.model_interpreter()
 
     weighted_metrics = None
     if sample_weights_calculator:
@@ -241,7 +235,7 @@ if __name__ == "__main__":
         regularizer,
         recurrent_dropout,
         include_metadata_features=False,
-        include_lstm_input_features=True
+        include_lstm_input_features=True,
     )
     model.compile(optimizer=optimizer, loss=loss, metrics=metrics, weighted_metrics=weighted_metrics)
 
@@ -253,12 +247,12 @@ if __name__ == "__main__":
         context_features,
         sequence_features,
         target,
-        #shuffle_size=None,
+        # shuffle_size=None,
         sample_weights_calculator=sample_weights_calculator,
         bucket_boundaries=bucket_boundaries,
         bucket_batch_sizes=bucket_batch_sizes,
     )
-    batches=100
+    batches = 100
     training_dataset = training_dataset.take(batches).shuffle(batches).cache()
 
     for entry in training_dataset:
@@ -267,10 +261,10 @@ if __name__ == "__main__":
 
     callbacks = [
         tf.keras.callbacks.TensorBoard(log_dir=f"./logs/{run_directory}/run_{run_number}"),
-        #tf.keras.callbacks.EarlyStopping(patience=100),
-        #tf.keras.callbacks.ModelCheckpoint(
+        # tf.keras.callbacks.EarlyStopping(patience=100),
+        # tf.keras.callbacks.ModelCheckpoint(
         #    filepath=f"drive/MyDrive/bid_learn/models/{run_directory}/run_{run_number}_checkpoints", save_best_only=True
-        #),
+        # ),
     ]
 
     logging.info(model.summary())
