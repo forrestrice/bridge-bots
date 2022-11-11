@@ -59,7 +59,7 @@ def _write_results(csv_path: Path, csv_dicts: List[Dict], headers: List[str] = _
     Write csv_dicts to csv_path using the supplied headers
     """
     logging.debug(f"Writing {len(csv_dicts)} deals to {csv_path}")
-    output_handle = open(csv_path, "w") if csv_path else sys.stdout
+    output_handle = open(csv_path, "a") if csv_path else sys.stdout
     try:
         writer = csv.DictWriter(output_handle, fieldnames=headers, extrasaction="ignore")
         writer.writeheader()

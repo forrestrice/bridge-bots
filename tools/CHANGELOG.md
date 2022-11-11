@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.4] - 2022-11-11
+### Changed
+- Added all csv report output fields to the deal practice tool
+
 ## [0.0.3] - 2022-4-03
 ### Added
 - New tool `compare_contracts_csv_report` for comparing sets of contracts' performance.
