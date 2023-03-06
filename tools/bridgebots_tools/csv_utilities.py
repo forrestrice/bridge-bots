@@ -45,7 +45,8 @@ _CSV_HEADERS = (
     "lho_hcp",
     "rho_hcp",
     "trump_fit",
-    "trump_hcp")
+    "trump_hcp",
+)
 
 _PREFIX_CSV_HEADERS = [f"o_{header}" for header in _CSV_HEADERS] + [f"c_{header}" for header in _CSV_HEADERS]
 
@@ -59,10 +60,12 @@ def _write_results(csv_path: Path, csv_dicts: List[Dict], headers: List[str] = _
     Write csv_dicts to csv_path using the supplied headers
     """
     logging.debug(f"Writing {len(csv_dicts)} deals to {csv_path}")
+    write_header = csv_path is None or not csv_path.is_file()
     output_handle = open(csv_path, "a") if csv_path else sys.stdout
     try:
         writer = csv.DictWriter(output_handle, fieldnames=headers, extrasaction="ignore")
-        writer.writeheader()
+        if write_header:
+            writer.writeheader()
         for csv_dict in csv_dicts:
             writer.writerow(csv_dict)
     finally:
