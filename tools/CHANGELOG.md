@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.5] - 2023-03-03
+### Changed
+- Fixed a bug in the practice tool that caused headers to be written to the csv in append mode
+
 ## [0.0.4] - 2022-11-11
 ### Changed
 - Added all csv report output fields to the deal practice tool
