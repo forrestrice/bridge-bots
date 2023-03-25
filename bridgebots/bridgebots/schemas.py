@@ -71,8 +71,8 @@ class DealSchema(Schema):
 
 
 class CommentarySchema(Schema):
-    bid_index = fields.Int(missing=None)
-    play_index = fields.Int(missing=None)
+    bid_index = fields.Int(load_default=None)
+    play_index = fields.Int(load_default=None)
     comment = fields.Str()
 
     class Meta:
@@ -87,7 +87,7 @@ class BidMetadataSchema(Schema):
     bid_index = fields.Int()
     bid = fields.Str()
     alerted = fields.Bool()
-    explanation = fields.Str(missing=None)
+    explanation = fields.Str(load_default=None)
 
     class Meta:
         ordered = True
@@ -105,16 +105,21 @@ class BoardRecordSchema(Schema):
     contract = ContractField()
     tricks = fields.Int()
     score = fields.Int()
-    scoring = fields.Str(missing=None)
+    scoring = fields.Str(load_default=None)
     names = fields.Dict(
         keys=DirectionField(),
         values=fields.Str,
-        missing={Direction.NORTH: "NORTH", Direction.SOUTH: "SOUTH", Direction.EAST: "EAST", Direction.WEST: "WEST"},
+        load_default={
+            Direction.NORTH: "NORTH",
+            Direction.SOUTH: "SOUTH",
+            Direction.EAST: "EAST",
+            Direction.WEST: "WEST",
+        },
     )
-    date = fields.Str(missing=None)  # TODO make this datetime?
-    event = fields.Str(missing=None)
-    bidding_metadata = fields.List(fields.Nested(BidMetadataSchema), missing=None)
-    commentary = fields.List(fields.Nested(CommentarySchema), missing=None)
+    date = fields.Str(load_default=None)  # TODO make this datetime?
+    event = fields.Str(load_default=None)
+    bidding_metadata = fields.List(fields.Nested(BidMetadataSchema()), load_default=None)
+    commentary = fields.List(fields.Nested(CommentarySchema()), load_default=None)
 
     class Meta:
         ordered = True
@@ -125,8 +130,8 @@ class BoardRecordSchema(Schema):
 
 
 class DealRecordSchema(Schema):
-    deal = fields.Nested(DealSchema)
-    board_records = fields.List(fields.Nested(BoardRecordSchema))
+    deal = fields.Nested(DealSchema())
+    board_records = fields.List(fields.Nested(BoardRecordSchema()))
 
     class Meta:
         ordered = True
