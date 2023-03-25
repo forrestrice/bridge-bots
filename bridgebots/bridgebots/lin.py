@@ -17,9 +17,9 @@ _BID_TRANSLATION = {"PASS": "p", "DBL": "d", "RDBL": "r"}
 _PASS_OUT_AUCTION = ["PASS"] * 4
 
 
-def _parse_lin_string(lin_str: str) -> Dict:
+def _parse_lin_nodes(lin_str: str) -> Dict:
     """
-    Accumulate all the LIN node contents. The node name becomes a key in the returned dict, and all the obeserved values
+    Accumulate all the LIN node contents. The node name becomes a key in the returned dict, and all the observed values
      for that key are stored in a list as the dictionary value
     :param lin_str: A LIN board record as a single line
     :return: A dictionary containing parsed LIN nodes
@@ -260,6 +260,22 @@ def _combine_header(file) -> str:
     raise ValueError(f"Invalid multi-lin header in file: {file}")
 
 
+def parse_lin_str(lin_str: str) -> List[DealRecord]:
+    """
+    Parse a board-per-lin lin str
+    :param lin_str: lin data
+    :return: Collected list of DealRecords each of which has a BoardRecord for each occurrence of a deal
+    """
+    # Maintain a mapping from deal to board records to create a single deal record per deal
+    records = defaultdict(list)
+    for line in lin_str.splitlines():
+        lin_dict = _parse_lin_nodes(line)
+        deal = _parse_deal(lin_dict)
+        board_record = _parse_board_record(lin_dict, deal)
+        records[deal].append(board_record)
+    return [DealRecord(deal, board_records) for deal, board_records in records.items()]
+
+
 def parse_single_lin(file_path: Path) -> List[DealRecord]:
     """
     Parse a board-per-line LIN file
@@ -267,14 +283,7 @@ def parse_single_lin(file_path: Path) -> List[DealRecord]:
     :return: A list of parsed DealRecords, one for each line of the LIN file
     """
     with open(file_path) as lin_file:
-        # Maintain a mapping from deal to board records to create a single deal record per deal
-        records = defaultdict(list)
-        for line in lin_file:
-            lin_dict = _parse_lin_string(line)
-            deal = _parse_deal(lin_dict)
-            board_record = _parse_board_record(lin_dict, deal)
-            records[deal].append(board_record)
-        return [DealRecord(deal, board_records) for deal, board_records in records.items()]
+        return parse_lin_str(lin_file.read())
 
 
 def parse_multi_lin(file_path: Path) -> List[DealRecord]:
@@ -285,7 +294,7 @@ def parse_multi_lin(file_path: Path) -> List[DealRecord]:
     """
     with open(file_path) as lin_file:
         header = _combine_header(lin_file)
-        parsed_header = _parse_lin_string(header)
+        parsed_header = _parse_lin_nodes(header)
         board_strings = []
         board_index = -1
         for line in lin_file:
@@ -302,7 +311,7 @@ def parse_multi_lin(file_path: Path) -> List[DealRecord]:
         records = defaultdict(list)
         for board_single_string in board_single_strings:
             try:
-                lin_dict = _parse_lin_string(board_single_string)
+                lin_dict = _parse_lin_nodes(board_single_string)
                 if "pn" in parsed_header:
                     lin_dict["pn"] = parsed_header["pn"]
                 deal = _parse_deal(lin_dict)

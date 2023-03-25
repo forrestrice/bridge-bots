@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bridgebots"
-version = "0.0.11a1"
+version = "0.0.11"
 description = "Data processing for Contract Bridge"
 authors = ["Forrest Rice <forrest.d.rice@gmail.com>"]
 license = "MIT"
