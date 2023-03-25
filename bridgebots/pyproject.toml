@@ -7,7 +7,7 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.7"
-marshmallow = "^3.12.1"
+marshmallow = "^3.19.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.3"
