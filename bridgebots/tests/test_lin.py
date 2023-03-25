@@ -23,9 +23,10 @@ from bridgebots.lin import (
     _parse_bidding_record,
     _parse_board_record,
     _parse_deal,
-    _parse_lin_string,
+    _parse_lin_nodes,
     _parse_player_names,
     _parse_tricks,
+    parse_lin_str,
 )
 
 
@@ -58,8 +59,13 @@ class TestParseLin(unittest.TestCase):
         "|pc|CK|pc|SQ|pg|| "
     )
 
+    def test_parse_lin_str(self):
+        parsed_lin = parse_lin_str(self.sample_lin)
+        self.assertEqual("Forrest_", parsed_lin[0].board_records[0].names[Direction.WEST])
+        self.assertEqual("1H", parsed_lin[0].board_records[0].bidding_record[1])
+
     def test_parse_lin_line(self):
-        lin_dict = _parse_lin_string(self.sample_lin)
+        lin_dict = _parse_lin_nodes(self.sample_lin)
         self.assertEqual(["1SQ982HQ82DKQ763CT,SJ643HKJ7653DCAQ4,SK5HADAJT52CJ9762,"], lin_dict["md"])
         self.assertEqual(["Board 15"], lin_dict["ah"])
         self.assertEqual(["n"], lin_dict["sv"])
@@ -179,7 +185,7 @@ class TestParseLin(unittest.TestCase):
         )
 
     def test_parse_board_record(self):
-        lin_dict = _parse_lin_string(self.sample_lin)
+        lin_dict = _parse_lin_nodes(self.sample_lin)
         deal = _parse_deal({"md": ["1SQ982HQ82DKQ763CT,SJ643HKJ7653DCAQ4,SK5HADAJT52CJ9762,"], "sv": ["e"]})
         expected_record = BoardRecord(
             bidding_record=["PASS", "1H", "2NT", "PASS", "3NT", "PASS", "PASS", "PASS"],

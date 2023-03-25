@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.11] - 2023-3-25
+### Added
+- `parse_lin_str` to parse a string instead of a LIN file
+### Changed
+- `build_lin_str` now takes an enum type of LIN to build rather than a string
+- Upgraded marshmallow and fixed warnings
+
 ## [0.0.10] - 2022-1-29
 ### Added
 - `board_name` is now an optional parameter of board_record. Added board name parsing to the lin module.
