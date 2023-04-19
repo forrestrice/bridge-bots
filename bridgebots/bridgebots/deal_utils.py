@@ -114,7 +114,12 @@ def from_pbn_deal(dealer_str: str, vulnerability_str: str, deal_str: str) -> Dea
     return Deal(dealer, ns_vulnerable, ew_vulnerable, player_hands)
 
 
-def _parse_lin_holding(holding: str) -> List[List[str]]:
+def parse_lin_holding(holding: str) -> List[List[str]]:
+    """
+    :param holding: A LIN style holding like SAKQ952HK65DQ6CKT
+    :return:
+    """
+    holding = holding.replace("10", "T")
     suit_holdings = []
     holding_index = 0
     for id in _HOLDING_SUIT_IDENTIFIERS:
@@ -143,7 +148,7 @@ def from_lin_deal(lin_dealer_str: str, vulnerability_str: str, holdings_str: str
     dealer = _LIN_DEALER_TO_DIRECTION[lin_dealer_str]
     holdings = holdings_str.strip(",").split(",")
     # Convert a holding string like SA63HJ8642DK53CKJ into a PlayerHand
-    players_suit_holdings = [_parse_lin_holding(holding) for holding in holdings]
+    players_suit_holdings = [parse_lin_holding(holding) for holding in holdings]
     player_hands = {}
     current_direction = Direction.SOUTH
     for suit_holdings in players_suit_holdings:
