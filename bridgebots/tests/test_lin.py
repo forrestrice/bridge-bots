@@ -26,6 +26,7 @@ from bridgebots.lin import (
     _parse_lin_nodes,
     _parse_player_names,
     _parse_tricks,
+    parse_handviewer_url,
     parse_lin_str,
 )
 
@@ -285,3 +286,48 @@ class TestBuildLin(unittest.TestCase):
             "7Cpg%7C%7C"
         )
         self.assertEqual(expected_boardless_lin_url, boardless_lin_url)
+
+
+class TestParseHandviewer(unittest.TestCase):
+    def test_parse_handviewer_url(self):
+        deal_record = parse_handviewer_url(
+            "https://www.bridgebase.com/tools/handviewer.html?n=S65HA86DAKJ1065CJ4&e=S10942HQJ53D842C52&s"
+            "=SAK87H1072DQ93C986&w=SQJ3HK94D7CAKQ1073&d=E&nn=Herve_Mouiel&en=Eric_Rodwell&sn=Alain_Levy&wn"
+            "=Jeff_Meckstroth&b=6&v=e&a=PP1C3DP5DXPPRPPP&p=HQH2H9HADAD2D3D7DTD4D9C3DKD8DQC7"
+        )
+        self.assertEqual(Direction.EAST, deal_record.deal.dealer)
+        self.assertEqual(False, deal_record.deal.ns_vulnerable)
+        self.assertEqual(True, deal_record.deal.ew_vulnerable)
+        self.assertEqual(
+            [Card.from_str(c) for c in ["S6", "S5", "HA", "H8", "H6", "DA", "DK", "DJ", "DT", "D6", "D5", "CJ", "C4"]],
+            deal_record.deal.hands[Direction.NORTH].cards,
+        )
+        self.assertEqual("Jeff_Meckstroth", deal_record.board_records[0].names[Direction.WEST])
+        self.assertEqual(
+            ["PASS", "PASS", "1C", "3D", "PASS", "5D", "X", "PASS", "PASS", "XX", "PASS", "PASS", "PASS"],
+            deal_record.board_records[0].bidding_record,
+        )
+        self.assertEqual(
+            [
+                Card.from_str(c)
+                for c in [
+                    "HQ",
+                    "H2",
+                    "H9",
+                    "HA",
+                    "DA",
+                    "D2",
+                    "D3",
+                    "D7",
+                    "DT",
+                    "D4",
+                    "D9",
+                    "C3",
+                    "DK",
+                    "D8",
+                    "DQ",
+                    "C7",
+                ]
+            ],
+            deal_record.board_records[0].play_record,
+        )

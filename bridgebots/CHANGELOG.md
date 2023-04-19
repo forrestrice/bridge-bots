@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.12] - 2023-4-18
+### Added
+- `parse_handviewer_url` to the lin module which parses a BBO handviewer URL to a Bridgebots `DealRecord`
+
 ## [0.0.11] - 2023-3-25
 ### Added
 - `parse_lin_str` to parse a string instead of a LIN file

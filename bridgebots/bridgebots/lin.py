@@ -5,12 +5,13 @@ from collections import defaultdict
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+from urllib import parse
 
 from bridgebots.bids import canonicalize_bid
 from bridgebots.board_record import BidMetadata, BoardRecord, Commentary, Contract, DealRecord
-from bridgebots.deal import Card, Deal
+from bridgebots.deal import Card, Deal, PlayerHand
 from bridgebots.deal_enums import BiddingSuit, Direction, Suit
-from bridgebots.deal_utils import from_lin_deal
+from bridgebots.deal_utils import _EW_VULNERABLE_STRINGS, _NS_VULNERABLE_STRINGS, from_lin_deal, parse_lin_holding
 from bridgebots.play_utils import trick_evaluator
 
 _BID_TRANSLATION = {"PASS": "p", "DBL": "d", "RDBL": "r"}
@@ -200,7 +201,11 @@ def _build_bidding_str(board_record: BoardRecord) -> str:
     Build the bidding section of a LIN file for the given BoardRecord. Use BiddingMetadata to include alerts and
     explanations.
     """
-    metadata_by_index = {metadata.bid_index: metadata for metadata in board_record.bidding_metadata}
+    metadata_by_index = (
+        {metadata.bid_index: metadata for metadata in board_record.bidding_metadata}
+        if board_record.bidding_metadata
+        else {}
+    )
     bidding_str = ""
     for bid_index, bid in enumerate(board_record.bidding_record):
         translated_bid = _BID_TRANSLATION.get(bid, bid).replace("NT", "N")
@@ -274,6 +279,66 @@ def parse_lin_str(lin_str: str) -> List[DealRecord]:
         board_record = _parse_board_record(lin_dict, deal)
         records[deal].append(board_record)
     return [DealRecord(deal, board_records) for deal, board_records in records.items()]
+
+
+def parse_handviewer_url(handviewer_url: str) -> DealRecord:
+    """
+    :param handviewer_url: BBo handviewer url like
+    https://www.bridgebase.com/tools/handviewer.html?n=SKHAKJ82DAQ96CK52&e=SAQ972H97DJ10CQJ103&s=S8643HQ10DK75CA976&w
+    =SJ105H6543D8432C84&d=S&nn=Jeff_Meckstroth&en=Christian_Mari&sn=Eric_Rodwell&wn=Alain_Levy&b=7&v=b&a
+    =PP1C1S2SP3HP3SP4DP4HPPP&p=CQC6C8CKH2H7HQH3HTH4H8H9D5D4DADJHAS2S3H5HKS7S4H6D6DTDKD2D7D3DQC3D9S9S6D8HJSQ
+    :return: parsed DealRecord. Since claims are not included in these urls the score/tricks fields are not set
+    """
+    handiewer_data = handviewer_url.replace("https://www.bridgebase.com/tools/handviewer.html?", "")
+    handviewer_dict = dict(parse.parse_qsl(handiewer_data))
+
+    def parse_holding(direction: Direction):
+        key = direction.abbreviation().lower()
+        holding_lists = parse_lin_holding(handviewer_dict[key])
+        return PlayerHand.from_string_lists(*holding_lists)
+
+    hands = {d: parse_holding(d) for d in Direction}
+    dealer = Direction.from_str(handviewer_dict["d"])
+    ns_vulnerable = handviewer_dict["v"] in _NS_VULNERABLE_STRINGS
+    ew_vulnerable = handviewer_dict["v"] in _EW_VULNERABLE_STRINGS
+    deal = Deal(dealer, ns_vulnerable, ew_vulnerable, hands)
+
+    def split_bidding_record(bidding_record: str):
+        bidding_record_list = []
+        current_bid = ""
+        for c in bidding_record:
+            if c.isnumeric():
+                current_bid += c
+                continue
+            current_bid += c
+            bidding_record_list.append(current_bid)
+            current_bid = ""
+        return bidding_record_list
+
+    raw_bidding_record = split_bidding_record(handviewer_dict["a"])
+    bidding_record, bidding_metadata, contract = _parse_bidding_record(raw_bidding_record, {})
+    raw_play_record = handviewer_dict["p"]
+    play_record = [Card.from_str(raw_play_record[i : i + 2]) for i in range(0, len(raw_play_record), 2)]
+    declarer = _determine_declarer(play_record, bidding_record, deal)
+    player_names = {direction: handviewer_dict[direction.abbreviation().lower() + "n"] for direction in Direction}
+    board_record = BoardRecord(
+        bidding_record=bidding_record,
+        raw_bidding_record=raw_bidding_record,
+        play_record=play_record,
+        declarer=declarer,
+        contract=Contract.from_str(contract),
+        tricks=-1,
+        score=-1,
+        names=player_names,
+        board_name=handviewer_dict["b"],
+        bidding_metadata=None,
+        commentary=None,
+        date=None,
+        scoring=None,
+        event=None,
+    )
+    deal_record = DealRecord(deal, [board_record])
+    return deal_record
 
 
 def parse_single_lin(file_path: Path) -> List[DealRecord]:
