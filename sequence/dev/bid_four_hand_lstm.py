@@ -6,7 +6,7 @@ from tensorflow.keras import layers
 from tensorflow.python.keras import Input, Model
 from tensorflow.python.keras.layers import Dense
 
-from sequence.bidding_training_data import BiddingSequenceDataGenerator, BiddingTrainingData
+from sequence.dev.bidding_training_data import BiddingSequenceDataGenerator, BiddingTrainingData
 from train.bridge_training_utils import BIDDING_VOCAB
 
 

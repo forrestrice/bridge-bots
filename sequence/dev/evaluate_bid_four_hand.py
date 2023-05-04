@@ -3,7 +3,7 @@ from typing import List
 
 from tensorflow import keras
 
-from sequence.bidding_training_data import BiddingSequenceDataGenerator, BiddingTrainingData
+from sequence.dev.bidding_training_data import BiddingSequenceDataGenerator, BiddingTrainingData
 
 bid_learn_prefix = "/Users/frice/bridge/bid_learn_noeos/"
 
