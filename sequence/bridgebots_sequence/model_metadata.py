@@ -10,11 +10,10 @@ from bridgebots_sequence.interpreter import ModelInterpreter
 @dataclass(frozen=True)
 class ModelMetadata:
     training_data: Path
-    validation_data : Optional[Path]
+    validation_data: Optional[Path]
     context_features: List[ContextFeature]
     sequence_features: List[SequenceFeature]
-    target : Union[ContextFeature, CategoricalSequenceFeature]
+    target: Union[ContextFeature, CategoricalSequenceFeature]
     model_interpreter: ModelInterpreter
     description: str
-    training_metrics : Dict[str, float]
-
+    training_metrics: Dict[str, float]
