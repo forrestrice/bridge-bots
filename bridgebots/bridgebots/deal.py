@@ -91,6 +91,16 @@ class PlayerHand:
     def __hash__(self) -> int:
         return hash(set(self.cards))
 
+    def holding_str(self) -> str:
+        suit_holding_strs = []
+        for s in reversed(Suit):
+            suit_holding = self.suits[s]
+            if suit_holding:
+                suit_holding_strs.append("".join([r.abbreviation() for r in self.suits[s]]))
+            else:
+                suit_holding_strs.append("-")
+        return " ".join(suit_holding_strs)
+
 
 class Deal:
     """
