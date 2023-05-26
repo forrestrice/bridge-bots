@@ -46,6 +46,11 @@ _CSV_HEADERS = (
     "rho_hcp",
     "trump_fit",
     "trump_hcp",
+    "declarer_hand",
+    "dummy_hand",
+    "lho_hand",
+    "rho_hand",
+    "lead_suit_holding"
 )
 
 _PREFIX_CSV_HEADERS = [f"o_{header}" for header in _CSV_HEADERS] + [f"c_{header}" for header in _CSV_HEADERS]

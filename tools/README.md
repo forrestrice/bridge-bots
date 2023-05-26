@@ -48,48 +48,53 @@ Options:
 - `OUTPUT_PATH` path to output csv file. If not supplied, the csv will be written to stdout.
 
 ### Output Fields
-|       Name       | Value                                                                                        |
-|:----------------:|:---------------------------------------------------------------------------------------------|
-|     board_id     | Board name                                                                                   |
-|       file       | Originating file                                                                             |
-|    deal_hash     | A unique identifier of the deal, dealer, and vulnerability                                   |
-|      north       | Player name                                                                                  |
-|      south       | Player name                                                                                  |
-|       east       | Player name                                                                                  |
-|       west       | Player name                                                                                  |
-|      dealer      | Direction                                                                                    |
-|    vulnerable    | Which seats are vulnerable. One of: `all`, `none`, `1-3` (declarer r/w), `2-4`(declarer w/r) |
-|     bidding      | The bids, alerts, and announcements from the auction                                         |
-|      opener      | Which seat opened (1-indexed)                                                                |
-|     opening      | Bid                                                                                          |
-|    opener_hcp    | Opener's Goren high card points                                                              |
-|   opener_shape   | Opener's shape in descending suit order                                                      |
-|  overcall_type   | One of `None`, `Direct`, `Sandwich`, or `Balance`                                            |
-|     overcall     | Bid                                                                                          |
-|  overcaller_hcp  | Overcallers's Goren high card points                                                         |
-| overcaller_shape | Overcaller's shape in descending suit order                                                  |
-|    contested     | True if the team that didn't open made any action other than PASS                            |
-|   competitive    | True if each team made at least two bids                                                     |
-|     declarer     | Direction                                                                                    |
-|     contract     | Final Contract                                                                               |
-|       lead       | Card led                                                                                     |
-|      result      | Outcome (e.g. 2H-2)                                                                          |
-|      tricks      | Number of tricks taken by declarer                                                           |
-|     score_ns     | Score for north-south                                                                        |
-|     score_ew     | Score for east-west                                                                          |
-|  score_declarer  | Score for declarer's team                                                                    |
-|  score_defender  | Score for defenders' team                                                                    |
-|       link       | BBO link to board_record                                                                     |
-|  declarer_shape  | Declarer's shape in suit order                                                               |
-|   dummy_shape    | Dummy's shape in suit order                                                                  |
-|    lho_shape     | Declarer's left-hand opponent shape in suit order                                            |
-|    rho_shape     | Declarer's right-hand opponent shape suit order                                              |
-|   declarer_hcp   | Declarer's high card points                                                                  |
-|    dummy_hcp     | Dummy's high card points                                                                     |
-|     lho_hcp      | Declarer's left-hand opponent high card points                                               |
-|     rho_hcp      | Declarer's right-hand opponent high card points                                              |
-|    trump_fit     | Number of trumps held by declarer + dummy                                                    |
-|    trump_hcp     | Number of high card points held by declarer + dummy in the trump suit                        |
+|       Name        | Value                                                                                        |
+|:-----------------:|:---------------------------------------------------------------------------------------------|
+|     board_id      | Board name                                                                                   |
+|       file        | Originating file                                                                             |
+|     deal_hash     | A unique identifier of the deal, dealer, and vulnerability                                   |
+|       north       | Player name                                                                                  |
+|       south       | Player name                                                                                  |
+|       east        | Player name                                                                                  |
+|       west        | Player name                                                                                  |
+|      dealer       | Direction                                                                                    |
+|    vulnerable     | Which seats are vulnerable. One of: `all`, `none`, `1-3` (declarer r/w), `2-4`(declarer w/r) |
+|      bidding      | The bids, alerts, and announcements from the auction                                         |
+|      opener       | Which seat opened (1-indexed)                                                                |
+|      opening      | Bid                                                                                          |
+|    opener_hcp     | Opener's Goren high card points                                                              |
+|   opener_shape    | Opener's shape in descending suit order                                                      |
+|   overcall_type   | One of `None`, `Direct`, `Sandwich`, or `Balance`                                            |
+|     overcall      | Bid                                                                                          |
+|  overcaller_hcp   | Overcallers's Goren high card points                                                         |
+| overcaller_shape  | Overcaller's shape in descending suit order                                                  |
+|     contested     | True if the team that didn't open made any action other than PASS                            |
+|    competitive    | True if each team made at least two bids                                                     |
+|     declarer      | Direction                                                                                    |
+|     contract      | Final Contract                                                                               |
+|       lead        | Card led                                                                                     |
+|      result       | Outcome (e.g. 2H-2)                                                                          |
+|      tricks       | Number of tricks taken by declarer                                                           |
+|     score_ns      | Score for north-south                                                                        |
+|     score_ew      | Score for east-west                                                                          |
+|  score_declarer   | Score for declarer's team                                                                    |
+|  score_defender   | Score for defenders' team                                                                    |
+|       link        | BBO link to board_record                                                                     |
+|  declarer_shape   | Declarer's shape in suit order                                                               |
+|    dummy_shape    | Dummy's shape in suit order                                                                  |
+|     lho_shape     | Declarer's left-hand opponent shape in suit order                                            |
+|     rho_shape     | Declarer's right-hand opponent shape suit order                                              |
+|   declarer_hcp    | Declarer's high card points                                                                  |
+|     dummy_hcp     | Dummy's high card points                                                                     |
+|      lho_hcp      | Declarer's left-hand opponent high card points                                               |
+|      rho_hcp      | Declarer's right-hand opponent high card points                                              |
+|   declarer_hand   | Declarer's hand                                                                              |
+|    dummy_hand     | Dummy's hand                                                                                 |
+|     lho_hand      | Declarer's left-hand opponent hand                                                           |
+|     rho_hand      | Declarer's right-hand opponent hand                                                          |
+| lead_suid_holding | Holding that was led from                                                                    |
+|     trump_fit     | Number of trumps held by declarer + dummy                                                    |
+|     trump_hcp     | Number of high card points held by declarer + dummy in the trump suit                        |
 
 ### Examples
 Run the report on a single LIN file and output in team format:

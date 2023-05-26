@@ -7,7 +7,8 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.7"
-bridgebots =  {version = "0.0.11a1", allow-prereleases = true}
+#bridgebots =  {version = "0.0.11a1", allow-prereleases = true}
+bridgebots = {path = "/Users/frice/bridge/bridge-bots/bridgebots/dist/bridgebots-0.0.14a0-py3-none-any.whl"}
 click = "^8.0.3"
 
 [tool.poetry.dev-dependencies]

@@ -27,6 +27,14 @@ def _calculate_trump_data(deal: Deal, board_record: BoardRecord) -> Tuple[Option
     return len(offense_trumps), count_hcp(offense_trumps)
 
 
+def _lead_suit_holding(deal: Deal, board_record: BoardRecord) -> Optional[str]:
+    if not board_record.play_record:
+        return None
+    lead_suit = board_record.play_record[0].suit
+    lead_suit_ranks = deal.hands[board_record.declarer].suits[lead_suit]
+    return "".join([r.abbreviation() for r in lead_suit_ranks])
+
+
 def _extract_board_data(deal: Deal, board_record: BoardRecord, results_path: Path) -> Dict:
     """
     :return: A dictionary of csv keys to data values for use in a csv.DictWriter
@@ -67,13 +75,20 @@ def _extract_board_data(deal: Deal, board_record: BoardRecord, results_path: Pat
 
     board_dict["declarer_shape"] = _calculate_shape_str(deal.player_cards[board_record.declarer])
     board_dict["dummy_shape"] = _calculate_shape_str(deal.player_cards[board_record.declarer.partner()])
-    board_dict["lho_shape"] = _calculate_shape_str(deal.player_cards[board_record.declarer.offset(1)])
-    board_dict["rho_shape"] = _calculate_shape_str(deal.player_cards[board_record.declarer.offset(3)])
+    board_dict["lho_shape"] = _calculate_shape_str(deal.player_cards[board_record.declarer.next()])
+    board_dict["rho_shape"] = _calculate_shape_str(deal.player_cards[board_record.declarer.previous()])
 
     board_dict["declarer_hcp"] = count_hcp(deal.player_cards[board_record.declarer])
     board_dict["dummy_hcp"] = count_hcp(deal.player_cards[board_record.declarer.partner()])
-    board_dict["lho_hcp"] = count_hcp(deal.player_cards[board_record.declarer.offset(1)])
-    board_dict["rho_hcp"] = count_hcp(deal.player_cards[board_record.declarer.offset(3)])
+    board_dict["lho_hcp"] = count_hcp(deal.player_cards[board_record.declarer.next()])
+    board_dict["rho_hcp"] = count_hcp(deal.player_cards[board_record.declarer.previous()])
+
+    board_dict["declarer_hand"] = deal.hands[board_record.declarer].holding_str()
+    board_dict["dummy_hand"] = deal.hands[board_record.declarer.partner()].holding_str()
+    board_dict["lho_hand"] = deal.hands[board_record.declarer.next()].holding_str()
+    board_dict["rho_hand"] = deal.hands[board_record.declarer.previous()].holding_str()
+
+    board_dict["lead_suit_holding"] = _lead_suit_holding(deal, board_record)
 
     trump_fit, trump_hcp = _calculate_trump_data(deal, board_record)
     board_dict["trump_fit"] = trump_fit
@@ -158,7 +173,7 @@ def _calculate_overcaller_data(
     bid_counter = [0, 0]
     for i, bid in enumerate(board_record.bidding_record):
         if bid != "PASS":
-            bid_counter[i%2] += 1
+            bid_counter[i % 2] += 1
     competitive = bid_counter[0] >= 2 and bid_counter[1] >= 2
     return overcall_type, overcall, overcaller_hcp, overcaller_shape_str, contested, competitive
 
